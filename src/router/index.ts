@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Animation1 from '../component/welcome/Animation1.vue'
 import Animation2 from '../component/welcome/Animation2.vue'
-import Animation3 from '../component/welcome/Animation2.vue'
+import Animation3 from '../component/Main/Animation3.vue'
 const router = createRouter({
   history: createWebHistory('AlexBybye.github.io'), 
   routes: [

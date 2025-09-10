@@ -3,7 +3,7 @@
         <img src="/images/GOAL.png" alt="Background Image" class="background-image breathing-effect">
         <canvas ref="canvas" class="confetti-canvas"></canvas>
         <div class="box">
-            <div class="butt" @click="gotoAnimation3">
+            <div class="butt" @click="goToAnimation3">
                 <div class="button_icon">Welcome to my website
                 </div>
             </div>
@@ -18,8 +18,8 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-const gotoscene3= () => {
-  router.push('/animation3'); // 确保 '/animation2' 是你在路由中定义的路径
+const goToAnimation3= () => {
+  router.push('/animation3'); 
 };
 
 const canvas = ref(null)
