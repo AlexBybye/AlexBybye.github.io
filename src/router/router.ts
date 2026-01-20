@@ -20,11 +20,6 @@ const routes = [
     component: Animation1
   },
   {
-    path: '/animation1',
-    name: 'Animation1',
-    component: Animation1
-  },
-  {
     path: '/animation2',
     name: 'Animation2',
     component: Animation2
@@ -55,6 +50,12 @@ const routes = [
         component: Album
       },
       {
+        path: 'album/:id',
+        name: 'AlbumDetail',
+        component: AlbumDetail,
+        props: true
+      },
+      {
         path: 'music/playlist',
         name: 'MusicPlaylist',
         component: MusicPlaylist
@@ -71,16 +72,10 @@ const routes = [
       }
     ]
   },
-  {
-    path: '/album/:id',
-    name: 'AlbumDetail',
-    component: AlbumDetail,
-    props: true
-  }
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL), 
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes
 })
 
