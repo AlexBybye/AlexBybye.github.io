@@ -21,12 +21,12 @@ const routes = [
     component: Animation1
   },
   {
-    path: '/animation2',
+    path: '/Animation2',
     name: 'Animation2',
     component: Animation2
   },
   {
-    path: '/animation3',
+    path: '/Animation3',
     name: 'Animation3',
     component: Animation3,
     children: [
@@ -43,7 +43,7 @@ const routes = [
       {
         path: 'article/detail/:id',
         name: 'ArticleDetail',
-        component: Article,
+        component: Article, // 这里应该使用一个专门的详情组件或修复逻辑
         props: true
       },
       {
