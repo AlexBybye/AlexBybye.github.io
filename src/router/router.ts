@@ -61,7 +61,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHashHistory('/PersonalWeb/'), // 使用hash模式
+  history: createWebHashHistory(import.meta.env.BASE_URL), 
   routes
 })
 
