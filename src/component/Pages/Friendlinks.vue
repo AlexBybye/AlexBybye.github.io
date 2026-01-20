@@ -34,7 +34,7 @@ interface FriendLink {
 const friendLinks = ref<FriendLink[]>([
   {
     name: '肖恩',
-    url: 'https://devilsean-github-io.vercel.app/',
+    url: 'https://devilsean.github.io./',
     description: '这是肖恩的个人博客',
     avatar: 'https://avatars.githubusercontent.com/u/170224409?v=4'
   },

@@ -2,7 +2,7 @@
   <div 
     class="album-page-container" 
     :class="{ 'page-throw-up': isLeaving }"
-    :style="{ opacity: isLeaving ? 1 : (isHovered ? 0.8 : 0.1) }"
+    :style="{ opacity: isLeaving ? 1 : (isHovered ? 0.8 : 0.2) }"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
