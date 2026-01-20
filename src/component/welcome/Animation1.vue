@@ -2,98 +2,194 @@
   <div id="app-background">
     <router-view />
 
-    <div class="breathing-text-container">
+    <div class="header-section">
       <h1 class="breathing-text">SHOT ON THE TARGET</h1>
+      <p class="sub-hint">KICK THE FOOTBALL BELOW</p>
     </div>
-     <button class="football-click-area" @click="goToAnimation2"></button>
+
+    <svg class="shot-trajectory" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path id="ballPath" d="M 50 95 Q 50 50 50 15" fill="transparent" stroke="rgba(0, 191, 255, 0.8)"
+        stroke-width="0.5" stroke-dasharray="100" stroke-dashoffset="100" :class="{ 'animate-trail': isKicked }" />
+      <circle v-if="isKicked" cx="50" cy="95" r="2" fill="none" stroke="#00bfff" stroke-width="0.2">
+        <animate attributeName="r" from="0" to="10" dur="0.8s" fill="freeze" />
+        <animate attributeName="opacity" from="1" to="0" dur="0.8s" fill="freeze" />
+      </circle>
+    </svg>
+
+    <div class="football-click-area" @click="handleKick" :class="{ 'kicked': isKicked }">
+      <div class="hover-glow"></div>
+    </div>
+
+    <div class="vignette"></div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+const isKicked = ref(false);
 
-const goToAnimation2 = () => {
-  router.push('/animation2'); // 确保 '/animation2' 是你在路由中定义的路径
+const handleKick = () => {
+  if (isKicked.value) return;
+
+  // 触发动画状态
+  isKicked.value = true;
+
+  // 延时 1.2 秒跳转，给足蓝色轨迹划向球门的时间
+  setTimeout(() => {
+    router.push('/animation2');
+  }, 1200);
 };
 </script>
 
-<style>
-#app-background {
-  background-image: url('/images/background_1.png'); 
-  background-size: cover; /* 确保图片覆盖整个容器 */
-  background-position: center; /* 图片居中显示 */
-  background-repeat: no-repeat; /* 不重复背景图 */
-  min-height: 100vh; /* 确保背景覆盖整个视口高度 */
-  width: 100vw; /* 确保背景覆盖整个视口宽度 */
-  position: relative; /* 用于文字定位 */
-  display: flex; /* 让文字居中 */
-  flex-direction: column; /* 垂直排列 */
-  justify-content: flex-start; /* 文字位于顶部 */
-  align-items: center; /* 水平居中文字 */
-  overflow: hidden; /* 防止内容溢出 */
-}
-
-/* 其他全局样式，例如重置默认边距 */
-body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden; /* 防止出现水平滚动条 */
-}
-</style>
-
 <style scoped>
-/* 呼吸效果文字的容器 */
-.breathing-text-container {
+#app-background {
+  background-image: url('/images/background_1.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  width: 100vw;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* 顶部区域美化 */
+.header-section {
   position: absolute;
-  top: 5%; /* 调整文字与顶部的距离 */
-  left: 50%;
-  transform: translateX(-50%); /* 水平居中 */
-  width: 100%;
+  top: 8%;
+  z-index: 10;
   text-align: center;
 }
 
-/* 呼吸效果文字的样式 */
 .breathing-text {
-  font-size: clamp(2rem, 8vw, 6rem); /* 响应式字体大小 */
-  font-weight: bold;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin: 0;
-  padding: 0;
-  
-  /* 橙色渐变 */
-  background: linear-gradient(to right, #ff8c00, #ff4500); /* 从深橙到亮橙的渐变 */
-  -webkit-background-clip: text; /* 剪切背景以适应文本形状 */
-  -webkit-text-fill-color: transparent; /* 使文本颜色透明，只显示背景 */
-  
-  /* 呼吸动画 */
-  animation: breathe 2s infinite alternate; /* 2秒动画，无限循环，交替方向 */
+  font-size: clamp(2.5rem, 10vw, 7rem);
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  background: linear-gradient(135deg, #ff8c00 0%, #ff4500 50%, #e63900 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 5px 15px rgba(255, 69, 0, 0.4));
+  animation: breathe 3s infinite ease-in-out;
+  margin-bottom: 10px;
 }
 
-@keyframes breathe {
-  0% {
-    opacity: 0.7; /* 初始透明度 */
-    transform: scale(1);
-  }
-  100% {
-    opacity: 1; /* 最终透明度 */
-    transform: scale(1.05); /* 稍微放大 */
+.sub-hint {
+  color: white;
+  font-family: 'Arial', sans-serif;
+  letter-spacing: 0.4em;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  animation: pulse 2s infinite;
+}
+
+/* 射门轨迹 SVG */
+.shot-trajectory {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.animate-trail {
+  animation: drawPath 1s forwards cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes drawPath {
+  to {
+    stroke-dashoffset: 0;
+    filter: blur(1px);
   }
 }
+
+/* 足球交互区 */
 .football-click-area {
-  position: absolute; /* 绝对定位 */
-  bottom: 0; /* 放在底部 */
-  left: 50%; /* 水平居中 */
-  transform: translateX(-50%); /* 精确居中 */
-  width: 20%; /* 调整按钮的宽度，使其覆盖足球区域 */
-  height: 200px; /* 调整按钮的高度，使其覆盖足球区域 */
-  background-color: rgba(255, 0, 0, 0.0); /* 完全透明，不显示按钮本身 */
-  cursor: pointer; /* 鼠标悬停时显示为手型 */
-  z-index: 3; /* 确保按钮在背景图和文字上方，可点击 */
-  border: none; /* 移除按钮默认边框 */
-  outline: none; /* 移除点击时的轮廓 */
+  position: absolute;
+  bottom: 2%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.3s;
 }
 
+.hover-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 191, 255, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.football-click-area:hover .hover-glow {
+  opacity: 1;
+}
+
+/* 沉浸感美化 */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+  pointer-events: none;
+}
+
+/* 动画定义 */
+@keyframes breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes kickFlash {
+  0% {
+    background: rgba(0, 191, 255, 0);
+  }
+
+  50% {
+    background: rgba(0, 191, 255, 0.2);
+  }
+
+  100% {
+    background: rgba(0, 191, 255, 0);
+  }
+}
+
+.kicked {
+  animation: kickFlash 0.5s ease-out;
+}
 </style>
