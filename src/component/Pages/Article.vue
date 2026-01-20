@@ -10,11 +10,33 @@
           <div class="tags" v-if="currentArticle.tags && currentArticle.tags.length > 0">
             <span class="tag" v-for="tag in currentArticle.tags" :key="tag">{{ tag }}</span>
           </div>
+          
+          <!-- 文章统计信息 -->
+          <div class="article-stats">
+            <span class="stat-item">
+              👍 <strong>{{ articleLikeCount }}</strong> 个赞
+              <button 
+                @click="toggleArticleLike" 
+                :class="['like-btn', { 'liked': isArticleLiked }]"
+                :disabled="isArticleLiked"
+              >
+                {{ isArticleLiked ? '已点赞' : '点赞' }}
+              </button>
+            </span>
+            <span class="stat-item">
+              💬 <strong>{{ commentCount }}</strong> 条评论
+            </span>
+          </div>
         </div>
         <div class="markdown-content" v-html="currentArticle.content"></div>
         
         <!-- 评论区 -->
-        <CommentSection v-if="currentArticleId" :article-id="currentArticleId" class="comment-section" />
+        <CommentSection 
+          ref="commentSectionRef"
+          v-if="currentArticleId" 
+          :article-id="currentArticleId" 
+          class="comment-section" 
+        />
       </div>
       <div v-else class="loading">加载文章中...</div>
     </div>
@@ -29,6 +51,16 @@
           <div class="article-meta">
             <span class="date">{{ formatDate(article.date) }}</span>
             <span class="category" v-if="article.category">{{ article.category }}</span>
+            
+            <!-- 列表视图中的统计信息 -->
+            <div class="article-stats-small">
+              <span class="stat-item-small">
+                👍 {{ getArticleLikeCount(article.id) }}
+              </span>
+              <span class="stat-item-small">
+                💬 {{ getArticleCommentCount(article.id) }}
+              </span>
+            </div>
           </div>
           <div class="tags" v-if="article.tags && article.tags.length > 0">
             <span class="tag" v-for="tag in article.tags" :key="tag">{{ tag }}</span>
@@ -66,6 +98,16 @@
           <div class="article-meta">
             <span class="date">{{ formatDate(article.date) }}</span>
             <span class="category" v-if="article.category">{{ article.category }}</span>
+            
+            <!-- 列表视图中的统计信息 -->
+            <div class="article-stats-small">
+              <span class="stat-item-small">
+                👍 {{ getArticleLikeCount(article.id) }}
+              </span>
+              <span class="stat-item-small">
+                💬 {{ getArticleCommentCount(article.id) }}
+              </span>
+            </div>
           </div>
           <div class="tags" v-if="article.tags && article.tags.length > 0">
             <span class="tag" v-for="tag in article.tags" :key="tag">{{ tag }}</span>
@@ -81,11 +123,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import TagCloud from './TagCloud.vue'; // 导入标签云组件
 import CommentSection from '../CommentSection.vue'; // 导入评论组件
 import { loadArticles, getArticleById } from '@/service/articleService'; // 导入文章服务
+import { likeService } from '@/service/LikeService'; // 导入点赞服务
 
 interface Article {
   id: string;
@@ -107,6 +150,52 @@ const currentArticle = ref<Article | null>(null);
 const selectedCategory = ref('');
 const searchQuery = ref('');
 const filteredArticles = ref<Article[]>([]);
+
+// 引用CommentSection组件
+const commentSectionRef = ref(null);
+
+// 计算属性：获取当前文章的点赞数和评论数
+const articleLikeCount = computed(() => {
+  if (currentArticle.value) {
+    return likeService.getArticleLikes(currentArticle.value.id);
+  }
+  return 0;
+});
+
+const isArticleLiked = computed(() => {
+  if (currentArticle.value) {
+    return likeService.isItemLiked(currentArticle.value.id, 'article');
+  }
+  return false;
+});
+
+const commentCount = computed(() => {
+  if (commentSectionRef.value) {
+    // @ts-ignore - TypeScript doesn't know about exposed properties
+    return commentSectionRef.value.commentCount || 0;
+  }
+  return 0;
+});
+
+// 获取文章列表中每篇文章的点赞数
+const getArticleLikeCount = (articleId: string) => {
+  return likeService.getArticleLikes(articleId);
+};
+
+// 获取文章列表中每篇文章的评论数
+const getArticleCommentCount = (articleId: string) => {
+  // 从localStorage获取评论数据
+  try {
+    const stored = localStorage.getItem('article-comments');
+    if (stored) {
+      const allComments = JSON.parse(stored);
+      return allComments.filter((comment: any) => comment.articleId === articleId).length;
+    }
+  } catch (error) {
+    console.error('获取评论数失败:', error);
+  }
+  return 0;
+};
 
 // 获取所有可用的分类
 const categories = computed(() => {
@@ -154,7 +243,7 @@ onMounted(async () => {
   if (currentArticleId.value) {
     await loadArticleDetail(currentArticleId.value);
   } else if (currentTag.value) {
-    filterByTag(currentTag.value);
+    filterByTag(currentTag.value as string);
   } else {
     filteredArticles.value = [...articles.value];
   }
@@ -170,7 +259,7 @@ const loadAllArticles = async () => {
     if (currentArticleId.value) {
       await loadArticleDetail(currentArticleId.value);
     } else if (currentTag.value) {
-      filterByTag(currentTag.value);
+      filterByTag(currentTag.value as string);
     } else {
       filteredArticles.value = [...articles.value];
     }
@@ -238,6 +327,14 @@ const filterArticles = () => {
   currentArticle.value = null;
 };
 
+// 点赞/取消点赞当前文章
+const toggleArticleLike = () => {
+  if (currentArticle.value) {
+    const result = likeService.toggleArticleLike(currentArticle.value.id);
+    console.log(`文章 ${currentArticle.value.id} 点赞状态:`, result);
+  }
+};
+
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('zh-CN', {
@@ -262,7 +359,6 @@ const truncateText = (html: string, maxLength: number) => {
 .page-container {
   width: 80%;
   margin: 0 auto;
-  padding: 20px;
   background-color: #333;
   min-height: calc(100vh - 30% - 40px);
   opacity: 0.95;
@@ -349,7 +445,6 @@ p {
   gap: 10px;
   margin-bottom: 10px;
   font-size: 0.9rem;
-  color: #aaa;
 }
 
 .date {
@@ -454,5 +549,61 @@ p {
 
 .comment-section {
   margin-top: 40px;
+}
+
+/* 文章统计信息样式 */
+.article-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #555;
+  border-bottom: 1px solid #555;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.like-btn {
+  padding: 3px 8px;
+  border: 1px solid #03dac6;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #03dac6;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.like-btn:hover:not(:disabled) {
+  background-color: #03dac6;
+  color: #000;
+}
+
+.like-btn:disabled {
+  background-color: #03dac6;
+  color: #000;
+  cursor: not-allowed;
+}
+
+.liked {
+  background-color: #03dac6;
+  color: #000;
+}
+
+.article-stats-small {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.stat-item-small {
+  font-size: 0.8rem;
+  color: #aaa;
 }
 </style>

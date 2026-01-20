@@ -178,6 +178,8 @@
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
   color: #1a1a1a !important;
   /* 背景变亮，文字变深 */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 /* 悬停时内部文字和链接颜色适配 */

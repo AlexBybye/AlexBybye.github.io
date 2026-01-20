@@ -1,13 +1,5 @@
 {
   "tracks": [
-     {
-      "title": "Wolf Colony - Beauty",
-      "artist": "Unmasked",
-      "type": "R&B ,pop",
-      "filename": "Unmasked - Wolf Colony - Beauty.mp3",
-      "coverImage": "img/R&B.jpg",
-      "duration": "202"
-    },
     {
       "title": "3年E組うた担 - 旅立ちのうた",
       "artist": "旅立ちのうた",
@@ -23,6 +15,14 @@
       "filename": "Alex Keeper,maybealice - One of Your Illusions.mp3",
       "coverImage": "img/house.jpg",
       "duration": "156"
+    },
+    {
+      "title": "evening_self",
+      "artist": "Lin_eclipse(Surprise!)",
+      "type": "postpunk",
+      "filename": "best play of evening_self_8.mp3",
+      "coverImage": "img/postpunk.jpg",
+      "duration": "177"
     },
     {
       "title": "Max Oazo - Call Me Back",
@@ -71,14 +71,6 @@
       "filename": "Figure You Out - BB Cooper,Jake Daniels - Figure You Out.mp3",
       "coverImage": "img/pop.jpg",
       "duration": "127"
-    },
-    {
-      "title": "Saint",
-      "artist": "Forester",
-      "type": "house",
-      "filename": "Forester - Saint.mp3",
-      "coverImage": "img/house.jpg",
-      "duration": "216"
     },
     {
       "title": "keshi - HELLHEAVEN",
@@ -145,6 +137,14 @@
       "duration": "166"
     },
     {
+      "title": "payphone",
+      "artist": "Lin_eclipse(Surprise!)",
+      "type": "pop",
+      "filename": "payphone.mp3",
+      "coverImage": "img/pop.jpg",
+      "duration": "168"
+    },
+    {
       "title": "Motorama - Heavy Wave",
       "artist": "Poverty",
       "type": "postpunk",
@@ -159,6 +159,22 @@
       "filename": "Sultan + Shepard,The Kite String Tangle - Memories.mp3",
       "coverImage": "img/house.jpg",
       "duration": "361"
+    },
+    {
+      "title": "Wolf Colony - Beauty",
+      "artist": "Unmasked",
+      "type": "R&B, pop",
+      "filename": "Unmasked - Wolf Colony - Beauty.mp3",
+      "coverImage": "img/R&B.jpg",
+      "duration": "202"
+    },
+    {
+      "title": "Saint",
+      "artist": "Forester",
+      "type": "house",
+      "filename": "Forester - Saint.mp3",
+      "coverImage": "img/house.jpg",
+      "duration": "216"
     },
     {
       "title": "三角洲行动,Charlotte Churchman - THE FEAR (无惧)",
@@ -183,6 +199,14 @@
       "filename": "故事 - 盛哲 - 故事.mp3",
       "coverImage": "img/pop.jpg",
       "duration": "257"
+    },
+    {
+      "title": "芒果花蜜latest",
+      "artist": "Lin_eclipse(Surprise!)",
+      "type": "postpunk",
+      "filename": "芒果花蜜latest.mp3",
+      "coverImage": "img/postpunk.jpg",
+      "duration": "154"
     },
     {
       "title": "南船北马乐队 - 花街",

@@ -58,6 +58,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { githubAuthService } from '@/service/githubAuthService';
+import { likeService } from '@/service/LikeService';
 import type { GithubUser } from '@/service/githubAuthService';
 
 // 评论接口定义
@@ -89,6 +90,11 @@ const sortedComments = computed(() => {
   return [...comments.value].sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
+});
+
+// 获取评论总数
+const commentCount = computed(() => {
+  return comments.value.length;
 });
 
 // 图片加载错误处理 - 修复 'error' 的 any 类型错误
@@ -178,8 +184,7 @@ const deleteComment = async (commentId: string) => {
     
     // 过滤掉要删除的评论
     const index = allComments.findIndex(comment => 
-      comment.id === commentId && 
-      comment.githubUsername === currentUser.value?.login
+      comment.id === commentId
     );
     
     if (index !== -1) {
@@ -244,6 +249,12 @@ onMounted(async () => {
   console.log('CommentSection 组件挂载');
   await loadCurrentUser();
   await loadComments();
+});
+
+// 暴露给父组件的方法
+defineExpose({
+  commentCount,
+  loadComments
 });
 </script>
 
@@ -317,7 +328,6 @@ onMounted(async () => {
   border: 1px solid #555;
   background-color: #333;
   color: #fff;
-  resize: vertical;
   min-height: 80px;
 }
 

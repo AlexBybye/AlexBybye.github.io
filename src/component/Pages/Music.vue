@@ -5,7 +5,11 @@
 
     <div class="music-interaction-area">
       <div class="music-entry floating-entry" @click="startTransition('/animation3/music/playlist')">
-        <div class="music-icon">♬</div>
+        <div class="music-icon glitch-hover" data-glitch="♬">♬</div>
+        <div class="telemetry">
+          <span>LN_01: ACTIVE</span>
+          <span>FREQ: 44.1KHZ</span>
+        </div>
       </div>
 
       <div class="music-entry playlist-card" @click="startTransition('/animation3/music/playlist')">
@@ -13,10 +17,36 @@
           <div class="playlist-icon">📻</div>
           <span>PLAYLIST</span>
         </div>
+        <div class="telemetry center">
+          <span>SYSTEM_SYNC: OK [98.2%]</span>
+        </div>
       </div>
 
       <div class="music-entry floating-entry" @click="startTransition('/animation3/music/playlist')">
-        <div class="music-icon">♫</div>
+        <div class="music-icon glitch-hover" data-glitch="♫">♫</div>
+        <div class="telemetry">
+          <span>BITRATE: 320K</span>
+          <span>LATENCY: 12MS</span>
+        </div>
+      </div>
+
+      <div class="tech-grid-overlay">
+        <svg viewBox="0 0 800 200" class="circuit-lines">
+          <path d="M150,0 V50 L400,120" class="path-line" />
+          <path d="M400,0 V120" class="path-line" />
+          <path d="M650,0 V50 L400,120" class="path-line" />
+          
+          <circle r="1.5" fill="#00f3ff">
+            <animateMotion dur="2.5s" repeatCount="indefinite" path="M150,0 V50 L400,120" />
+          </circle>
+          <circle r="1.5" fill="#00f3ff">
+            <animateMotion dur="1.8s" repeatCount="indefinite" path="M400,0 V120" />
+          </circle>
+          <circle r="1.5" fill="#00f3ff">
+            <animateMotion dur="2.2s" repeatCount="indefinite" path="M650,0 V50 L400,120" />
+          </circle>
+        </svg>
+        <div class="core-tag">CORE_LINK_ESTABLISHED</div>
       </div>
     </div>
 
@@ -45,11 +75,9 @@ const isAnimating = ref(false);
 
 const startTransition = (path) => {
   isLeaving.value = true;
-  // 300ms 后开启音符脉冲遮罩
   setTimeout(() => {
     isAnimating.value = true;
   }, 300);
-  // 1.5秒后跳转
   setTimeout(() => {
     router.push(path);
   }, 1500);
@@ -68,32 +96,110 @@ const getNoteStyle = (i) => ({
 </script>
 
 <style scoped>
-/* 1. 保留你原来的透明度逻辑 */
+/* --- 原有基础样式保持不变 --- */
 .page-container {
   width: 80%;
   margin: 0 auto;
   padding: 40px;
   background-color: #333;
   min-height: calc(100vh - 30% - 40px);
-  opacity: 0.1; /* 初始透明度 0.1 */
+  opacity: 0.1;
   transition: all 0.5s ease;
   border-radius: 20px;
+  position: relative;
+  overflow: hidden; /* 裁剪溢出的导线 */
 }
 
-.page-container:hover {
-  opacity: 0.8; /* 悬停透明度 0.8 */
-}
+.page-container:hover { opacity: 0.8; }
 
-/* 2. 布局：左右音符，中间卡片 */
 .music-interaction-area {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 60px;
   margin-top: 60px;
+  position: relative;
+  padding-bottom: 150px; /* 为下方导线留出空间 */
 }
 
-/* 音乐符号入口：保持你原来的光效，增加浮动 */
+/* --- 新增：故障艺术特效 --- */
+.glitch-hover {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch-hover:hover::before,
+.glitch-hover:hover::after {
+  content: attr(data-glitch);
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: transparent;
+}
+
+.glitch-hover:hover::before {
+  left: 2px;
+  text-shadow: -2px 0 #ff00ff;
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim 0.5s infinite linear alternate-reverse;
+}
+
+.glitch-hover:hover::after {
+  left: -2px;
+  text-shadow: -2px 0 #00ffff;
+  clip: rect(10px, 450px, 30px, 0);
+  animation: glitch-anim2 0.5s infinite linear alternate-reverse;
+}
+
+/* --- 新增：Telemetry 参数监控码 --- */
+.telemetry {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  color: rgba(0, 243, 255, 0.6);
+  margin-top: 15px;
+  pointer-events: none;
+  text-align: left;
+}
+
+.telemetry.center { text-align: center; margin-top: 10px; }
+.telemetry span { line-height: 1.4; letter-spacing: 1px; }
+
+/* --- 新增：SVG 科技导线 --- */
+.tech-grid-overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 150px;
+  pointer-events: none;
+}
+
+.circuit-lines {
+  width: 100%;
+  height: 100%;
+  opacity: 0.4;
+}
+
+.path-line {
+  fill: none;
+  stroke: #00f3ff;
+  stroke-width: 0.5;
+  stroke-dasharray: 2, 2;
+}
+
+.core-tag {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: #00f3ff;
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* --- 原有动画与样式 --- */
 .music-icon {
   font-size: 60px;
   cursor: pointer;
@@ -102,12 +208,6 @@ const getNoteStyle = (i) => ({
   animation: floatUpDown 3s infinite ease-in-out;
 }
 
-.music-icon:hover {
-  transform: scale(1.2);
-  filter: drop-shadow(0 0 20px rgba(100, 200, 255, 0.8));
-}
-
-/* 中间 Playlist 卡片样式 */
 .playlist-card {
   background: rgba(255, 255, 255, 0.05);
   padding: 30px 50px;
@@ -115,70 +215,46 @@ const getNoteStyle = (i) => ({
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
+  z-index: 2;
 }
 
-.playlist-card:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-5px);
-}
-
+.playlist-card:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-5px); }
 .playlist-icon { font-size: 40px; margin-bottom: 10px; }
 .playlist-card span { color: #fff; letter-spacing: 2px; font-weight: bold; }
 
-/* 3. 动画：页面向上抛走 */
-.page-throw-up {
-  pointer-events: none;
-  animation: throwOut 0.8s forwards cubic-bezier(0.4, 0, 0.2, 1);
+@keyframes glitch-anim {
+  0% { clip: rect(20px, 999px, 30px, 0); }
+  100% { clip: rect(60px, 999px, 80px, 0); }
 }
 
-@keyframes throwOut {
-  0% { transform: translateY(0); opacity: 0.8; }
-  100% { transform: translateY(-100vh) rotate(-2deg); opacity: 0; }
-}
-
-/* 4. 全屏音符脉冲动画 (保留并优化) */
-.animation-overlay {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg, #0f0c29, #24243e);
-  z-index: 9999;
-  animation: fadeIn 0.4s ease;
-}
-
-.wave-bar {
-  position: absolute;
-  bottom: 0;
-  width: 3%;
-  background: linear-gradient(to top, #00dbde, #fc00ff);
-  animation: waveBurst 1.2s infinite ease-in-out;
-  border-radius: 5px 5px 0 0;
-}
-
-@keyframes waveBurst {
-  0%, 100% { transform: scaleY(0.2); opacity: 0.3; }
-  50% { transform: scaleY(1); opacity: 0.7; }
+@keyframes glitch-anim2 {
+  0% { clip: rect(40px, 999px, 50px, 0); }
+  100% { clip: rect(10px, 999px, 40px, 0); }
 }
 
 @keyframes floatUpDown {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+  50% { transform: translateY(-15px); }
 }
 
-/* 复用音符漂浮 */
-.note {
-  position: absolute;
-  bottom: 0;
-  color: #fff;
-  font-size: 30px;
-  animation: floatNoteUp 2s forwards linear;
+/* 其余原有特效代码保持不变... */
+.page-throw-up {
+  pointer-events: none;
+  animation: throwOut 0.8s forwards cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-@keyframes floatNoteUp {
-  0% { transform: translateY(0) opacity(0); }
-  100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+@keyframes throwOut {
+  0% { transform: translateY(0); opacity: 0.8; }
+  100% { transform: translateY(-100vh) rotate(-2deg); opacity: 0; }
 }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
+.animation-overlay {
+  position: fixed; inset: 0; background: linear-gradient(135deg, #0f0c29, #24243e); z-index: 9999;
+}
+.wave-bar {
+  position: absolute; bottom: 0; width: 3%; background: linear-gradient(to top, #00dbde, #fc00ff);
+  animation: waveBurst 1.2s infinite ease-in-out; border-radius: 5px 5px 0 0;
+}
+@keyframes waveBurst { 0%, 100% { transform: scaleY(0.2); opacity: 0.3; } 50% { transform: scaleY(1); opacity: 0.7; } }
+.note { position: absolute; bottom: 0; color: #fff; font-size: 30px; animation: floatNoteUp 2s forwards linear; }
+@keyframes floatNoteUp { 0% { transform: translateY(0) opacity(0); } 100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; } }
 h1, p { text-align: center; color: #fff; }
 </style>

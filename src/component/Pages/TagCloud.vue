@@ -64,8 +64,8 @@ const initPositions = () => {
   tagStates.value = props.tags.map((tag, index) => ({
     x: Math.random() * 80 + 10, // 避免贴边
     y: Math.random() * 80 + 10,
-    dx: (Math.random() - 0.5) * 1.5, // 增加初始速度
-    dy: (Math.random() - 0.5) * 1.5, // 增加初始速度
+    dx: (Math.random() - 0.5) * 1.1, // 增加初始速度
+    dy: (Math.random() - 0.5) * 1.1, // 增加初始速度
     color: generateColor(index, tag.count), // 生成稳定颜色
     originalColor: generateColor(index, tag.count), // 保存原始颜色
     isHovered: false // 是否处于悬停状态
@@ -185,7 +185,7 @@ onUnmounted(() => {
   overflow: hidden;
   border-radius: 15px;
   /* 增加圆角 */
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(147, 146, 146, 0.6);
   /* 0.6透明度的白色背景 */
   backdrop-filter: blur(10px);
   /* 增加模糊效果 */
