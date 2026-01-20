@@ -12,11 +12,22 @@ export const useAudioManager = defineStore('audioManager', () => {
       audioElement.preload = 'metadata'; // 预加载元数据而不是整个文件
 
       // 音频加载成功时
-      audioElement.onloadeddata = () => {
-        console.log('Audio loaded successfully:', audioElement?.src);
+      audioElement.onloadedmetadata = () => {
+        console.log('Audio metadata loaded successfully');
         const musicStore = useMusicStore();
         if (audioElement && !isNaN(audioElement.duration)) {
           musicStore.setTotalTime(audioElement.duration);
+          console.log('Total time set:', audioElement.duration);
+        }
+      };
+
+      // 音频可以播放时
+      audioElement.oncanplay = () => {
+        console.log('Audio can play');
+        const musicStore = useMusicStore();
+        if (audioElement && !isNaN(audioElement.duration) && audioElement.duration > 0) {
+          musicStore.setTotalTime(audioElement.duration);
+          console.log('Total time updated on canplay:', audioElement.duration);
         }
       };
 
@@ -34,6 +45,7 @@ export const useAudioManager = defineStore('audioManager', () => {
 
       // 音频结束时播放下一首
       audioElement.onended = () => {
+        console.log('Audio ended, playing next');
         const musicStore = useMusicStore();
         musicStore.playNext();
       };
@@ -43,6 +55,10 @@ export const useAudioManager = defineStore('audioManager', () => {
         const musicStore = useMusicStore();
         if (audioElement) {
           musicStore.setCurrentTime(audioElement.currentTime);
+          // 确保总时间也被更新
+          if (!isNaN(audioElement.duration) && audioElement.duration > 0) {
+            musicStore.setTotalTime(audioElement.duration);
+          }
         }
       };
     }
@@ -57,7 +73,7 @@ export const useAudioManager = defineStore('audioManager', () => {
     musicStore.$subscribe((mutation, state) => {
       const events = Array.isArray(mutation.events) ? mutation.events : [mutation.events];
       for (const event of events) {
-        if ((event.key === 'currentTrackIndex' || event.key === 'tracks') && state.tracks[state.currentTrackIndex]) {
+        if ((event.key === 'currentTrackIndex') && state.tracks[state.currentTrackIndex]) {
           playCurrentTrack();
         } else if (event.key === 'isPlaying') {
           if (state.isPlaying) {
@@ -83,32 +99,19 @@ export const useAudioManager = defineStore('audioManager', () => {
       // 构建正确的音频文件路径
       const audioPath = `/music/${musicStore.currentTrack.filename}`;
 
-      // 检查音频文件是否存在
-      fetch(audioPath, { method: 'HEAD' })
-        .then(response => {
-          if (response.ok) {
-            // 文件存在，设置音频源
-            audioElement!.src = audioPath;
+      console.log('Attempting to play:', audioPath);
 
-            // 立即尝试播放，如果失败则等待canplay事件
-            const playPromise = audioElement!.play();
-            if (playPromise !== undefined) {
-              playPromise.catch(error => {
-                console.log('Autoplay prevented, waiting for user interaction:', error);
-                // 如果自动播放被阻止，仍会在用户操作后正常工作
-              });
-            }
-          } else {
-            console.error(`Audio file not found: ${audioPath}`);
-            // 尝试下一首歌
-            musicStore.playNext();
-          }
-        })
-        .catch(error => {
-          console.error(`Error checking audio file: ${audioPath}`, error);
-          // 尝试下一首歌
-          musicStore.playNext();
+      // 设置音频源
+      audioElement.src = audioPath;
+
+      // 立即尝试播放，如果失败则等待canplay事件
+      const playPromise = audioElement.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log('Autoplay prevented, waiting for user interaction:', error);
+          // 如果自动播放被阻止，仍会在用户操作后正常工作
         });
+      }
     }
   };
 

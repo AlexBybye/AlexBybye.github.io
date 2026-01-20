@@ -3,6 +3,7 @@
     <h1>My Music</h1>
     <p>Discover the music that inspires me.</p>
 
+    <!-- 三个功能模块 -->
     <div class="music-interaction-area">
       <div class="music-entry floating-entry" @click="startTransition('/animation3/music/playlist')">
         <div class="music-icon glitch-hover" data-glitch="♬">♬</div>
@@ -30,24 +31,42 @@
         </div>
       </div>
 
+      <!-- 线缆连接与数据流动画 -->
       <div class="tech-grid-overlay">
         <svg viewBox="0 0 800 200" class="circuit-lines">
+          <!-- 从第一个图标到中心 -->
           <path d="M150,0 V50 L400,120" class="path-line" />
+          <!-- 从中间图标到中心 -->
           <path d="M400,0 V120" class="path-line" />
+          <!-- 从第三个图标到中心 -->
           <path d="M650,0 V50 L400,120" class="path-line" />
           
-          <circle r="1.5" fill="#00f3ff">
+          <!-- 数据流动画 -->
+          <circle r="1.5" fill="#00f3ff" class="data-pulse">
             <animateMotion dur="2.5s" repeatCount="indefinite" path="M150,0 V50 L400,120" />
           </circle>
-          <circle r="1.5" fill="#00f3ff">
+          <circle r="1.5" fill="#00f3ff" class="data-pulse">
             <animateMotion dur="1.8s" repeatCount="indefinite" path="M400,0 V120" />
           </circle>
-          <circle r="1.5" fill="#00f3ff">
+          <circle r="1.5" fill="#00f3ff" class="data-pulse">
             <animateMotion dur="2.2s" repeatCount="indefinite" path="M650,0 V50 L400,120" />
           </circle>
         </svg>
         <div class="core-tag">CORE_LINK_ESTABLISHED</div>
       </div>
+    </div>
+
+    <!-- 浮动参数监控码 -->
+    <div class="telemetry-grid">
+      <div class="telemetry-code">LOADING... 78%</div>
+      <div class="telemetry-code">BITRATE: 320KBPS</div>
+      <div class="telemetry-code">FREQ: 44.1KHZ</div>
+      <div class="telemetry-code">BUFFER: 2.4S</div>
+      <div class="telemetry-code">STATUS: ONLINE</div>
+      <div class="telemetry-code">PEAK: -1.2dB</div>
+      <div class="telemetry-code">RMS: -8.7dB</div>
+      <div class="telemetry-code">CPU: 12%</div>
+      <div class="telemetry-code">RAM: 34%</div>
     </div>
 
     <Teleport to="body">
@@ -126,28 +145,70 @@ const getNoteStyle = (i) => ({
 .glitch-hover {
   position: relative;
   display: inline-block;
+  transition: all 0.3s ease;
 }
 
-.glitch-hover:hover::before,
-.glitch-hover:hover::after {
+.glitch-hover::before,
+.glitch-hover::after {
   content: attr(data-glitch);
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   background: transparent;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.glitch-hover:hover::before {
+.glitch-hover::before {
   left: 2px;
   text-shadow: -2px 0 #ff00ff;
   clip: rect(44px, 450px, 56px, 0);
   animation: glitch-anim 0.5s infinite linear alternate-reverse;
 }
 
-.glitch-hover:hover::after {
+.glitch-hover::after {
   left: -2px;
   text-shadow: -2px 0 #00ffff;
   clip: rect(10px, 450px, 30px, 0);
   animation: glitch-anim2 0.5s infinite linear alternate-reverse;
+}
+
+.glitch-hover:hover::before,
+.glitch-hover:hover::after {
+  opacity: 0.6;
+}
+
+/* --- 新增：故障艺术投影效果 --- */
+.music-icon {
+  position: relative;
+}
+
+.music-icon::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 10%;
+  width: 80%;
+  height: 10px;
+  background: linear-gradient(90deg, 
+    rgba(255, 0, 255, 0.3) 0%, 
+    rgba(0, 243, 255, 0.3) 50%, 
+    rgba(255, 0, 255, 0.3) 100%);
+  filter: blur(2px);
+  opacity: 0.6;
+  z-index: -1;
+  transition: all 0.3s ease;
+}
+
+.music-icon:hover::after {
+  transform: translateY(2px) translateX(2px);
+  opacity: 0.8;
+  animation: glitch-shadow-move 0.1s infinite alternate;
+}
+
+/* 故障艺术投影移动动画 */
+@keyframes glitch-shadow-move {
+  0% { transform: translateY(2px) translateX(2px); }
+  100% { transform: translateY(4px) translateX(-2px); }
 }
 
 /* --- 新增：Telemetry 参数监控码 --- */
@@ -164,6 +225,34 @@ const getNoteStyle = (i) => ({
 
 .telemetry.center { text-align: center; margin-top: 10px; }
 .telemetry span { line-height: 1.4; letter-spacing: 1px; }
+
+/* --- 浮动参数监控码网格 --- */
+.telemetry-grid {
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  width: 80%;
+  height: 60%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  pointer-events: none;
+}
+
+.telemetry-code {
+  font-family: 'Courier New', monospace;
+  font-size: 7px;
+  color: rgba(0, 243, 255, 0.4);
+  text-align: center;
+  animation: telemetry-pulse 3s infinite alternate;
+}
+
+@keyframes telemetry-pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.3; }
+}
 
 /* --- 新增：SVG 科技导线 --- */
 .tech-grid-overlay {
@@ -197,6 +286,13 @@ const getNoteStyle = (i) => ({
   border: 1px solid rgba(0, 243, 255, 0.3);
   padding: 2px 8px;
   border-radius: 4px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 
 /* --- 原有动画与样式 --- */
@@ -208,6 +304,11 @@ const getNoteStyle = (i) => ({
   animation: floatUpDown 3s infinite ease-in-out;
 }
 
+.music-icon:hover {
+  filter: drop-shadow(0 0 20px rgba(100, 200, 255, 0.8));
+  transform: scale(1.1);
+}
+
 .playlist-card {
   background: rgba(255, 255, 255, 0.05);
   padding: 30px 50px;
@@ -216,9 +317,37 @@ const getNoteStyle = (i) => ({
   cursor: pointer;
   transition: all 0.3s ease;
   z-index: 2;
+  position: relative;
 }
 
-.playlist-card:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-5px); }
+.playlist-card::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 10%;
+  width: 80%;
+  height: 10px;
+  background: linear-gradient(90deg, 
+    rgba(255, 0, 255, 0.3) 0%, 
+    rgba(0, 243, 255, 0.3) 50%, 
+    rgba(255, 0, 255, 0.3) 100%);
+  filter: blur(2px);
+  opacity: 0.6;
+  z-index: -1;
+  transition: all 0.3s ease;
+}
+
+.playlist-card:hover::after {
+  transform: translateY(2px) translateX(2px);
+  opacity: 0.8;
+  animation: glitch-shadow-move 0.1s infinite alternate;
+}
+
+.playlist-card:hover { 
+  background: rgba(255, 255, 255, 0.15); 
+  transform: translateY(-5px); 
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+}
 .playlist-icon { font-size: 40px; margin-bottom: 10px; }
 .playlist-card span { color: #fff; letter-spacing: 2px; font-weight: bold; }
 

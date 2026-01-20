@@ -2,53 +2,87 @@
   <div class="comment-section">
     <h3>评论区</h3>
     
-    <!-- 用户认证状态 -->
-    <div class="auth-status">
-      <div v-if="currentUser" class="user-info">
-        <img :src="currentUser.avatar_url" :alt="currentUser.login" class="avatar" @error="handleImageError" />
-        <span class="username">{{ currentUser.login }}</span>
-        <button @click="logout" class="logout-btn">退出</button>
-      </div>
-      <div v-else class="login-options">
-        <p>请登录以发表评论：</p>
-        <button @click="useAnonymousMode" class="anon-login-btn">匿名评论</button>
-        <button @click="promptGithubLogin" class="login-btn">使用 GitHub 用户名</button>
-      </div>
-    </div>
-    
-    <!-- 发表评论 -->
-    <div v-if="currentUser" class="comment-form">
+    <!-- 评论表单 -->
+    <div class="comment-form">
       <textarea 
-        v-model="newCommentContent" 
-        placeholder="写下你的评论..."
-        rows="4"
-        maxlength="500"
-        class="comment-input"
+        v-model="newComment.content" 
+        placeholder="输入你的评论..."
+        rows="3"
       ></textarea>
-      <button @click="submitComment" :disabled="!newCommentContent.trim()" class="submit-btn">
-        发表评论
-      </button>
+      <div class="form-footer">
+        <input 
+          v-model="newComment.author" 
+          placeholder="你的名字" 
+          maxlength="20"
+        />
+        <button @click="submitComment" :disabled="!canSubmit">发表评论</button>
+      </div>
     </div>
     
     <!-- 评论列表 -->
     <div class="comments-list">
-      <div v-if="loadingComments" class="loading">加载评论中...</div>
-      <div v-else-if="comments.length === 0" class="no-comments">
-        暂无评论，快来发表第一个评论吧！
-      </div>
-      <div v-else v-for="comment in sortedComments" :key="comment.id" class="comment-item">
+      <div 
+        v-for="comment in comments" 
+        :key="comment.id" 
+        class="comment-item"
+        :class="{ 'is-reply': comment.parentId }"
+      >
         <div class="comment-header">
-          <img :src="comment.githubAvatarUrl" :alt="comment.githubUsername" class="avatar" @error="handleImageError" />
-          <div class="user-info">
-            <span class="username">{{ comment.githubUsername }}</span>
-            <span class="date">{{ formatDate(comment.createdAt) }}</span>
+          <span class="author">{{ comment.author }}</span>
+          <span class="date">{{ formatDate(comment.date) }}</span>
+          <div class="actions">
+            <button 
+              class="like-btn" 
+              :class="{ liked: isLiked(comment.id) }"
+              @click="toggleLike(comment.id)"
+            >
+              👍 {{ getLikeCount(comment.id) }}
+            </button>
+            <button class="reply-btn" @click="toggleReplyForm(comment.id)">回复</button>
           </div>
         </div>
-        <div class="comment-body">
-          <p>{{ comment.content }}</p>
+        <div class="comment-content">{{ comment.content }}</div>
+        
+        <!-- 回复表单 -->
+        <div v-if="activeReplyId === comment.id" class="reply-form">
+          <textarea 
+            v-model="replyContent" 
+            placeholder="输入你的回复..."
+            rows="2"
+          ></textarea>
+          <div class="form-footer">
+            <input 
+              v-model="replyAuthor" 
+              placeholder="你的名字" 
+              maxlength="20"
+            />
+            <button @click="submitReply(comment.id)" :disabled="!canReply">回复</button>
+            <button @click="cancelReply" class="cancel-btn">取消</button>
+          </div>
         </div>
-        <div v-if="isCurrentUserComment(comment)" class="comment-actions">
-          <button @click="deleteComment(comment.id)" class="delete-btn">删除</button>
+        
+        <!-- 子评论（回复） -->
+        <div v-if="getReplies(comment.id).length > 0" class="replies">
+          <div 
+            v-for="reply in getReplies(comment.id)" 
+            :key="reply.id" 
+            class="comment-item reply-item"
+          >
+            <div class="comment-header">
+              <span class="author">{{ reply.author }}</span>
+              <span class="date">{{ formatDate(reply.date) }}</span>
+              <div class="actions">
+                <button 
+                  class="like-btn" 
+                  :class="{ liked: isLiked(reply.id) }"
+                  @click="toggleLike(reply.id)"
+                >
+                  👍 {{ getLikeCount(reply.id) }}
+                </button>
+              </div>
+            </div>
+            <div class="comment-content">回复 {{ getParentAuthor(reply.parentId) }}: {{ reply.content }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -56,337 +90,370 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { githubAuthService } from '@/service/githubAuthService';
+import { ref, computed, onMounted } from 'vue';
 import { likeService } from '@/service/LikeService';
-import type { GithubUser } from '@/service/githubAuthService';
 
-// 评论接口定义
 interface Comment {
   id: string;
   articleId: string;
-  githubUsername: string;
-  githubAvatarUrl: string;
   content: string;
-  createdAt: string; // ISO日期字符串
+  author: string;
+  date: string;
+  parentId?: string; // 用于标识回复的目标评论
 }
 
-// Props
-interface Props {
+const props = defineProps<{
   articleId: string;
-}
-const props = withDefaults(defineProps<Props>(), {
-  articleId: ''
-});
+}>();
 
-// 响应式数据
+// 评论状态
+const newComment = ref({
+  content: '',
+  author: ''
+});
 const comments = ref<Comment[]>([]);
-const newCommentContent = ref('');
-const loadingComments = ref(true);
-const currentUser = ref<GithubUser | null>(null);
+const activeReplyId = ref<string | null>(null);
+const replyContent = ref('');
+const replyAuthor = ref('');
 
-// 计算属性
-const sortedComments = computed(() => {
-  return [...comments.value].sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-});
-
-// 获取评论总数
-const commentCount = computed(() => {
-  return comments.value.length;
-});
-
-// 图片加载错误处理 - 修复 'error' 的 any 类型错误
-const handleImageError = (event: Event) => {
-  const imgElement = event.target as HTMLImageElement;
-  // 使用我们在 service 中定义的默认兜底地址
-  imgElement.src = 'https://github.com/identicons/guest.png';
-};
-
-// 方法
-const loadComments = async () => {
-  loadingComments.value = true;
-  try {
-    // 从localStorage加载评论
-    const stored = localStorage.getItem('article-comments');
-    if (stored) {
+// 加载评论
+const loadComments = () => {
+  const stored = localStorage.getItem('comments');
+  if (stored) {
+    try {
       const allComments: Comment[] = JSON.parse(stored);
       comments.value = allComments.filter(comment => comment.articleId === props.articleId);
-    } else {
+    } catch {
       comments.value = [];
     }
-  } catch (error) {
-    console.error('加载评论失败:', error);
-    comments.value = [];
-  } finally {
-    loadingComments.value = false;
   }
 };
 
-const loadCurrentUser = async () => {
-  // 从认证服务获取当前用户
-  const user = githubAuthService.getCachedUserInfo();
-  console.log('加载当前用户:', user);
-  currentUser.value = user;
-};
-
-const submitComment = async () => {
-  if (!newCommentContent.value.trim() || !currentUser.value) return;
+// 提交评论
+const submitComment = () => {
+  if (!newComment.value.content.trim() || !newComment.value.author.trim()) return;
   
-  try {
-    // 获取现有评论
-    let allComments: Comment[] = [];
-    const stored = localStorage.getItem('article-comments');
-    if (stored) {
-      allComments = JSON.parse(stored);
-    }
-    
-    // 创建新评论
-    const newComment: Comment = {
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2),
-      articleId: props.articleId,
-      githubUsername: currentUser.value.login,
-      githubAvatarUrl: currentUser.value.avatar_url,
-      content: newCommentContent.value.trim(),
-      createdAt: new Date().toISOString()
-    };
-    
-    console.log('提交的新评论:', newComment);
-    
-    // 添加新评论
-    allComments.push(newComment);
-    
-    // 保存到localStorage
-    localStorage.setItem('article-comments', JSON.stringify(allComments));
-    
-    // 清空输入框
-    newCommentContent.value = '';
-    
-    // 重新加载评论
-    await loadComments();
-  } catch (error) {
-    console.error('提交评论失败:', error);
-    alert('提交评论失败，请重试');
-  }
-};
-
-const deleteComment = async (commentId: string) => {
-  if (!confirm('确定要删除这条评论吗？')) return;
+  const comment: Comment = {
+    id: `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    articleId: props.articleId,
+    content: newComment.value.content.trim(),
+    author: newComment.value.author.trim(),
+    date: new Date().toISOString()
+  };
   
-  try {
-    // 获取现有评论
-    let allComments: Comment[] = [];
-    const stored = localStorage.getItem('article-comments');
-    if (stored) {
+  // 保存到localStorage
+  const stored = localStorage.getItem('comments');
+  let allComments: Comment[] = [];
+  if (stored) {
+    try {
       allComments = JSON.parse(stored);
-    }
-    
-    // 过滤掉要删除的评论
-    const index = allComments.findIndex(comment => 
-      comment.id === commentId
-    );
-    
-    if (index !== -1) {
-      allComments.splice(index, 1);
-      
-      // 保存到localStorage
-      localStorage.setItem('article-comments', JSON.stringify(allComments));
-      
-      // 重新加载评论
-      await loadComments();
-    } else {
-      alert('无法删除此评论');
-    }
-  } catch (error) {
-    console.error('删除评论失败:', error);
-    alert('删除评论失败，请重试');
+    } catch {}
+  }
+  allComments.push(comment);
+  localStorage.setItem('comments', JSON.stringify(allComments));
+  
+  // 添加到列表
+  comments.value.push(comment);
+  
+  // 清空表单
+  newComment.value = { content: '', author: '' };
+};
+
+// 切换回复表单
+const toggleReplyForm = (commentId: string) => {
+  if (activeReplyId.value === commentId) {
+    activeReplyId.value = null;
+    replyContent.value = '';
+    replyAuthor.value = '';
+  } else {
+    activeReplyId.value = commentId;
   }
 };
 
-// 登录方法修改：适配简化后的 login 逻辑
-const promptGithubLogin = () => {
-  const username = prompt('请输入您的 GitHub 用户名:');
-  if (username && username.trim()) {
-    // 调用简化的同步 login 逻辑
-    const user = githubAuthService.login(username.trim());
-    currentUser.value = user;
-    console.log('GitHub登录成功:', user);
+// 提交回复
+const submitReply = (parentId: string) => {
+  if (!replyContent.value.trim() || !replyAuthor.value.trim()) return;
+  
+  const reply: Comment = {
+    id: `reply_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    articleId: props.articleId,
+    content: replyContent.value.trim(),
+    author: replyAuthor.value.trim(),
+    date: new Date().toISOString(),
+    parentId
+  };
+  
+  // 保存到localStorage
+  const stored = localStorage.getItem('comments');
+  let allComments: Comment[] = [];
+  if (stored) {
+    try {
+      allComments = JSON.parse(stored);
+    } catch {}
   }
+  allComments.push(reply);
+  localStorage.setItem('comments', JSON.stringify(allComments));
+  
+  // 添加到列表
+  comments.value.push(reply);
+  
+  // 清空回复表单
+  replyContent.value = '';
+  replyAuthor.value = '';
+  activeReplyId.value = null;
 };
 
-// 匿名模式修改：统一使用 login 方法传入固定标识
-const useAnonymousMode = () => {
-  const anonUser = githubAuthService.login('anonymous-user');
-  currentUser.value = anonUser;
-  console.log('切换到匿名模式:', anonUser);
+// 取消回复
+const cancelReply = () => {
+  activeReplyId.value = null;
+  replyContent.value = '';
+  replyAuthor.value = '';
 };
 
-// 登出方法修改：调用 logout
-const logout = () => {
-  githubAuthService.logout();
-  currentUser.value = null;
-  console.log('用户已登出');
+// 获取指定评论的回复
+const getReplies = (parentId: string) => {
+  return comments.value.filter(comment => comment.parentId === parentId);
 };
 
-const isCurrentUserComment = (comment: Comment) => {
-  return currentUser.value && comment.githubUsername === currentUser.value.login;
+// 获取父评论的作者名
+const getParentAuthor = (parentId?: string) => {
+  if (!parentId) return '';
+  const parent = comments.value.find(comment => comment.id === parentId);
+  return parent ? parent.author : '';
 };
 
+// 点赞相关功能
+const toggleLike = (commentId: string) => {
+  const result = likeService.toggleCommentLike(commentId);
+  // 更新本地评论列表中的点赞状态（这里我们不需要显式更新，因为UI会根据服务状态显示）
+};
+
+const getLikeCount = (commentId: string) => {
+  return likeService.getCommentLikes(commentId);
+};
+
+const isLiked = (commentId: string) => {
+  return likeService.isItemLiked(commentId, 'comment');
+};
+
+// 计算是否可以提交评论
+const canSubmit = computed(() => {
+  return newComment.value.content.trim() && newComment.value.author.trim();
+});
+
+// 计算是否可以提交回复
+const canReply = computed(() => {
+  return replyContent.value.trim() && replyAuthor.value.trim();
+});
+
+// 格式化日期
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit'
   });
 };
 
-// 组件挂载时加载评论和当前用户
-onMounted(async () => {
-  console.log('CommentSection 组件挂载');
-  await loadCurrentUser();
-  await loadComments();
-});
-
-// 暴露给父组件的方法
-defineExpose({
-  commentCount,
-  loadComments
+onMounted(() => {
+  loadComments();
 });
 </script>
 
 <style scoped>
 .comment-section {
-  margin-top: 40px;
+  margin-top: 30px;
   padding: 20px;
-  background-color: #2c2c2c;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.auth-status {
+.comment-section h3 {
+  color: white;
   margin-bottom: 20px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.username {
-  font-weight: bold;
-  color: #fff;
-}
-
-.logout-btn {
-  margin-left: 10px;
-  padding: 5px 10px;
-  background-color: #555;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.login-options {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.login-options button {
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: #6200ea;
-  color: white;
-}
-
-.anon-login-btn {
-  background-color: #03dac6;
 }
 
 .comment-form {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
-.comment-input {
+.comment-form textarea {
   width: 100%;
   padding: 10px;
-  border-radius: 4px;
-  border: 1px solid #555;
-  background-color: #333;
-  color: #fff;
-  min-height: 80px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  resize: vertical;
+  font-family: inherit;
 }
 
-.submit-btn {
+.comment-form input {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  margin-right: 10px;
+}
+
+.form-footer {
+  display: flex;
+  align-items: center;
   margin-top: 10px;
-  padding: 10px 20px;
-  background-color: #03dac6;
-  color: black;
+}
+
+.comment-form button,
+.reply-form button {
+  padding: 8px 16px;
+  background: #6200ea;
+  color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background 0.3s;
 }
 
-.submit-btn:disabled {
-  background-color: #555;
+.comment-form button:hover,
+.reply-form button:hover {
+  background: #3700b3;
+}
+
+.reply-form button.cancel-btn {
+  background: #757575;
+  margin-left: 5px;
+}
+
+.reply-form button.cancel-btn:hover {
+  background: #616161;
+}
+
+.comment-form button:disabled,
+.reply-form button:disabled {
+  background: #cccccc;
   cursor: not-allowed;
 }
 
 .comments-list {
-  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .comment-item {
   padding: 15px;
-  border: 1px solid #444;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  margin-bottom: 15px;
-  background-color: #333;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comment-item.is-reply {
+  margin-left: 30px;
+  border-left: 3px solid #6200ea;
 }
 
 .comment-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 10px;
 }
 
-.comment-body {
-  margin: 10px 0;
-  color: #ddd;
-  line-height: 1.5;
+.author {
+  font-weight: bold;
+  color: #bb86fc;
 }
 
-.comment-actions {
-  text-align: right;
+.date {
+  color: #ccc;
+  font-size: 0.85em;
 }
 
-.delete-btn {
-  padding: 5px 10px;
-  background-color: #f44336;
-  color: white;
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.like-btn, .reply-btn {
+  padding: 4px 8px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.3s;
 }
 
-.loading, .no-comments {
-  text-align: center;
-  padding: 20px;
-  color: #aaa;
+.like-btn {
+  background: rgba(179, 136, 255, 0.2);
+  color: #bb86fc;
+}
+
+.like-btn:hover {
+  background: rgba(179, 136, 255, 0.3);
+}
+
+.like-btn.liked {
+  background: rgba(179, 136, 255, 0.4);
+  color: #ffffff;
+}
+
+.reply-btn {
+  background: rgba(98, 0, 234, 0.2);
+  color: #bb86fc;
+}
+
+.reply-btn:hover {
+  background: rgba(98, 0, 234, 0.3);
+}
+
+.comment-content {
+  color: #e0e0e0;
+  line-height: 1.5;
+}
+
+.replies {
+  margin-top: 15px;
+  padding-left: 20px;
+  border-left: 2px solid rgba(98, 0, 234, 0.2);
+}
+
+.reply-item {
+  background: rgba(98, 0, 234, 0.1);
+  margin-top: 10px;
+}
+
+.reply-form {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+}
+
+.reply-form textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  resize: vertical;
+  font-family: inherit;
+  margin-bottom: 10px;
+}
+
+.reply-form input {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  margin-right: 10px;
 }
 </style>

@@ -169,17 +169,17 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 悬停状态 - 透明度 0.9 */
+/* 悬停状态 - 增强的模糊效果 */
 .card:hover {
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   transform: translateY(-5px);
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
+  box-shadow: 
+    0 15px 45px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(0, 243, 255, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2);
   color: #1a1a1a !important;
-  /* 背景变亮，文字变深 */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 /* 悬停时内部文字和链接颜色适配 */

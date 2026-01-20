@@ -31,22 +31,72 @@ const parseYAML = (yamlStr: string): ArticleMetadata => {
       const key = line.substring(0, colonIndex).trim();
       let value: string | string[] | boolean | number = line.substring(colonIndex + 1).trim();
 
-      // 尝试解析数组，处理更复杂的格式
-      if (value.startsWith('[') && value.endsWith(']')) {
-        // 更精确地分割数组项，考虑可能存在的引号
-        value = value
-          .substring(1, value.length - 1)
-          .split(/,(?=(?:[^'"]*'[^'"]*')*[^'"]*$)/) // 正确处理带引号的逗号分隔
-          .map(item => item.trim().replace(/^['"]|['"]$/g, '')) // 移除首尾引号
-          .filter(item => item); // 过滤掉空项
-      } else if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.substring(1, value.length - 1);
-      } else if (value.startsWith("'") && value.endsWith("'")) {
-        value = value.substring(1, value.length - 1);
-      } else if (value === 'true' || value === 'false') {
-        value = value === 'true';
-      } else if (value && !isNaN(Number(value))) {
-        value = Number(value);
+      // 特殊处理tags字段，支持多种格式
+      if (key.toLowerCase() === 'tags') {
+        // 检查是否是多行数组格式（以空格+破折号开头）
+        const tagLines = yamlStr.split(/\r?\n/);
+        const tagStartIndex = lines.findIndex(l => l.trim().startsWith('tags:'));
+        if (tagStartIndex !== -1) {
+          const tagValues = [];
+          for (let i = tagStartIndex + 1; i < tagLines.length; i++) {
+            const tagLine = tagLines[i];
+            // 检查是否是数组项（以空格+破折号开头）
+            const trimmedLine = tagLine.trim();
+            if (trimmedLine.startsWith('- ')) {
+              const tagValue = trimmedLine.substring(2).trim().replace(/^['"]|['"]$/g, '');
+              tagValues.push(tagValue);
+            } else if (tagLine.trim() && !tagLine.trim().match(/^\w/)) {
+              // 继续处理缩进行
+              continue;
+            } else {
+              // 遇到下一个顶级字段，停止处理tags
+              break;
+            }
+          }
+          
+          if (tagValues.length > 0) {
+            value = tagValues;
+          } else {
+            // 如果不是多行数组格式，尝试其他格式
+            if (typeof value === 'string') {
+              if (value.startsWith('[') && value.endsWith(']')) {
+                // 数组格式 [tag1, tag2, tag3]
+                value = value
+                  .substring(1, value.length - 1)
+                  .split(/,(?=(?:[^'"]*'[^'"]*')*[^'"]*$)/) // 正确处理带引号的逗号分隔
+                  .map(item => item.trim().replace(/^['"]|['"]$/g, '')) // 移除首尾引号
+                  .filter(item => item); // 过滤掉空项
+              } else if (value.includes(',')) {
+                // 逗号分隔格式 tag1, tag2, tag3
+                value = value
+                  .split(',')
+                  .map(item => item.trim().replace(/^['"]|['"]$/g, ''))
+                  .filter(item => item);
+              } else {
+                // 单个标签
+                value = [value.replace(/^['"]|['"]$/g, '')];
+              }
+            }
+          }
+        }
+      } else {
+        // 处理其他字段
+        if (value.startsWith('[') && value.endsWith(']')) {
+          // 更精确地分割数组项，考虑可能存在的引号
+          value = value
+            .substring(1, value.length - 1)
+            .split(/,(?=(?:[^'"]*'[^'"]*')*[^'"]*$)/) // 正确处理带引号的逗号分隔
+            .map(item => item.trim().replace(/^['"]|['"]$/g, '')) // 移除首尾引号
+            .filter(item => item); // 过滤掉空项
+        } else if (value.startsWith('"') && value.endsWith('"')) {
+          value = value.substring(1, value.length - 1);
+        } else if (value.startsWith("'") && value.endsWith("'")) {
+          value = value.substring(1, value.length - 1);
+        } else if (value === 'true' || value === 'false') {
+          value = value === 'true';
+        } else if (value && !isNaN(Number(value))) {
+          value = Number(value);
+        }
       }
 
       result[key] = value;
@@ -58,7 +108,7 @@ const parseYAML = (yamlStr: string): ArticleMetadata => {
     title: result.title || '',
     date: result.date || '',
     category: result.category || '',
-    tags: Array.isArray(result.tags) ? result.tags : (result.tags ? [result.tags] : []),
+    tags: Array.isArray(result.tags) ? result.tags : (result.tags ? [result.tags] : []).filter(Boolean),
     description: result.description || ''
   };
 };

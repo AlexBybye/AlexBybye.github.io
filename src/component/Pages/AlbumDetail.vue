@@ -12,21 +12,22 @@
                 v-for="(item, index) in photoItems" 
                 :key="item.id" 
                 class="glass-frame"
-                :class="{ 'is-visible': item.loaded }" 
+                :class="{ 'is-visible': item.loaded, 'frame-hovered': item.hovered }" 
                 :style="{
                     transform: `translate3d(${item.x}px, ${item.y}px, 0) rotate(${item.rotation}deg)`,
                     width: item.width + 'px',
-                    zIndex: item.paused ? 100 : 1,
+                    zIndex: item.hovered ? 200 : (item.paused ? 100 : 1),
                     transitionDelay: item.delay + 's'
                 }" 
-                @mouseenter="item.paused = true" 
-                @mouseleave="item.paused = false"
+                @mouseenter="item.hovered = true; item.paused = true;" 
+                @mouseleave="item.hovered = false; item.paused = false;"
                 @click="openImageViewer(index)"
             >
                 <img 
                     :src="item.src" 
                     @load="item.loaded = true" 
                     @error="handleImgError(item, $event)" 
+                    :class="{ 'img-loaded': item.loaded }"
                 />
                 <div class="glass-shine"></div>
             </div>
@@ -46,6 +47,7 @@
                         :src="photoItems[currentImageIndex].src" 
                         :alt="`Photo ${currentImageIndex + 1}`"
                         class="viewer-image"
+                        @click.stop
                     />
                     <button class="nav-btn next" @click="nextImage">❯</button>
                 </div>
@@ -102,6 +104,7 @@ const initPhysics = async () => {
                 rotation: (Math.random() - 0.5) * 20,
                 width: 220 + Math.random() * 60,
                 paused: false,
+                hovered: false,
                 loaded: false,
                 delay: i * 0.1
             };
@@ -251,7 +254,7 @@ onUnmounted(() => {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0.1s ease;
 
     /* 初始状态：缩小且透明 */
     opacity: 0;
@@ -274,11 +277,24 @@ onUnmounted(() => {
     scale: 1;
 }
 
+/* 悬停状态 */
+.glass-frame.frame-hovered {
+    transform: scale(1.05) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    z-index: 200 !important;
+}
+
 .glass-frame img {
     width: 100%;
     display: block;
     border-radius: 2px;
     pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+/* 图片加载完成后的样式 */
+.glass-frame img.img-loaded {
+    opacity: 1;
 }
 
 /* 玻璃反光特效 */

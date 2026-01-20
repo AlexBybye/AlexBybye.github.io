@@ -1,7 +1,7 @@
 <template>
-  <div class="music-playlist-container">
-    <h1>Music Playlist</h1>
-    <p>Enjoy my curated music collection.</p>
+  <div class="music-playlist-container" :class="{ 'page-throw-up': isLeaving }">
+    <h1>My Music</h1>
+    <p>Discover the music that inspires me.</p>
 
     <div class="playlist-controls">
       <div class="player-controls">
@@ -56,6 +56,19 @@
         <span>{{ formatTime(musicStore.totalTime) }}</span>
       </div>
     </div>
+
+    <Teleport to="body">
+      <div v-if="isAnimating" class="animation-overlay">
+        <div class="wave-bars">
+          <div v-for="i in 25" :key="i" class="wave-bar" :style="getWaveStyle(i)"></div>
+        </div>
+        <div class="floating-notes">
+          <div v-for="i in 10" :key="i" class="note" :style="getNoteStyle(i)">
+            {{ ['♪', '♫', '♬', '♭'][i % 4] }}
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -64,10 +77,32 @@ import { ref, onMounted, nextTick, computed, watch } from 'vue';
 import { useMusicStore } from '@/stores/musicStore';
 import { useAudioManager } from '@/stores/audioManager';
 import TagCloud from './TagCloud.vue';
+import { useRouter } from 'vue-router';
 
 const progressPercent = ref(0);
 const musicStore = useMusicStore();
 const audioManager = useAudioManager();
+const router = useRouter();
+const isLeaving = ref(false);
+const isAnimating = ref(false);
+
+// 在组件挂载后初始化音频管理器
+onMounted(async () => {
+  // 初始化音频管理器
+  audioManager.init();
+
+  // 只有在tracks为空时才加载音乐，避免重复加载
+  if (musicStore.tracks.length === 0) {
+    await musicStore.loadTracks();
+  }
+
+  if (musicStore.tracks.length > 0 && !musicStore.currentTrack) {
+    // 如果没有当前曲目，设置第一个为当前曲目
+    musicStore.playTrack(0);
+  }
+
+  await nextTick();
+});
 
 // 计算当前曲目的封面URL，确保路径正确
 const currentTrackCoverUrl = computed(() => {
@@ -193,21 +228,26 @@ watch(() => musicStore.totalTime, () => {
   updateProgressPercent();
 });
 
-onMounted(async () => {
-  // 只有在tracks为空时才加载音乐，避免重复加载
-  if (musicStore.tracks.length === 0) {
-    await musicStore.loadTracks();
-  }
+// 添加过渡动画相关函数
+const startTransition = (path) => {
+  isLeaving.value = true;
+  setTimeout(() => {
+    isAnimating.value = true;
+  }, 300);
+  setTimeout(() => {
+    router.push(path);
+  }, 1500);
+};
 
-  // 初始化音频管理器
-  audioManager.init();
+const getWaveStyle = (i) => ({
+  animationDelay: `${i * 0.05}s`,
+  left: `${(i - 1) * 4}%`,
+  height: `${Math.random() * 50 + 30}%`
+});
 
-  if (musicStore.tracks.length > 0 && !musicStore.currentTrack) {
-    // 如果没有当前曲目，设置第一个为当前曲目
-    musicStore.playTrack(0);
-  }
-
-  await nextTick();
+const getNoteStyle = (i) => ({
+  animationDelay: `${i * 0.2}s`,
+  left: `${Math.random() * 90}%`
 });
 </script>
 
@@ -217,6 +257,8 @@ onMounted(async () => {
   max-width: 1200px;
   margin: 0 auto;
   color: white;
+  position: relative;
+  overflow: hidden;
 }
 
 h1 {
@@ -227,6 +269,13 @@ h1 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+p {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1.2em;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .playlist-controls {
@@ -416,4 +465,24 @@ h1 {
   font-size: 0.9em;
   opacity: 0.8;
 }
+
+/* 添加页面转换动画 */
+.page-throw-up {
+  pointer-events: none;
+  animation: throwOut 0.8s forwards cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes throwOut {
+  0% { transform: translateY(0); opacity: 0.8; }
+  100% { transform: translateY(-100vh) rotate(-2deg); opacity: 0; }
+}
+.animation-overlay {
+  position: fixed; inset: 0; background: linear-gradient(135deg, #0f0c29, #24243e); z-index: 9999;
+}
+.wave-bar {
+  position: absolute; bottom: 0; width: 3%; background: linear-gradient(to top, #00dbde, #fc00ff);
+  animation: waveBurst 1.2s infinite ease-in-out; border-radius: 5px 5px 0 0;
+}
+@keyframes waveBurst { 0%, 100% { transform: scaleY(0.2); opacity: 0.3; } 50% { transform: scaleY(1); opacity: 0.7; } }
+.note { position: absolute; bottom: 0; color: #fff; font-size: 30px; animation: floatNoteUp 2s forwards linear; }
+@keyframes floatNoteUp { 0% { transform: translateY(0) opacity(0); } 100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; } }
 </style>

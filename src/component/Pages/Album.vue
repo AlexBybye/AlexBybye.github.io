@@ -24,7 +24,13 @@
         
         <div class="album-images-container">
           <div class="image-strip" :ref="el => setStripRef(el, index)">
-            <div v-for="group in 3" :key="group" class="film-unit">
+            <div 
+              v-for="group in 3" 
+              :key="group" 
+              class="film-unit"
+              @mouseenter="hoveredGroupIndex = {albumIndex: index, groupIndex: group}"
+              @mouseleave="hoveredGroupIndex = null"
+            >
               <div class="decoration-bar top-bar"></div>
               <div class="images-wrapper">
                 <div v-for="n in album.count" :key="n" class="album-image">
@@ -63,6 +69,7 @@ const isHovered = ref(false)
 const isLeaving = ref(false)
 const flashOpacity = ref(0)
 const animationId = ref(0)
+const hoveredGroupIndex = ref<{albumIndex: number, groupIndex: number} | null>(null)
 
 // 关键修复：图片空缺处理
 const handleImgFallback = (e: Event, albumId: string) => {
@@ -103,6 +110,11 @@ const startAnimations = () => {
       
       // 速度逻辑：未悬停 0.5，悬停 1.8，点击后指数爆发
       let targetSpeed = isHovered.value ? 1.8 : 0.5;
+      
+      // 检查当前相册的组是否被悬停，如果是，则加速
+      if (hoveredGroupIndex.value && hoveredGroupIndex.value.albumIndex === i) {
+        targetSpeed = 3.0; // 悬停在特定组上时的高速
+      }
       
       // 缓动平滑速度切换
       speeds.value[i] += (targetSpeed - speeds.value[i]) * 0.1;
