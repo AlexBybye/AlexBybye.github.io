@@ -12,6 +12,7 @@ import Music from '@/component/Pages/Music.vue'
 import MusicPlaylist from '@/component/Pages/MusicPlaylist.vue'
 import TagCloud from '@/component/Pages/TagCloud.vue'
 import FriendLinks from '@/component/Pages/Friendlinks.vue'
+import path from 'path'
 
 const routes = [
   {
@@ -40,6 +41,12 @@ const routes = [
         component: Article
       },
       {
+        path: 'article/detail/:id',
+        name: 'ArticleDetail',
+        component: Article,
+        props: true
+      },
+      {
         path: 'music',
         name: 'Music',
         component: Music
@@ -50,7 +57,7 @@ const routes = [
         component: Album
       },
       {
-        path: 'album/:id',
+        path: 'album/detail/:id',
         name: 'AlbumDetail',
         component: AlbumDetail,
         props: true
