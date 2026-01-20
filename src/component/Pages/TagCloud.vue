@@ -50,7 +50,6 @@ const generateColor = (index: number, count: number): string => {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 };
 
-// 为每个标签生成初始状态
 const initPositions = () => {
   if (!props.tags.length) {
     tagStates.value = [];
@@ -65,8 +64,8 @@ const initPositions = () => {
   tagStates.value = props.tags.map((tag, index) => ({
     x: Math.random() * 80 + 10, // 避免贴边
     y: Math.random() * 80 + 10,
-    dx: (Math.random() - 0.5) * 0.5, // 稍微增加速度
-    dy: (Math.random() - 0.5) * 0.5,
+    dx: (Math.random() - 0.5) * 1.5, // 增加初始速度
+    dy: (Math.random() - 0.5) * 1.5, // 增加初始速度
     color: generateColor(index, tag.count), // 生成稳定颜色
     originalColor: generateColor(index, tag.count), // 保存原始颜色
     isHovered: false // 是否处于悬停状态
