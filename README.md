@@ -112,7 +112,10 @@ public/ ├── article/ # 文章Markdown文件
         └── images/ # 其他图片资源
 
 scripts/ # 自动化脚本 
-       ├── generate-articles-json.ts # 生成文章索引 ├── generate-albums-json.ts # 生成相册索引 ├── generate-songs-json.ts # 生成音乐索引 └── RenamePhotos.ts # 图片重命名工具
+       ├── generate-articles-json.ts # 生成文章索引
+       ├── generate-albums-json.ts # 生成相册索引
+       ├── generate-songs-json.ts # 生成音乐索引
+       └── RenamePhotos.ts # 图片重命名工具
 ```
 
 ## 🛠️ 内容管理
