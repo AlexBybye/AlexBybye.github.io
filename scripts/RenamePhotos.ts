@@ -46,6 +46,35 @@ function isTargetNameExists(targetDir: string, baseName: string, ext: string): b
 }
 
 /**
+ * 检测当前目录中已使用的photo_x序号
+ */
+function getUsedPhotoNumbers(targetDir: string): Set<number> {
+  const usedNumbers = new Set<number>();
+  const files = fs.readdirSync(targetDir);
+
+  for (const file of files) {
+    const match = file.match(/^photo_(\d+)\.([^.]+)$/);
+    if (match) {
+      const number = parseInt(match[1], 10);
+      usedNumbers.add(number);
+    }
+  }
+
+  return usedNumbers;
+}
+
+/**
+ * 获取下一个可用的序号
+ */
+function getNextAvailableNumber(startFrom: number, usedNumbers: Set<number>): number {
+  let num = startFrom;
+  while (usedNumbers.has(num)) {
+    num++;
+  }
+  return num;
+}
+
+/**
  * 核心重命名方法 - 严格生成 photo_数字.原格式，带安全检查
  */
 function renameFolderImages(targetDir: string): number {
@@ -56,18 +85,44 @@ function renameFolderImages(targetDir: string): number {
       return 0;
     }
 
-    // 检查是否已经有重名的文件，避免覆盖
+    // 获取当前目录中已使用的photo_x序号
+    const usedNumbers = getUsedPhotoNumbers(targetDir);
+
+    // 过滤出非photo_x格式的文件进行重命名
+    const filesToRename = imageFiles.filter(filePath => {
+      const fileName = path.basename(filePath);
+      return !/^photo_\d+\.[^.]+$/.test(fileName);
+    });
+
+    // 检查是否所有文件都已经符合命名规范
+    const alreadyNamedFiles = imageFiles.length - filesToRename.length;
+    if (filesToRename.length === 0) {
+      console.log(`✅ 所有图片文件都已经是 photo_x 格式，无需重命名`);
+      return 0;
+    }
+
+    console.log(`📊 发现 ${alreadyNamedFiles} 个已命名文件，${filesToRename.length} 个待重命名文件`);
+
+    // 检查是否会有重名冲突
+    let nextNumber = 1;
     const conflicts = [];
-    for (let i = 0; i < imageFiles.length; i++) {
-      const ext = path.extname(imageFiles[i]).toLowerCase();
-      const newFileName = `photo_${i + 1}${ext}`;
+
+    for (let i = 0; i < filesToRename.length; i++) {
+      // 获取下一个可用的序号
+      nextNumber = getNextAvailableNumber(nextNumber, usedNumbers);
+
+      const ext = path.extname(filesToRename[i]).toLowerCase();
+      const newFileName = `photo_${nextNumber}${ext}`;
       const newFilePath = path.join(targetDir, newFileName);
-      
-      if (fs.existsSync(newFilePath) && imageFiles[i] !== newFilePath) {
+
+      // 检查目标路径是否已存在（但排除当前正要重命名的源文件）
+      if (fs.existsSync(newFilePath)) {
         conflicts.push(newFileName);
       }
+
+      nextNumber++; // 为下次迭代准备下一个序号
     }
-    
+
     if (conflicts.length > 0) {
       console.log(`⚠️  警告：以下文件已存在，重命名可能导致覆盖：`);
       conflicts.forEach(conflict => console.log(`   - ${conflict}`));
@@ -77,24 +132,32 @@ function renameFolderImages(targetDir: string): number {
           rl.close();
           return 0;
         }
-        
+
         // 执行重命名
         let successCount = 0;
-        imageFiles.forEach((filePath, index) => {
+        let currentNumber = 1;
+
+        filesToRename.forEach((filePath) => {
+          // 获取下一个可用的序号
+          currentNumber = getNextAvailableNumber(currentNumber, usedNumbers);
+
           const ext = path.extname(filePath).toLowerCase();
-          const newFileName = `photo_${index + 1}${ext}`; // 核心命名规则，序号从1开始
+          const newFileName = `photo_${currentNumber}${ext}`;
           const newFilePath = path.join(path.dirname(filePath), newFileName);
-          
+
           // 只有当源文件和目标文件不同时才重命名
           if (filePath !== newFilePath) {
             fs.renameSync(filePath, newFilePath);
+            usedNumbers.add(currentNumber); // 更新已用序号集合
             successCount++;
             console.log(`✅ 成功: ${path.basename(filePath)} → ${newFileName}`);
           } else {
             console.log(`ℹ️  跳过: ${newFileName} (文件名已符合规范)`);
           }
+
+          currentNumber++; // 准备下一个序号
         });
-        
+
         console.log(`\n----------------------------------------`);
         console.log(`🎉 处理完成！共成功重命名 ${successCount} 张图片`);
         rl.close();
@@ -104,20 +167,29 @@ function renameFolderImages(targetDir: string): number {
 
     // 执行重命名
     let successCount = 0;
-    imageFiles.forEach((filePath, index) => {
+    let currentNumber = 1;
+
+    filesToRename.forEach((filePath) => {
+      // 获取下一个可用的序号
+      currentNumber = getNextAvailableNumber(currentNumber, usedNumbers);
+
       const ext = path.extname(filePath).toLowerCase();
-      const newFileName = `photo_${index + 1}${ext}`; // 核心命名规则，序号从1开始
+      const newFileName = `photo_${currentNumber}${ext}`;
       const newFilePath = path.join(path.dirname(filePath), newFileName);
-      
+
       // 只有当源文件和目标文件不同时才重命名
       if (filePath !== newFilePath) {
         fs.renameSync(filePath, newFilePath);
+        usedNumbers.add(currentNumber); // 更新已用序号集合
         successCount++;
         console.log(`✅ 成功: ${path.basename(filePath)} → ${newFileName}`);
       } else {
         console.log(`ℹ️  跳过: ${newFileName} (文件名已符合规范)`);
       }
+
+      currentNumber++; // 准备下一个序号
     });
+
     return successCount;
   } catch (error) {
     console.error(`❌ 处理失败: `, (error as Error).message);

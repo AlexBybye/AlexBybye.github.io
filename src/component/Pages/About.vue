@@ -71,7 +71,7 @@
           <div class="hobby-item">
             <span class="label">Athletics</span>
             <div class="value-row">
-              <span class="value">Football · Tennis · Running</span>
+              <span class="value">Soccer · Tennis · Running</span>
             </div>
           </div>
           <br />
@@ -159,10 +159,9 @@ const playSong = async () => {
     await musicStore.loadTracks();
   }
 
-  // 查找特定的音频文件，使用HOV作为拜仁相关音乐（因为没有专门的Mia San Mia歌曲）
-  const miaSanMiaTrack = musicStore.tracks.find(track =>
-    track.filename.includes('HOV - Graham - HOV.mp3')
-  );
+  // 直接指定音乐文件名
+  const targetFileName = 'Andrew White feat Harry - FC Bayern, Forever Number One (Original German Mix).mp3';
+  const miaSanMiaTrack = musicStore.tracks.find(track => track.filename === targetFileName);
 
   if (miaSanMiaTrack) {
     // 如果当前播放的是这个曲目，则暂停

@@ -21,8 +21,9 @@
 - **文章自动生成**: `npm run generate-articles` 扫描Markdown文件并生成索引
 - **相册自动生成**: `npm run generate-albums` 自动扫描图片文件夹并生成相册列表
 - **音乐库自动生成**: `npm run generate-songs` 自动扫描音频文件并生成播放列表
-- **图片批量重命名**: `npx tsx scripts/RenamePhotos.ts` 提供交互式图片重命名工具
-
+- **图片批量重命名**: `npx tsx scripts/RenamePhotos.ts` 提供交互式图片重命名工具，采用插入式重命名，防止删除后出现滚动黑屏、重命名覆盖丢失后侧所有照片等情况。
+![alt text](image.png)
+![alt text](image-1.png)
 ### 4. 出色的动画效果
 - **多动画页面**: 包含多个精心设计的动画页面，提供丰富视觉体验
 - **物理引擎**: 相册详情页使用物理模拟，图片有动态飘浮效果

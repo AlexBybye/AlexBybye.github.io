@@ -1,12 +1,12 @@
 {
   "tracks": [
     {
-      "title": "3年E組うた担 - 旅立ちのうた",
-      "artist": "旅立ちのうた",
-      "type": "ACG",
-      "filename": "3年E組うた担 - 旅立ちのうた.mp3",
-      "coverImage": "img/ACG.jpg",
-      "duration": "363"
+      "title": "Ade,Muller",
+      "artist": "Unknown Artist",
+      "type": "soccer",
+      "filename": "Ade,Muller.mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "202"
     },
     {
       "title": "One of Your Illusions",
@@ -15,6 +15,14 @@
       "filename": "Alex Keeper,maybealice - One of Your Illusions.mp3",
       "coverImage": "img/house.jpg",
       "duration": "156"
+    },
+    {
+      "title": "FC Bayern, Forever Number One (Original German Mix)",
+      "artist": "Andrew White feat Harry",
+      "type": "soccer",
+      "filename": "Andrew White feat Harry - FC Bayern, Forever Number One (Original German Mix).mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "222"
     },
     {
       "title": "evening_self",
@@ -39,6 +47,14 @@
       "filename": "Calling - EMBRZ,Forester,Heather Janssen - Calling.mp3",
       "coverImage": "img/house.jpg",
       "duration": "208"
+    },
+    {
+      "title": "Nobody",
+      "artist": "Charlie Jeer",
+      "type": "R&B",
+      "filename": "Charlie Jeer - Nobody.mp3",
+      "coverImage": "img/R&B.jpg",
+      "duration": "174"
     },
     {
       "title": "Forester,Petit Biscuit,Emilia Ali - Close Your Eyes",
@@ -73,6 +89,14 @@
       "duration": "127"
     },
     {
+      "title": "Saint",
+      "artist": "Forester",
+      "type": "house",
+      "filename": "Forester - Saint.mp3",
+      "coverImage": "img/house.jpg",
+      "duration": "216"
+    },
+    {
       "title": "keshi - HELLHEAVEN",
       "artist": "GABRIEL",
       "type": "R&B",
@@ -81,12 +105,28 @@
       "duration": "160"
     },
     {
+      "title": "Un' Estate Italiana ",
+      "artist": "Giorgio Moroder",
+      "type": "soccer",
+      "filename": "Giorgio Moroder - Un' Estate Italiana.mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "250"
+    },
+    {
       "title": "Graham - HOV",
       "artist": "HOV",
       "type": "pop",
       "filename": "HOV - Graham - HOV.mp3",
       "coverImage": "img/pop.jpg",
       "duration": "145"
+    },
+    {
+      "title": "Juve (Storia Di Un Grande Amore)",
+      "artist": "I Calciatori Della Juventus",
+      "type": "soccer",
+      "filename": "I Calciatori Della Juventus - Juve (Storia Di Un Grande Amore).mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "196"
     },
     {
       "title": "Tom Grennan - It Can't Be Christmas",
@@ -105,12 +145,44 @@
       "duration": "161"
     },
     {
+      "title": "Wavin' Flag",
+      "artist": "K'NAAN",
+      "type": "soccer",
+      "filename": "K'NAAN - Wavin' Flag.mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "219"
+    },
+    {
+      "title": "Love Will Set You Free",
+      "artist": "Kodaline",
+      "type": "soccer",
+      "filename": "Kodaline - Love Will Set You Free.mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "260"
+    },
+    {
+      "title": "Pazza Inter",
+      "artist": "La Squadra Dell'inter",
+      "type": "soccer",
+      "filename": "La Squadra Dell'inter - Pazza Inter.mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "218"
+    },
+    {
       "title": "oskar med k - Make Me Feel",
       "artist": "Make Me Feel",
       "type": "house",
       "filename": "Make Me Feel - oskar med k - Make Me Feel.mp3",
       "coverImage": "img/house.jpg",
       "duration": "186"
+    },
+    {
+      "title": "Wish You The Best",
+      "artist": "Mentol,Halüna",
+      "type": "soccer",
+      "filename": "Mentol,Halüna - Wish You The Best.mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "200"
     },
     {
       "title": "Turn Back Time",
@@ -145,12 +217,28 @@
       "duration": "168"
     },
     {
+      "title": "We Are One (Ole Ola) [The Official 2014 FIFA World Cup Son",
+      "artist": "Pitbull,Jennifer Lopez,Cláudia Leitte",
+      "type": "soccer",
+      "filename": "Pitbull,Jennifer Lopez,Cláudia Leitte - We Are One (Ole Ola) [The Official 2014 FIFA World Cup Son.mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "222"
+    },
+    {
       "title": "Motorama - Heavy Wave",
       "artist": "Poverty",
       "type": "postpunk",
       "filename": "Poverty - Motorama - Heavy Wave.mp3",
       "coverImage": "img/postpunk.jpg",
       "duration": "209"
+    },
+    {
+      "title": "La Copa de la Vida ( Spanish Version) (1)",
+      "artist": "Ricky Martin",
+      "type": "soccer",
+      "filename": "Ricky Martin - La Copa de la Vida ( Spanish Version) (1).mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "269"
     },
     {
       "title": "Memories",
@@ -161,6 +249,14 @@
       "duration": "361"
     },
     {
+      "title": "Never Say Never",
+      "artist": "The Fray",
+      "type": "soccer",
+      "filename": "The Fray - Never Say Never.mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "259"
+    },
+    {
       "title": "Wolf Colony - Beauty",
       "artist": "Unmasked",
       "type": "R&B, pop",
@@ -169,28 +265,12 @@
       "duration": "202"
     },
     {
-      "title": "Saint",
-      "artist": "Forester",
-      "type": "house",
-      "filename": "Forester - Saint.mp3",
-      "coverImage": "img/house.jpg",
-      "duration": "216"
-    },
-    {
-      "title": "三角洲行动,Charlotte Churchman - THE FEAR (无惧)",
-      "artist": "三角洲行动 一周年纪念原声带",
-      "type": "ACG",
-      "filename": "三角洲行动 一周年纪念原声带 - 三角洲行动,Charlotte Churchman - THE FEAR (无惧).mp3",
-      "coverImage": "img/ACG.jpg",
-      "duration": "208"
-    },
-    {
-      "title": "三角洲行动,Lana Mel.,汪晨蕊 - GOT YOU (归零)",
-      "artist": "三角洲行动 一周年纪念原声带",
-      "type": "ACG",
-      "filename": "三角洲行动 一周年纪念原声带 - 三角洲行动,Lana Mel.,汪晨蕊 - GOT YOU (归零).mp3",
-      "coverImage": "img/ACG.jpg",
-      "duration": "204"
+      "title": "горит земля",
+      "artist": "Айскрин,вылитый я",
+      "type": "postpunk",
+      "filename": "Айскрин,вылитый я - горит земля.mp3",
+      "coverImage": "img/postpunk.jpg",
+      "duration": "192"
     },
     {
       "title": "盛哲 - 故事",
@@ -199,6 +279,22 @@
       "filename": "故事 - 盛哲 - 故事.mp3",
       "coverImage": "img/pop.jpg",
       "duration": "257"
+    },
+    {
+      "title": "旅立ちのうた",
+      "artist": "3年E班",
+      "type": "acg",
+      "filename": "旅立ちのうた.mp3",
+      "coverImage": "img/acg.jpg",
+      "duration": "363"
+    },
+    {
+      "title": "Inferno",
+      "artist": "澤野弘之,mpi,Benjamin",
+      "type": "soccer",
+      "filename": "澤野弘之,mpi,Benjamin - Inferno.mp3",
+      "coverImage": "img/soccer.jpg",
+      "duration": "234"
     },
     {
       "title": "芒果花蜜latest",
