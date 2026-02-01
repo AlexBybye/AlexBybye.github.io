@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import type { CSSProperties } from 'vue';
 
 interface Tag {
@@ -56,10 +56,12 @@ const initPositions = () => {
     return;
   }
 
-  // 为了更好地分散标签，我们根据容器尺寸分配位置
+  // 确保容器元素已渲染并获取其尺寸
   const container = tagCloudRef.value;
-  const containerWidth = container?.clientWidth || 100;
-  const containerHeight = container?.clientHeight || 100;
+  // 使用 getBoundingClientRect 确保获取最新的尺寸
+  const rect = container?.getBoundingClientRect();
+  const containerWidth = rect?.width || 100;
+  const containerHeight = rect?.height || 100;
 
   tagStates.value = props.tags.map((tag, index) => ({
     x: Math.random() * 80 + 10, // 避免贴边
@@ -131,43 +133,57 @@ const handleMouseLeave = (index: number) => {
 const animate = () => {
   if (tagStates.value.length === 0) return;
 
-  tagStates.value = tagStates.value.map(state => {
-    let newX = state.x + state.dx;
-    let newY = state.y + state.dy;
+  // 直接修改状态数组，避免不必要的对象重建
+  tagStates.value.forEach(state => {
+    state.x += state.dx;
+    state.y += state.dy;
 
     // 边界检测和反弹 - 使用固定范围
-    if (newX > 90 || newX < 10) {
+    if (state.x > 90 || state.x < 10) {
       state.dx *= -1;
-      newX = newX > 90 ? 90 : 10;
+      state.x = state.x > 90 ? 90 : 10;
     }
-    if (newY > 90 || newY < 10) {
+    if (state.y > 90 || state.y < 10) {
       state.dy *= -1;
-      newY = newY > 90 ? 90 : 10;
+      state.y = state.y > 90 ? 90 : 10;
     }
-
-    return { ...state, x: newX, y: newY };
   });
+
+  // 触发视图更新
+  tagStates.value = [...tagStates.value];
 
   animationFrameId = requestAnimationFrame(animate);
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 等待下一个DOM更新周期，确保DOM完全渲染
+  await nextTick();
+
   // 初始设置
   initPositions();
 
-  // 延迟启动动画，确保DOM完全渲染
+  // 确保容器尺寸可用后再启动动画
   setTimeout(() => {
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
     }
     animationFrameId = requestAnimationFrame(animate);
-  }, 100);
+  }, 50);
 });
 
-// 当标签数组发生变化时重新初始化
-watch(() => props.tags, () => {
+// 当标签数组发生变化时重新初始化并重启动画
+watch(() => props.tags, async () => {
   initPositions();
-}, { deep: true });
+
+  // 重启动画以确保运动效果
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+  }
+
+  // 等待DOM更新后重启动画
+  await nextTick();
+  animationFrameId = requestAnimationFrame(animate);
+}, { deep: true, immediate: true });
 
 onUnmounted(() => {
   if (animationFrameId) {

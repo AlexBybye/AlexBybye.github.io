@@ -5,6 +5,7 @@
             <div class="header">
                 <button class="back-button" @click="$router.push('/animation3/album')">← RETURN</button>
                 <h2 class="album-title-glow">{{ albumTitle }}</h2>
+                <p class="album-description" v-if="albumDescription">{{ albumDescription }}</p>
             </div>
 
             <div v-for="(item, index) in photoItems" :key="item.id" class="glass-frame"
@@ -43,6 +44,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 const props = defineProps(['id']);
 const boundary = ref<HTMLElement | null>(null);
 const albumTitle = ref('');
+const albumDescription = ref('');
 const photoItems = ref<any[]>([]);
 let animationFrame: number;
 const selectedImageIndex = ref<number | null>(null);
@@ -54,6 +56,7 @@ const initPhysics = async () => {
         const current = albums.find((a: any) => a.id === props.id);
         if (!current) return;
         albumTitle.value = current.title;
+        albumDescription.value = current.description || '';
 
         // 计算网格尺寸，不再限制高度
         const totalPhotos = current.count;
@@ -210,12 +213,14 @@ onUnmounted(() => {
     left: 0;
     z-index: 1000;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 30px;
+    gap: 10px;
     padding: 20px 40px;
     background: rgba(5, 5, 7, 0.8);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    max-width: 100%;
 }
 
 .back-button {
@@ -433,5 +438,45 @@ onUnmounted(() => {
     color: white;
     margin-top: 15px;
     font-size: 16px;
+}
+</style>
+
+<style scoped>
+.album-description {
+    font-size: 1.2rem;
+    font-weight: 300;
+    margin: 10px auto;
+    max-width: 80%;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.85);
+    font-style: italic;
+    letter-spacing: 1px;
+    line-height: 1.6;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 255, 255, 0.2),
+        0 0 30px rgba(100, 150, 255, 0.1);
+    animation: fadeInUp 1s ease-out;
+    font-family: 'Georgia', 'Times New Roman', serif;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .album-description {
+        font-size: 1rem;
+        max-width: 90%;
+        padding: 0 10px;
+    }
 }
 </style>
