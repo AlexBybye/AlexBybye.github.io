@@ -40,13 +40,7 @@ export const useMusicStore = defineStore('music', () => {
         try {
             const response = await fetch('/music/musiccontext.json');
             const data = await response.json();
-
-            // 确保duration字段是数字
-            tracks.value = (data.tracks || []).map((track: any) => ({
-                ...track,
-                duration: typeof track.duration === 'string' ? parseFloat(track.duration) : track.duration
-            }));
-
+            tracks.value = data.tracks || [];
             if (tracks.value.length > 0) {
                 currentTrackIndex.value = 0;
             }
