@@ -25,9 +25,15 @@ export const useAudioManager = defineStore('audioManager', () => {
       audioElement.oncanplay = () => {
         console.log('Audio can play');
         const musicStore = useMusicStore();
-        if (audioElement && !isNaN(audioElement.duration) && audioElement.duration > 0) {
+        if (audioElement && !isNaN(audioElement.duration) && isFinite(audioElement.duration) && audioElement.duration > 0) {
           musicStore.setTotalTime(audioElement.duration);
           console.log('Total time updated on canplay:', audioElement.duration);
+        } else {
+          // 如果音频元素无法提供有效时长，尝试从音乐store获取
+          if (musicStore.currentTrack && typeof musicStore.currentTrack.duration === 'number' && musicStore.currentTrack.duration > 0) {
+            musicStore.setTotalTime(musicStore.currentTrack.duration);
+            console.log('Using duration from store in canplay:', musicStore.currentTrack.duration);
+          }
         }
       };
 
@@ -56,8 +62,13 @@ export const useAudioManager = defineStore('audioManager', () => {
         if (audioElement) {
           musicStore.setCurrentTime(audioElement.currentTime);
           // 确保总时间也被更新
-          if (!isNaN(audioElement.duration) && audioElement.duration > 0) {
+          if (!isNaN(audioElement.duration) && isFinite(audioElement.duration) && audioElement.duration > 0) {
             musicStore.setTotalTime(audioElement.duration);
+          } else {
+            // 如果音频元素无法提供有效时长，尝试从音乐store获取
+            if (musicStore.currentTrack && typeof musicStore.currentTrack.duration === 'number' && musicStore.currentTrack.duration > 0) {
+              musicStore.setTotalTime(musicStore.currentTrack.duration);
+            }
           }
         }
       };
@@ -143,7 +154,7 @@ export const useAudioManager = defineStore('audioManager', () => {
   // 跳转到指定百分比位置
   const seekToPercentage = (percentage: number) => {
     if (!audioElement) initializeAudio();
-    if (audioElement && !isNaN(audioElement.duration)) {
+    if (audioElement && !isNaN(audioElement.duration)&& isFinite(audioElement.duration)) {
       const newTime = (percentage / 100) * audioElement.duration;
       audioElement.currentTime = newTime;
     }

@@ -38,7 +38,7 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5174, // 手动指定一个不冲突的端口
-    strictPort: true, // 如果 5174 也被占用了，直接报错而不是随机换端口
+    port: 3000,
+    strictPort: false,
   }
 })

@@ -17,7 +17,7 @@
         <img class="gh-graph"
           src="https://github-readme-activity-graph.vercel.app/graph?username=alexbybye&theme=tokyo-night&bg_color=ffffff00&hide_border=true" />
       </div>
-      <h1 class="who-am-i">Hey! But,who am I ??</h1>
+      <h1 class="who-am-i">Hey! But,who am I ???</h1>
     </section>
 
     <div class="about-main-grid">
@@ -27,27 +27,27 @@
           <img src="/images/avatar.jpg" class="avatar" alt="Avatar" />
           <div class="online-status"></div>
         </div>
-        <h2 class="user-name">Lin_eclipse</h2>
-
-
+        <h2 class="user-name">L i n _ e c l i p s e</h2>
+        <br>
         <div class="info-item">
           <img src="https://skillicons.dev/icons?i=redhat" class="mini-icon" />
           <a href="https://baike.baidu.com/item/%E5%8D%8E%E5%8D%97%E7%90%86%E5%B7%A5%E5%A4%A7%E5%AD%A6/134597"
             target="_blank" class="scut-link">SCUT</a> CS Undergraduate
         </div>
-
+        <br />
         <div class="info-item">
           <img src="https://skillicons.dev/icons?i=prisma" class="mini-icon" />Guangzhou
         </div>
-
+        <br />
         <div class="info-item">
           <img src="https://skillicons.dev/icons?i=linux" class="mini-icon" />244417287
         </div>
-
+        <br />
         <div class="info-item">
           <img src="https://skillicons.dev/icons?i=github" class="mini-icon" />
           <a href="https://github.com/AlexBybye" target="_blank" class="light-link"><b>AlexBybye</b></a>
         </div>
+        <br />
         <div class="visitor-box" align="left">
           <img src="https://visitor-badge.laobi.icu/badge?page_id=alexbybye/alexbybye" alt="Visitors" />
         </div>
@@ -61,17 +61,20 @@
             <span class="label">Soul Team</span>
             <div class="value-row">
               <span class="value">FC Bayern Munich</span>
-              <span class="badge red">Mia San Mia</span>
+              <button @click="playSong" class="badge red audio-btn">
+                <span class="audio-icon">🎵</span>
+                Mia San Mia
+              </button>
             </div>
           </div>
-
+          <br />
           <div class="hobby-item">
             <span class="label">Athletics</span>
             <div class="value-row">
               <span class="value">Football · Tennis · Running</span>
             </div>
           </div>
-
+          <br />
           <div class="hobby-item">
             <span class="label">Discovery</span>
             <div class="value-row">
@@ -80,7 +83,7 @@
               <span class="value highlight-adv">Adventure 🧗‍♂️</span>
             </div>
           </div>
-
+          <br />
           <div class="hobby-item">
             <span class="label">Acoustics</span>
             <div class="value-row">
@@ -129,9 +132,9 @@
     <section class="card awards-card float-anim-1">
       <h3 class="light-text">🚀 Featured Repositories</h3>
       <div class="repo-grid">
-        <a href="https://github.com/AlexBybye/Java_MAll" target="_blank">
+        <a href="https://github.com/AlexBybye/Make_Video_Great_Again" target="_blank">
           <img
-            src="https://github-readme-stats-fast.vercel.app/api/pin/?username=alexbybye&repo=Java_MAll&theme=tokyonight" />
+            src="https://github-readme-stats-fast.vercel.app/api/pin/?username=alexbybye&repo=Make_Video_Great_Again&theme=tokyonight" />
         </a>
         <a href="https://github.com/scutcsweaver/SCUT_CS" target="_blank">
           <img
@@ -142,7 +145,55 @@
   </div>
 
 </template>
+<script setup>
+import { useMusicStore } from '@/stores/musicStore';
+import { useAudioManager } from '@/stores/audioManager';
 
+const musicStore = useMusicStore();
+const audioManager = useAudioManager();
+
+// 播放歌曲的方法
+const playSong = async () => {
+  // 检查是否已经加载了播放列表
+  if (musicStore.tracks.length === 0) {
+    await musicStore.loadTracks();
+  }
+
+  // 查找特定的音频文件，使用HOV作为拜仁相关音乐（因为没有专门的Mia San Mia歌曲）
+  const miaSanMiaTrack = musicStore.tracks.find(track =>
+    track.filename.includes('HOV - Graham - HOV.mp3')
+  );
+
+  if (miaSanMiaTrack) {
+    // 如果当前播放的是这个曲目，则暂停
+    const currentIndex = musicStore.tracks.indexOf(miaSanMiaTrack);
+    if (musicStore.currentTrackIndex === currentIndex && musicStore.isPlaying) {
+      musicStore.togglePlay(); // 暂停
+    } else {
+      // 播放这个特定曲目
+      musicStore.playTrack(currentIndex);
+      // 确保播放状态为播放
+      if (!musicStore.isPlaying) {
+        musicStore.togglePlay();
+      }
+    }
+  } else {
+    // 如果找不到特定的'Mia San Mia'曲目，可以选择暂停当前播放的音乐
+    if (musicStore.tracks.length > 0) {
+      // 如果当前有音乐在播放，则暂停
+      if (musicStore.isPlaying) {
+        musicStore.togglePlay();
+      } else {
+        // 如果没有正在播放的音乐，可以提示用户或播放第一个
+        // 这里我们选择只是暂停，因为用户可能只是想停止当前播放
+        alert('未找到Mia San Mia音乐文件，已暂停当前播放的音乐');
+      }
+    } else {
+      alert('音乐库为空，未找到Mia San Mia音乐文件');
+    }
+  }
+};
+</script>
 <style scoped>
 /* 容器 */
 .about-wrapper {
@@ -171,11 +222,11 @@
 
 /* 悬停状态 - 增强的模糊效果 */
 .card:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   transform: translateY(-5px);
-  box-shadow: 
+  box-shadow:
     0 15px 45px rgba(0, 0, 0, 0.5),
     0 0 20px rgba(0, 243, 255, 0.4),
     inset 0 2px 4px rgba(255, 255, 255, 0.2);
@@ -241,7 +292,7 @@
 
 /* 基础文字样式 */
 .user-name {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   margin: 15px 0;
 }
 
@@ -255,7 +306,7 @@
   align-items: center;
   gap: 8px;
   margin: 8px 0;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 
 .mini-icon {
@@ -434,6 +485,7 @@ h3 {
 .bayern .value {
   color: #ff4d4d;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
 .badge.red {
