@@ -5,38 +5,36 @@
       <div v-if="currentArticle" class="article-content">
         <h1>{{ currentArticle.title }}</h1>
         <div class="article-meta">
-          <span class="date">{{ formatDate(currentArticle.date) }}</span>
-          <span class="category" v-if="currentArticle.category">{{ currentArticle.category }}</span>
+          <div class="meta-top">
+            <span class="date">{{ formatDate(currentArticle.date) }}</span>
+            <span class="category" v-if="currentArticle.category">{{ currentArticle.category }}</span>
+          </div>
+
           <div class="tags" v-if="currentArticle.tags && currentArticle.tags.length > 0">
             <span class="tag" v-for="tag in currentArticle.tags" :key="tag">{{ tag }}</span>
           </div>
-         
+
           <!-- 文章统计信息 -->
           <div class="article-stats">
             <span class="stat-item">
               👍 <strong>{{ articleLikeCount }}</strong> 个赞
-              <button 
-                @click="toggleArticleLike" 
-                :class="['like-btn', { 'liked': isArticleLiked }]"
-                :disabled="isArticleLiked"
-              >
-                {{ isArticleLiked ? '已点赞' : '点赞' }}
+              <button @click="toggleArticleLike" :class="['like-btn', { 'liked': isArticleLiked }]">
+                {{ isArticleLiked ? '取消点赞' : '点赞' }}
               </button>
             </span>
             <span class="stat-item">
               💬 <strong>{{ commentCount }}</strong> 条评论
             </span>
+            <button class="scroll-to-comment-btn" @click="scrollToCommentSection">
+              去评论
+            </button>
           </div>
         </div>
         <div class="markdown-content" v-html="currentArticle.content"></div>
-        
+
         <!-- 评论区 -->
-        <CommentSection 
-          ref="commentSectionRef"
-          v-if="currentArticleId" 
-          :article-id="currentArticleId" 
-          class="comment-section" 
-        />
+        <CommentSection ref="commentSectionRef" v-if="currentArticleId" :article-id="currentArticleId"
+          class="comment-section" />
       </div>
       <div v-else class="loading">加载文章中...</div>
     </div>
@@ -51,7 +49,7 @@
           <div class="article-meta">
             <span class="date">{{ formatDate(article.date) }}</span>
             <span class="category" v-if="article.category">{{ article.category }}</span>
-            
+
             <!-- 列表视图中的统计信息 -->
             <div class="article-stats-small">
               <span class="stat-item-small">
@@ -98,7 +96,7 @@
           <div class="article-meta">
             <span class="date">{{ formatDate(article.date) }}</span>
             <span class="category" v-if="article.category">{{ article.category }}</span>
-            
+
             <!-- 列表视图中的统计信息 -->
             <div class="article-stats-small">
               <span class="stat-item-small">
@@ -123,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import TagCloud from './TagCloud.vue'; // 导入标签云组件
 import CommentSection from '../CommentSection.vue'; // 导入评论组件
@@ -152,10 +150,17 @@ const searchQuery = ref('');
 const filteredArticles = ref<Article[]>([]);
 
 // 引用CommentSection组件
-const commentSectionRef = ref(null);
+const commentSectionRef = ref<InstanceType<typeof CommentSection> | null>(null);
+
+// 用于强制更新UI的响应式变量
+const forceUpdateTrigger = ref(0);
+
 
 // 计算属性：获取当前文章的点赞数和评论数
 const articleLikeCount = computed(() => {
+  // 依赖forceUpdateTrigger以确保响应变化
+  forceUpdateTrigger.value;
+
   if (currentArticle.value) {
     return likeService.getArticleLikes(currentArticle.value.id);
   }
@@ -170,9 +175,15 @@ const isArticleLiked = computed(() => {
 });
 
 const commentCount = computed(() => {
-  if (commentSectionRef.value) {
-    // @ts-ignore - TypeScript doesn't know about exposed properties
-    return commentSectionRef.value.commentCount || 0;
+  // 直接从localStorage获取评论数，而不是依赖组件引用
+  try {
+    const stored = localStorage.getItem('comments');
+    if (stored) {
+      const allComments = JSON.parse(stored);
+      return allComments.filter((comment: any) => comment.articleId === currentArticleId.value).length;
+    }
+  } catch (error) {
+    console.error('获取评论数失败:', error);
   }
   return 0;
 });
@@ -186,7 +197,7 @@ const getArticleLikeCount = (articleId: string) => {
 const getArticleCommentCount = (articleId: string) => {
   // 从localStorage获取评论数据
   try {
-    const stored = localStorage.getItem('article-comments');
+    const stored = localStorage.getItem('comments');
     if (stored) {
       const allComments = JSON.parse(stored);
       return allComments.filter((comment: any) => comment.articleId === articleId).length;
@@ -216,7 +227,7 @@ const allTags = computed(() => {
       tagCounts[tag] = (tagCounts[tag] || 0) + 1;
     });
   });
-  
+
   return Object.entries(tagCounts).map(([name, count]) => ({
     name,
     count
@@ -247,7 +258,17 @@ onMounted(async () => {
   } else {
     filteredArticles.value = [...articles.value];
   }
+  // 监听localStorage变化以更新UI
+  window.addEventListener('storage', handleStorageChange);
 });
+// 组件卸载时移除监听器
+onUnmounted(() => {
+  window.removeEventListener('storage', handleStorageChange);
+});
+// 处理localStorage变化
+const handleStorageChange = () => {
+  forceUpdateTrigger.value++;
+};
 
 const loadAllArticles = async () => {
   try {
@@ -265,14 +286,14 @@ const loadAllArticles = async () => {
     }
   } catch (error) {
     console.error('加载文章失败:', error);
-    
+
     // 作为fallback，可以加载一些示例数据
     articles.value = [];
     filteredArticles.value = [];
   }
 };
 
-async function loadArticleDetail(id: string)  {
+async function loadArticleDetail(id: string) {
   try {
     // 从服务加载特定文章
     const article = await getArticleById(id);
@@ -290,7 +311,7 @@ async function loadArticleDetail(id: string)  {
 };
 
 const filterByTag = (tag: string) => {
-  const result = articles.value.filter(article => 
+  const result = articles.value.filter(article =>
     article.tags.includes(tag)
   );
   filteredArticles.value = result;
@@ -329,12 +350,36 @@ const filterArticles = () => {
 
 // 点赞/取消点赞当前文章
 const toggleArticleLike = () => {
+  // 获取当前用户标识
+  let currentUsername = localStorage.getItem('comment_username');
+
+  if (!currentUsername) {
+    currentUsername = prompt('请输入您的GitHub用户名以进行点赞：');
+    if (currentUsername) {
+      localStorage.setItem('comment_username', currentUsername.trim());
+    } else {
+      // 用户取消输入，不执行点赞
+      return;
+    }
+  }
+
   if (currentArticle.value) {
     const result = likeService.toggleArticleLike(currentArticle.value.id);
     console.log(`文章 ${currentArticle.value.id} 点赞状态:`, result);
+
+    // 强制更新UI
+    forceUpdateTrigger.value++;
   }
 };
-
+// 滚动到评论区
+const scrollToCommentSection = () => {
+  nextTick(() => {
+    const commentSection = document.querySelector('.comment-section');
+    if (commentSection) {
+      commentSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+};
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('zh-CN', {
@@ -349,7 +394,7 @@ const truncateText = (html: string, maxLength: number) => {
   const tmp = document.createElement("div");
   tmp.innerHTML = html;
   const text = tmp.textContent || tmp.innerText || "";
-  
+
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 };
@@ -441,10 +486,76 @@ p {
 
 .article-meta {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   font-size: 0.9rem;
+}
+
+.meta-top {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.article-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #555;
+  border-bottom: 1px solid #555;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.like-btn {
+  padding: 3px 8px;
+  border: 1px solid #03dac6;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #03dac6;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.like-btn:hover:not(:disabled) {
+  background-color: #03dac6;
+  color: #000;
+}
+
+.like-btn:disabled {
+  background-color: #03dac6;
+  color: #000;
+  cursor: not-allowed;
+}
+
+.liked {
+  background-color: #03dac6;
+  color: #000;
+}
+
+.scroll-to-comment-btn {
+  padding: 5px 10px;
+  border: 1px solid #6200ea;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #bb86fc;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.scroll-to-comment-btn:hover {
+  background-color: #6200ea;
+  color: white;
 }
 
 .date {
@@ -495,7 +606,8 @@ p {
 }
 
 .article-detail {
-  min-height: 400px; /* 确保详情页有足够的空间 */
+  min-height: 400px;
+  /* 确保详情页有足够的空间 */
 }
 
 .article-content {

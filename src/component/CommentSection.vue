@@ -1,83 +1,65 @@
 <template>
   <div class="comment-section">
     <h3>评论区</h3>
-    
+
     <!-- 评论表单 -->
     <div class="comment-form">
-      <textarea 
-        v-model="newComment.content" 
-        placeholder="输入你的评论..."
-        rows="3"
-      ></textarea>
+      <textarea v-model="newComment.content" placeholder="输入你的评论..." rows="3"></textarea>
       <div class="form-footer">
-        <input 
-          v-model="newComment.author" 
-          placeholder="你的名字" 
-          maxlength="20"
-        />
+        <div class="avatar-input">
+          <img :src="getUserAvatar(newComment.author)" alt="avatar" class="avatar-preview" />
+          <input v-model="newComment.author" placeholder="你的名字或GitHub用户名" maxlength="20" />
+        </div>
         <button @click="submitComment" :disabled="!canSubmit">发表评论</button>
       </div>
     </div>
-    
+
     <!-- 评论列表 -->
     <div class="comments-list">
-      <div 
-        v-for="comment in comments" 
-        :key="comment.id" 
-        class="comment-item"
-        :class="{ 'is-reply': comment.parentId }"
-      >
+      <div v-for="comment in comments" :key="comment.id" class="comment-item" :class="{ 'is-reply': comment.parentId }">
         <div class="comment-header">
-          <span class="author">{{ comment.author }}</span>
+          <div class="author-info">
+            <img :src="getUserAvatar(comment.author)" alt="avatar" class="comment-avatar" />
+            <span class="author">{{ comment.author }}</span>
+          </div>
           <span class="date">{{ formatDate(comment.date) }}</span>
           <div class="actions">
-            <button 
-              class="like-btn" 
-              :class="{ liked: isLiked(comment.id) }"
-              @click="toggleLike(comment.id)"
-            >
+            <button class="like-btn" :class="{ liked: isLiked(comment.id) }" @click="toggleLike(comment.id)">
               👍 {{ getLikeCount(comment.id) }}
             </button>
             <button class="reply-btn" @click="toggleReplyForm(comment.id)">回复</button>
+            <button v-if="currentUserIsAuthor(comment.author)" class="delete-btn" @click="deleteComment(comment.id)">
+              删除
+            </button>
           </div>
         </div>
         <div class="comment-content">{{ comment.content }}</div>
-        
+
         <!-- 回复表单 -->
         <div v-if="activeReplyId === comment.id" class="reply-form">
-          <textarea 
-            v-model="replyContent" 
-            placeholder="输入你的回复..."
-            rows="2"
-          ></textarea>
+          <textarea v-model="replyContent" placeholder="输入你的回复..." rows="2"></textarea>
           <div class="form-footer">
-            <input 
-              v-model="replyAuthor" 
-              placeholder="你的名字" 
-              maxlength="20"
-            />
+            <input v-model="replyAuthor" placeholder="你的名字" maxlength="20" />
             <button @click="submitReply(comment.id)" :disabled="!canReply">回复</button>
             <button @click="cancelReply" class="cancel-btn">取消</button>
           </div>
         </div>
-        
+
         <!-- 子评论（回复） -->
         <div v-if="getReplies(comment.id).length > 0" class="replies">
-          <div 
-            v-for="reply in getReplies(comment.id)" 
-            :key="reply.id" 
-            class="comment-item reply-item"
-          >
+          <div v-for="reply in getReplies(comment.id)" :key="reply.id" class="comment-item reply-item">
             <div class="comment-header">
-              <span class="author">{{ reply.author }}</span>
+              <div class="author-info">
+                <img :src="getUserAvatar(reply.author)" alt="avatar" class="comment-avatar" />
+                <span class="author">{{ reply.author }}</span>
+              </div>
               <span class="date">{{ formatDate(reply.date) }}</span>
               <div class="actions">
-                <button 
-                  class="like-btn" 
-                  :class="{ liked: isLiked(reply.id) }"
-                  @click="toggleLike(reply.id)"
-                >
+                <button class="like-btn" :class="{ liked: isLiked(reply.id) }" @click="toggleLike(reply.id)">
                   👍 {{ getLikeCount(reply.id) }}
+                </button>
+                <button v-if="currentUserIsAuthor(reply.author)" class="delete-btn" @click="deleteComment(reply.id)">
+                  删除
                 </button>
               </div>
             </div>
@@ -91,6 +73,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+
 import { likeService } from '@/service/LikeService';
 
 interface Comment {
@@ -102,10 +85,13 @@ interface Comment {
   parentId?: string; // 用于标识回复的目标评论
 }
 
+const emit = defineEmits(['comment-count-change']);
+
 const props = defineProps<{
   articleId: string;
 }>();
-
+// 当前登录用户（可以从外部传入或者通过其他方式获取）
+const currentUser = ref(''); // 这里可以根据实际登录系统设置当前用户
 // 评论状态
 const newComment = ref({
   content: '',
@@ -131,8 +117,20 @@ const loadComments = () => {
 
 // 提交评论
 const submitComment = () => {
+  // 如果没有用户名，提示用户输入
+  if (!newComment.value.author.trim()) {
+    const usernameInput = prompt('请输入您的GitHub用户名：');
+    if (usernameInput) {
+      newComment.value.author = usernameInput.trim();
+      localStorage.setItem('comment_username', newComment.value.author);
+    } else {
+      // 用户取消输入
+      return;
+    }
+  }
+
   if (!newComment.value.content.trim() || !newComment.value.author.trim()) return;
-  
+
   const comment: Comment = {
     id: `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     articleId: props.articleId,
@@ -140,21 +138,24 @@ const submitComment = () => {
     author: newComment.value.author.trim(),
     date: new Date().toISOString()
   };
-  
+
   // 保存到localStorage
   const stored = localStorage.getItem('comments');
   let allComments: Comment[] = [];
   if (stored) {
     try {
       allComments = JSON.parse(stored);
-    } catch {}
+    } catch { }
   }
   allComments.push(comment);
   localStorage.setItem('comments', JSON.stringify(allComments));
-  
+
+  // 记住用户名以便后续验证
+  localStorage.setItem('comment_username', comment.author);
+
   // 添加到列表
   comments.value.push(comment);
-  
+
   // 清空表单
   newComment.value = { content: '', author: '' };
 };
@@ -172,8 +173,20 @@ const toggleReplyForm = (commentId: string) => {
 
 // 提交回复
 const submitReply = (parentId: string) => {
+  // 如果没有用户名，提示用户输入
+  if (!replyAuthor.value.trim()) {
+    const usernameInput = prompt('请输入您的GitHub用户名：');
+    if (usernameInput) {
+      replyAuthor.value = usernameInput.trim();
+      localStorage.setItem('comment_username', replyAuthor.value);
+    } else {
+      // 用户取消输入
+      return;
+    }
+  }
+
   if (!replyContent.value.trim() || !replyAuthor.value.trim()) return;
-  
+
   const reply: Comment = {
     id: `reply_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     articleId: props.articleId,
@@ -182,21 +195,23 @@ const submitReply = (parentId: string) => {
     date: new Date().toISOString(),
     parentId
   };
-  
+
   // 保存到localStorage
   const stored = localStorage.getItem('comments');
   let allComments: Comment[] = [];
   if (stored) {
     try {
       allComments = JSON.parse(stored);
-    } catch {}
+    } catch { }
   }
   allComments.push(reply);
   localStorage.setItem('comments', JSON.stringify(allComments));
-  
+  // 记住用户名以便后续验证
+  localStorage.setItem('comment_username', reply.author);
+
   // 添加到列表
   comments.value.push(reply);
-  
+
   // 清空回复表单
   replyContent.value = '';
   replyAuthor.value = '';
@@ -224,8 +239,24 @@ const getParentAuthor = (parentId?: string) => {
 
 // 点赞相关功能
 const toggleLike = (commentId: string) => {
+  // 获取当前用户标识
+  let currentUsername = localStorage.getItem('comment_username');
+
+  if (!currentUsername) {
+    currentUsername = prompt('请输入您的GitHub用户名以进行点赞：');
+    if (currentUsername) {
+      localStorage.setItem('comment_username', currentUsername.trim());
+      // 同时更新表单中的用户名
+      newComment.value.author = currentUsername.trim();
+    } else {
+      // 用户取消输入，不执行点赞
+      return;
+    }
+  }
+
   const result = likeService.toggleCommentLike(commentId);
-  // 更新本地评论列表中的点赞状态（这里我们不需要显式更新，因为UI会根据服务状态显示）
+  // 重新加载评论以更新UI
+  loadComments();
 };
 
 const getLikeCount = (commentId: string) => {
@@ -245,6 +276,79 @@ const canSubmit = computed(() => {
 const canReply = computed(() => {
   return replyContent.value.trim() && replyAuthor.value.trim();
 });
+
+// 获取用户头像
+const getUserAvatar = (username: string) => {
+  if (!username) return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y'; // 使用默认头像
+
+  // 检查是否为有效的GitHub用户名格式（字母数字和连字符，长度1-39）
+  const githubRegex = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i;
+  if (githubRegex.test(username)) {
+    // 尝试获取GitHub头像
+    return `https://avatars.githubusercontent.com/${username}?size=40`;
+  }
+
+  // 否则使用Gravatar基于用户名生成头像
+  // 使用简单的方法生成类似哈希的值
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hexHash = Math.abs(hash).toString(16);
+
+  return `https://www.gravatar.com/avatar/${hexHash}?d=identicon&s=40`;
+};
+
+// 检查当前用户是否是评论作者
+const currentUserIsAuthor = (author: string) => {
+  // 检查本地存储中是否有用户名，如果没有则提示输入
+  let savedUsername = localStorage.getItem('comment_username');
+
+  if (!savedUsername) {
+    // 提示用户输入用户名
+    const usernameInput = prompt('请输入您的GitHub用户名以验证身份：');
+    if (usernameInput) {
+      savedUsername = usernameInput.trim();
+      localStorage.setItem('comment_username', savedUsername);
+    }
+  }
+
+  return savedUsername === author;
+};
+
+// 删除评论
+const deleteComment = (commentId: string) => {
+  if (!confirm('确定要删除这条评论吗？')) return;
+
+  const stored = localStorage.getItem('comments');
+  let allComments: Comment[] = [];
+  if (stored) {
+    try {
+      allComments = JSON.parse(stored);
+    } catch { }
+  }
+
+  // 删除评论及其所有回复
+  const commentIndex = allComments.findIndex(comment => comment.id === commentId);
+  if (commentIndex !== -1) {
+    allComments.splice(commentIndex, 1);
+  }
+
+  // 删除该评论的所有回复
+  const repliesToDelete = allComments.filter(comment => comment.parentId === commentId);
+  repliesToDelete.forEach(reply => {
+    const replyIndex = allComments.findIndex(c => c.id === reply.id);
+    if (replyIndex !== -1) {
+      allComments.splice(replyIndex, 1);
+    }
+  });
+
+  // 保存到localStorage
+  localStorage.setItem('comments', JSON.stringify(allComments));
+
+  // 重新加载评论
+  loadComments();
+};
 
 // 格式化日期
 const formatDate = (dateString: string) => {
@@ -300,6 +404,21 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.1);
   color: white;
   margin-right: 10px;
+}
+
+.avatar-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 10px;
+}
+
+.avatar-preview {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #6200ea;
 }
 
 .form-footer {
@@ -366,6 +485,20 @@ onMounted(() => {
   gap: 10px;
 }
 
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comment-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #6200ea;
+}
+
 .author {
   font-weight: bold;
   color: #bb86fc;
@@ -381,13 +514,29 @@ onMounted(() => {
   gap: 8px;
 }
 
-.like-btn, .reply-btn {
+.like-btn,
+.reply-btn {
   padding: 4px 8px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9em;
   transition: all 0.3s;
+}
+
+.delete-btn {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.3s;
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.delete-btn:hover {
+  background: rgba(244, 67, 54, 0.3);
 }
 
 .like-btn {
