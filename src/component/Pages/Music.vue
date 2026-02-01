@@ -1,7 +1,7 @@
 <template>
   <div class="page-container" :class="{ 'page-throw-up': isLeaving }">
     <h1>Music</h1>
-    <p>Discover the music that inspires me.</p>
+    <p>Melody is an art form that subtly expresses the inner self, while lyrics are an open and honest outpouring.</p>
     <br>
     <br>
     <br>
@@ -495,6 +495,13 @@ const getNoteStyle = (i) => ({
 
 h1 {
   font-size: 3rem;
+  text-transform: uppercase;
+  letter-spacing: 10px;
+  color: #00f3ff;
+  text-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
+}
+
+p {
   text-transform: uppercase;
   letter-spacing: 10px;
   color: #00f3ff;

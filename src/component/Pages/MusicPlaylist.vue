@@ -1,6 +1,6 @@
 <template>
-  <div class="music-playlist-container" :class="{ 'page-throw-up': isLeaving }">
-    <h1>My Music</h1>
+  <div class="page-container" :class="{ 'page-throw-up': isLeaving }">
+    <h1>Music</h1>
     <p>Discover the music that inspires me.</p>
 
     <div class="playlist-controls">
@@ -252,13 +252,22 @@ const getNoteStyle = (i) => ({
 </script>
 
 <style scoped>
-.music-playlist-container {
-  padding: 20px;
-  max-width: 1200px;
+.page-container {
+  width: 80%;
   margin: 0 auto;
-  color: white;
+  padding: 40px;
+  background-color: #333;
+  min-height: calc(100vh - 30% - 40px);
+  opacity: 0.1;
+  transition: all 0.5s ease;
+  border-radius: 20px;
   position: relative;
   overflow: hidden;
+  /* 裁剪溢出的导线 */
+}
+
+.page-container:hover {
+  opacity: 0.8;
 }
 
 h1 {
