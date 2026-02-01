@@ -64,8 +64,8 @@ const initPositions = () => {
   tagStates.value = props.tags.map((tag, index) => ({
     x: Math.random() * 80 + 10, // 避免贴边
     y: Math.random() * 80 + 10,
-    dx: (Math.random() - 0.5) * 1.1, // 增加初始速度
-    dy: (Math.random() - 0.5) * 1.1, // 增加初始速度
+    dx: (Math.random() - 0.5) * 0.2, // 增加初始速度
+    dy: (Math.random() - 0.5) * 0.3, // 增加初始速度
     color: generateColor(index, tag.count), // 生成稳定颜色
     originalColor: generateColor(index, tag.count), // 保存原始颜色
     isHovered: false // 是否处于悬停状态

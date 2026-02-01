@@ -168,6 +168,9 @@ const articleLikeCount = computed(() => {
 });
 
 const isArticleLiked = computed(() => {
+  // 依赖forceUpdateTrigger以确保响应变化
+  forceUpdateTrigger.value;
+
   if (currentArticle.value) {
     return likeService.isItemLiked(currentArticle.value.id, 'article');
   }
@@ -175,6 +178,9 @@ const isArticleLiked = computed(() => {
 });
 
 const commentCount = computed(() => {
+  // 依赖forceUpdateTrigger以确保响应变化
+  forceUpdateTrigger.value;
+
   // 直接从localStorage获取评论数，而不是依赖组件引用
   try {
     const stored = localStorage.getItem('comments');
@@ -195,6 +201,9 @@ const getArticleLikeCount = (articleId: string) => {
 
 // 获取文章列表中每篇文章的评论数
 const getArticleCommentCount = (articleId: string) => {
+  // 依赖forceUpdateTrigger以确保响应变化
+  forceUpdateTrigger.value;
+
   // 从localStorage获取评论数据
   try {
     const stored = localStorage.getItem('comments');
@@ -367,8 +376,14 @@ const toggleArticleLike = () => {
     const result = likeService.toggleArticleLike(currentArticle.value.id);
     console.log(`文章 ${currentArticle.value.id} 点赞状态:`, result);
 
-    // 强制更新UI
+    // 强制更新UI，使用nextTick确保DOM更新
     forceUpdateTrigger.value++;
+
+    // 同时触发storage事件以通知其他组件更新
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'article-likes',
+      newValue: JSON.stringify(likeService.getAllArticleLikes())
+    }));
   }
 };
 // 滚动到评论区
@@ -404,10 +419,19 @@ const truncateText = (html: string, maxLength: number) => {
 .page-container {
   width: 80%;
   margin: 0 auto;
+  padding: 40px;
   background-color: #333;
   min-height: calc(100vh - 30% - 40px);
-  opacity: 0.95;
-  transition: opacity 0.3s ease;
+  opacity: 0.1;
+  transition: all 0.5s ease;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  /* 裁剪溢出的导线 */
+}
+
+.page-container:hover {
+  opacity: 0.8;
 }
 
 h1 {
