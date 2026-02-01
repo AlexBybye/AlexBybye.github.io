@@ -1,57 +1,37 @@
 <template>
     <div class="album-detail-view">
         <div class="bg-grid"></div>
-
-        <div class="header">
-            <button class="back-button" @click="$router.push('/animation3/album')">← RETURN</button>
-            <h2 class="album-title-glow">{{ albumTitle }}</h2>
-        </div>
-
         <div class="physics-container" ref="boundary">
-            <div 
-                v-for="(item, index) in photoItems" 
-                :key="item.id" 
-                class="glass-frame"
-                :class="{ 'is-visible': item.loaded, 'frame-hovered': item.hovered }" 
-                :style="{
+            <div class="header">
+                <button class="back-button" @click="$router.push('/animation3/album')">← RETURN</button>
+                <h2 class="album-title-glow">{{ albumTitle }}</h2>
+            </div>
+
+            <div v-for="(item, index) in photoItems" :key="item.id" class="glass-frame"
+                :class="{ 'is-visible': item.loaded, 'frame-hovered': item.hovered }" :style="{
                     transform: `translate3d(${item.x}px, ${item.y}px, 0) rotate(${item.rotation}deg)`,
                     width: item.width + 'px',
-                    zIndex: item.hovered ? 200 : (item.paused ? 100 : 1),
+                    zIndex: item.hovered ? 200 : (item.selected ? 300 : 1),
                     transitionDelay: item.delay + 's'
-                }" 
-                @mouseenter="item.hovered = true; item.paused = true;" 
-                @mouseleave="item.hovered = false; item.paused = false;"
-                @click="openImageViewer(index)"
-            >
-                <img 
-                    :src="item.src" 
-                    @load="item.loaded = true" 
-                    @error="handleImgError(item, $event)" 
-                    :class="{ 'img-loaded': item.loaded }"
-                />
+                }" @mouseenter="handleMouseEnter(index)" @mouseleave="handleMouseLeave(index)"
+                @click="selectImage(index)">
+                <img :src="item.src" @load="onImageLoad(index)" @error="handleImgError(item, $event)"
+                    :class="{ 'img-loaded': item.loaded }" loading="lazy" />
                 <div class="glass-shine"></div>
             </div>
         </div>
-        
+
         <!-- 图片查看器模态框 -->
-        <div 
-            v-if="imageViewerVisible" 
-            class="image-viewer-modal" 
-            @click="closeImageViewer"
-        >
+        <div v-if="selectedImageIndex !== null" class="image-viewer-modal" @click="closeImageViewer">
             <div class="image-viewer-content" @click.stop>
                 <button class="viewer-close-btn" @click="closeImageViewer">×</button>
                 <div class="image-nav" @click.stop>
                     <button class="nav-btn prev" @click="prevImage">❮</button>
-                    <img 
-                        :src="photoItems[currentImageIndex].src" 
-                        :alt="`Photo ${currentImageIndex + 1}`"
-                        class="viewer-image"
-                        @click.stop
-                    />
+                    <img :src="photoItems[selectedImageIndex].src" :alt="`Photo ${selectedImageIndex + 1}`"
+                        class="viewer-image" @click.stop />
                     <button class="nav-btn next" @click="nextImage">❯</button>
                 </div>
-                <div class="image-counter">{{ currentImageIndex + 1 }} / {{ photoItems.length }}</div>
+                <div class="image-counter">{{ selectedImageIndex + 1 }} / {{ photoItems.length }}</div>
             </div>
         </div>
     </div>
@@ -65,8 +45,7 @@ const boundary = ref<HTMLElement | null>(null);
 const albumTitle = ref('');
 const photoItems = ref<any[]>([]);
 let animationFrame: number;
-const imageViewerVisible = ref(false);
-const currentImageIndex = ref(0);
+const selectedImageIndex = ref<number | null>(null);
 
 const initPhysics = async () => {
     try {
@@ -83,9 +62,9 @@ const initPhysics = async () => {
         const rows = Math.ceil(totalPhotos / cols);
 
         // 计算每个格子的大小
-        const containerWidth = window.innerWidth;
-        const containerHeight = window.innerHeight * 2; // 增加容器高度以避免重叠
-        
+        const containerWidth = window.innerWidth * 0.9; // 减少容器宽度以留出边距
+        const containerHeight = window.innerHeight * 3; // 增加容器高度以避免重叠
+
         const cellW = containerWidth / cols;
         const cellH = containerHeight / rows;
 
@@ -97,21 +76,28 @@ const initPhysics = async () => {
                 id: i + 1,
                 src: `/album/${props.id}/photo_${i + 1}.jpg`,
                 // 分布在更大的区域内
-                x: col * cellW + (Math.random() * (cellW - 250)),
+                x: col * cellW + (Math.random() * (cellW - 250)) + (window.innerWidth * 0.05),
                 y: row * cellH + (Math.random() * (cellH - 200)),
-                vx: (Math.random() - 0.5) * 0.6,
-                vy: (Math.random() - 0.5) * 0.6,
-                rotation: (Math.random() - 0.5) * 20,
-                width: 220 + Math.random() * 60,
-                paused: false,
+                vx: (Math.random() - 0.5) * 0.3, // 减慢移动速度
+                vy: (Math.random() - 0.5) * 0.3, // 减慢移动速度
+                rotation: (Math.random() - 0.5) * 10, // 减小初始旋转角度
+                width: 200 + Math.random() * 60, // 设置更合适的宽度范围
+                selected: false,
                 hovered: false,
                 loaded: false,
-                delay: i * 0.1
+                delay: i * 0.05
             };
         });
 
         animate();
     } catch (e) { console.error(e); }
+};
+
+// 图像加载完成处理
+const onImageLoad = (index: number) => {
+    if (index >= 0 && index < photoItems.value.length) {
+        photoItems.value[index].loaded = true;
+    }
 };
 
 // 格式自动容错：.jpg 不存在则尝试 .png，都失败则移除该框
@@ -131,8 +117,6 @@ const animate = () => {
     const bRect = boundary.value.getBoundingClientRect();
 
     photoItems.value.forEach(item => {
-        if (item.paused) return;
-
         // 更新坐标
         item.x += item.vx;
         item.y += item.vy;
@@ -144,11 +128,11 @@ const animate = () => {
 
         // 边界反弹逻辑
         if (item.x <= 0 || item.x + item.width >= bRect.width) {
-            item.vx *= -1;
+            item.vx *= -0.9; // 反弹时减弱速度
             item.x = item.x <= 0 ? 0 : bRect.width - item.width;
         }
         if (item.y <= 0 || item.y + itemHeight >= bRect.height) {
-            item.vy *= -1;
+            item.vy *= -0.9; // 反弹时减弱速度
             item.y = item.y <= 0 ? 0 : bRect.height - itemHeight;
         }
     });
@@ -156,27 +140,41 @@ const animate = () => {
     animationFrame = requestAnimationFrame(animate);
 };
 
-// 打开图片查看器
-const openImageViewer = (index: number) => {
-    currentImageIndex.value = index;
-    imageViewerVisible.value = true;
+// 鼠标进入处理
+const handleMouseEnter = (index: number) => {
+    // 仅设置悬停状态，不触发其他效果
+    photoItems.value[index].hovered = true;
+};
+
+// 鼠标离开处理
+const handleMouseLeave = (index: number) => {
+    photoItems.value[index].hovered = false;
+};
+
+// 选择图片（替代原来的openImageViewer）
+const selectImage = (index: number) => {
+    selectedImageIndex.value = index;
     document.body.style.overflow = 'hidden'; // 防止背景滚动
 };
 
 // 关闭图片查看器
 const closeImageViewer = () => {
-    imageViewerVisible.value = false;
+    selectedImageIndex.value = null;
     document.body.style.overflow = ''; // 恢复背景滚动
 };
 
 // 上一张图片
 const prevImage = () => {
-    currentImageIndex.value = (currentImageIndex.value - 1 + photoItems.value.length) % photoItems.value.length;
+    if (selectedImageIndex.value !== null) {
+        selectedImageIndex.value = (selectedImageIndex.value - 1 + photoItems.value.length) % photoItems.value.length;
+    }
 };
 
 // 下一张图片
 const nextImage = () => {
-    currentImageIndex.value = (currentImageIndex.value + 1) % photoItems.value.length;
+    if (selectedImageIndex.value !== null) {
+        selectedImageIndex.value = (selectedImageIndex.value + 1) % photoItems.value.length;
+    }
 };
 
 onMounted(initPhysics);
@@ -189,9 +187,11 @@ onUnmounted(() => {
 <style scoped>
 .album-detail-view {
     width: 100%;
-    min-height: 100vh; /* 改为最小高度，允许内容扩展 */
+    min-height: 100vh;
+    /* 改为最小高度，允许内容扩展 */
     background: radial-gradient(circle at center, #23263a 0%, #050507 100%);
-    overflow-x: hidden; /* 只隐藏水平滚动条 */
+    overflow: hidden;
+    /* 隐藏主容器滚动条，让内部容器处理滚动 */
     position: relative;
 }
 
@@ -205,13 +205,17 @@ onUnmounted(() => {
 }
 
 .header {
-    position: fixed;
-    top: 30px;
-    left: 40px;
+    position: sticky;
+    top: 0;
+    left: 0;
     z-index: 1000;
     display: flex;
     align-items: center;
     gap: 30px;
+    padding: 20px 40px;
+    background: rgba(5, 5, 7, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .back-button {
@@ -223,6 +227,15 @@ onUnmounted(() => {
     backdrop-filter: blur(5px);
     transition: all 0.3s;
     border-radius: 8px;
+    overflow: visible;
+}
+
+/* 选中状态 */
+.glass-frame.is-selected {
+    z-index: 300 !important;
+    /* 不改变transform，避免位置变化 */
+    filter: brightness(1.2) contrast(1.1);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8);
 }
 
 .back-button:hover {
@@ -242,7 +255,25 @@ onUnmounted(() => {
     width: 100%;
     min-height: 100vh;
     position: relative;
-    padding-bottom: 100vh; /* 添加额外空间以适应更多图片 */
+    padding-bottom: 100vh;
+    overflow: visible;
+    overflow-y: auto;
+    /* 添加滚动条样式 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.physics-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.physics-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.physics-container::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
 }
 
 .glass-frame {
@@ -254,7 +285,8 @@ onUnmounted(() => {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0.1s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* 分离transform和opacity的过渡，避免频闪 */
 
     /* 初始状态：缩小且透明 */
     opacity: 0;
@@ -263,12 +295,8 @@ onUnmounted(() => {
     /* 只有 opacity 和 scale 使用 transition，transform(位移) 由 requestAnimationFrame 处理 */
     transition: opacity 1s ease-out, scale 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     will-change: transform, opacity;
-}
-
-.glass-frame:hover {
-    transform: scale(1.05) !important;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
-    z-index: 200 !important;
+    pointer-events: auto;
+    /* 确保元素可以接收鼠标事件 */
 }
 
 /* 显现状态 */
@@ -277,12 +305,16 @@ onUnmounted(() => {
     scale: 1;
 }
 
-/* 悬停状态 */
+/* 悬停状态 - 不改变位置，只增强视觉效果 */
 .glass-frame.frame-hovered {
-    transform: scale(1.05) !important;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
     z-index: 200 !important;
+    /* 不使用 transform: scale() 以避免位置变化 */
+    filter: brightness(1.1);
+    transition: box-shadow 0.3s ease, z-index 0.1s ease, filter 0.3s ease;
 }
+
+/* 移除:hover伪类，避免与frame-hovered冲突 */
 
 .glass-frame img {
     width: 100%;

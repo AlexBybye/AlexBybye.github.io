@@ -6,8 +6,9 @@
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-    <h1>Photo Albums</h1>
-    
+    <h1>Albums</h1>
+    <p>Evolve yourself with my curated photos.</p>
+
     <div class="album-list">
       <div 
         v-for="(album, index) in albums" 
@@ -108,8 +109,8 @@ const startAnimations = () => {
     stripRefs.value.forEach((strip, i) => {
       if (!strip) return;
       
-      // 速度逻辑：未悬停 0.5，悬停 1.8，点击后指数爆发
-      let targetSpeed = isHovered.value ? 1.8 : 0.5;
+      // 速度逻辑：未悬停 0.1，悬停框内 1，点击后指数爆发
+      let targetSpeed = isHovered.value ? 1 : 0.1;
       
       // 检查当前相册的组是否被悬停，如果是，则加速
       if (hoveredGroupIndex.value && hoveredGroupIndex.value.albumIndex === i) {
@@ -138,7 +139,7 @@ const startAnimations = () => {
       
       // 点击跳转时的逻辑
       if (isLeaving.value) {
-        speeds.value[i] *= 1.2; // 极速飞出
+        speeds.value[i] *= 1.3; // 极速飞出
         flashOpacity.value = Math.min(0.8, flashOpacity.value + 0.015); // 渐变到 0.8
       }
     });
@@ -172,6 +173,18 @@ onUnmounted(() => cancelAnimationFrame(animationId.value))
   display: flex;
   flex-direction: column;
   gap: 0; 
+}
+
+h1, h2, h3, h4 {
+  color: #fff;
+  text-align: center;
+}
+
+p {
+  color: #ccc;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  text-align: center;
 }
 
 .album-row {
