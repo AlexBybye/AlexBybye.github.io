@@ -38,7 +38,7 @@ export const useMusicStore = defineStore('music', () => {
     // 加载播放列表
     const loadTracks = async () => {
         try {
-            const response = await fetch('/music/musiccontext.json');
+            const response = await fetch('./music/musiccontext.json');
             const data = await response.json();
             tracks.value = data.tracks || [];
             if (tracks.value.length > 0) {

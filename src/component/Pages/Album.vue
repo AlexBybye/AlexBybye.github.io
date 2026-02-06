@@ -93,7 +93,7 @@ const handleImgFallback = (e: Event, albumId: string) => {
 
 const loadAlbums = async () => {
   try {
-    const res = await fetch('/album/albumcontext.json');
+    const res = await fetch('./album/albumcontext.json');
     if (res.ok) {
       albums.value = await res.json();
       // 初始化速度：初始非常慢

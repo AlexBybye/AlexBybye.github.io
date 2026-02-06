@@ -77,7 +77,7 @@ export const loadArticles = async (): Promise<Article[]> => {
   try {
     // 在生产环境中，这应该是从API获取的
     // 由于Vue应用无法直接读取本地文件系统，这里使用fetch获取public目录下的文件
-    const response = await fetch('/article/articles.json');
+    const response = await fetch('./article/articles.json');
     
     if (response.ok) {
       // 如果存在预生成的文章列表JSON文件
@@ -101,7 +101,7 @@ export const loadArticles = async (): Promise<Article[]> => {
 export const getArticleById = async (id: string): Promise<Article | null> => {
   try {
     // 构造文章文件路径
-    const filePath = `/article/${id}.md`;
+    const filePath = `./article/${id}.md`;
     const response = await fetch(filePath);
 
     if (!response.ok) {

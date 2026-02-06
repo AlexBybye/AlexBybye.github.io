@@ -51,7 +51,7 @@ const selectedImageIndex = ref<number | null>(null);
 
 const initPhysics = async () => {
     try {
-        const res = await fetch('/album/albumcontext.json');
+        const res = await fetch('./album/albumcontext.json');
         const albums = await res.json();
         const current = albums.find((a: any) => a.id === props.id);
         if (!current) return;
@@ -77,7 +77,7 @@ const initPhysics = async () => {
 
             return {
                 id: i + 1,
-                src: `/album/${props.id}/photo_${i + 1}.jpg`,
+                src: `./album/${props.id}/photo_${i + 1}.jpg`,
                 // 分布在更大的区域内
                 x: col * cellW + (Math.random() * (cellW - 250)) + (window.innerWidth * 0.05),
                 y: row * cellH + (Math.random() * (cellH - 200)),
