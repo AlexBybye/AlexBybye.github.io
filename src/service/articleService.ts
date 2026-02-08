@@ -100,11 +100,32 @@ export const loadArticles = async (): Promise<Article[]> => {
 // 根据ID加载特定文章
 export const getArticleById = async (id: string): Promise<Article | null> => {
   try {
-    // 构造文章文件路径
-    const filePath = `./article/${id}.md`;
-    const response = await fetch(filePath);
+    // First, try with the original ID
+    let filePath = `./article/${encodeURIComponent(id)}.md`;
+    let response = await fetch(filePath);
+    
+    // If that fails, try with decoded ID
+    if (!response.ok) {
+      let decodedId = id;
+      try {
+        decodedId = decodeURIComponent(id);
+      } catch (e) {
+        console.warn('Could not decode article ID:', id);
+      }
+      
+      // Try with the decoded ID
+      filePath = `./article/${decodedId}.md`;
+      response = await fetch(filePath);
+      
+      // If that also fails, try without encoding anything
+      if (!response.ok) {
+        filePath = `./article/${id}.md`;
+        response = await fetch(filePath);
+      }
+    }
 
     if (!response.ok) {
+      console.error(`Failed to fetch article at path: ${filePath}, status: ${response.status}`);
       throw new Error(`Failed to fetch article: ${filePath}`);
     }
 
