@@ -66,7 +66,7 @@ const initPhysics = async () => {
 
         // 计算每个格子的大小
         const containerWidth = window.innerWidth * 0.9; // 减少容器宽度以留出边距
-        const containerHeight = window.innerHeight * 3; // 增加容器高度以避免重叠
+        const containerHeight = window.innerHeight * 4; // 增加容器高度以避免重叠
 
         const cellW = containerWidth / cols;
         const cellH = containerHeight / rows;
@@ -79,12 +79,12 @@ const initPhysics = async () => {
                 id: i + 1,
                 src: `./album/${props.id}/photo_${i + 1}.jpg`,
                 // 分布在更大的区域内
-                x: col * cellW + (Math.random() * (cellW - 250)) + (window.innerWidth * 0.05),
-                y: row * cellH + (Math.random() * (cellH - 200)),
-                vx: (Math.random() - 0.5) * 0.3, // 减慢移动速度
-                vy: (Math.random() - 0.5) * 0.3, // 减慢移动速度
-                rotation: (Math.random() - 0.5) * 10, // 减小初始旋转角度
-                width: 200 + Math.random() * 60, // 设置更合适的宽度范围
+                x: col * cellW + (Math.random() * (cellW - 200)) + (window.innerWidth * 0.05),
+                y: row * cellH + (Math.random() * (cellH - 150)),
+                vx: (Math.random() - 0.5) * 0.2, // 减慢移动速度
+                vy: (Math.random() - 0.5) * 0.2, // 减慢移动速度
+                rotation: (Math.random() - 0.5) * 8, // 减小初始旋转角度
+                width: 180 + Math.random() * 50, // 设置更合适的宽度范围
                 selected: false,
                 hovered: false,
                 loaded: false,
@@ -258,7 +258,7 @@ onUnmounted(() => {
 
 .physics-container {
     width: 100%;
-    min-height: 100vh;
+    min-height: 200vh;
     position: relative;
     padding-bottom: 100vh;
     overflow: visible;
@@ -319,7 +319,6 @@ onUnmounted(() => {
     transition: box-shadow 0.3s ease, z-index 0.1s ease, filter 0.3s ease;
 }
 
-/* 移除:hover伪类，避免与frame-hovered冲突 */
 
 .glass-frame img {
     width: 100%;
