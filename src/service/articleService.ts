@@ -100,33 +100,56 @@ export const loadArticles = async (): Promise<Article[]> => {
 // 根据ID加载特定文章
 export const getArticleById = async (id: string): Promise<Article | null> => {
   try {
-    // First, try with the original ID
-    let filePath = `./article/${encodeURIComponent(id)}.md`;
-    let response = await fetch(filePath);
+    // 尝试不同的路径格式
+    const pathsToTry = [
+      `./article/${encodeURIComponent(id)}.md`,  // URL编码的相对路径
+      `./article/${id}.md`,                     // 原始相对路径
+    ];
     
-    // If that fails, try with decoded ID
-    if (!response.ok) {
+    let response;
+    let filePath;
+    
+    for (const path of pathsToTry) {
+      try {
+        response = await fetch(path);
+        if (response.ok) {
+          filePath = path;
+          break;
+        }
+      } catch (e) {
+        console.warn(`尝试路径失败: ${path}`, e);
+      }
+    }
+    
+    // 如果上面的路径都失败，尝试解码ID
+    if (!response || !response.ok) {
       let decodedId = id;
       try {
         decodedId = decodeURIComponent(id);
       } catch (e) {
-        console.warn('Could not decode article ID:', id);
+        console.warn('无法解码文章ID:', id);
       }
       
-      // Try with the decoded ID
-      filePath = `./article/${decodedId}.md`;
-      response = await fetch(filePath);
+      const fallbackPaths = [
+        `./article/${decodedId}.md`,
+      ];
       
-      // If that also fails, try without encoding anything
-      if (!response.ok) {
-        filePath = `./article/${id}.md`;
-        response = await fetch(filePath);
+      for (const path of fallbackPaths) {
+        try {
+          response = await fetch(path);
+          if (response.ok) {
+            filePath = path;
+            break;
+          }
+        } catch (e) {
+          console.warn(`尝试备用路径失败: ${path}`, e);
+        }
       }
     }
-
-    if (!response.ok) {
-      console.error(`Failed to fetch article at path: ${filePath}, status: ${response.status}`);
-      throw new Error(`Failed to fetch article: ${filePath}`);
+    
+    if (!response || !response.ok) {
+      console.error(`所有路径尝试均失败`);
+      throw new Error(`Failed to fetch article from any path`);
     }
 
     const content = await response.text();
