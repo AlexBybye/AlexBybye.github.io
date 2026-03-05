@@ -77,7 +77,7 @@ export const loadArticles = async (): Promise<Article[]> => {
   try {
     // 在生产环境中，这应该是从API获取的
     // 由于Vue应用无法直接读取本地文件系统，这里使用fetch获取public目录下的文件
-    const response = await fetch('./article/articles.json');
+    const response = await fetch('/article/articles.json');
     
     if (response.ok) {
       // 如果存在预生成的文章列表JSON文件
@@ -102,8 +102,8 @@ export const getArticleById = async (id: string): Promise<Article | null> => {
   try {
     // 尝试不同的路径格式
     const pathsToTry = [
-      `./article/${encodeURIComponent(id)}.md`,  // URL编码的相对路径
-      `./article/${id}.md`,                     // 原始相对路径
+      `/article/${encodeURIComponent(id)}.md`,  // URL编码的相对路径
+      `/article/${id}.md`,                     // 原始相对路径
     ];
     
     let response;
@@ -131,7 +131,7 @@ export const getArticleById = async (id: string): Promise<Article | null> => {
       }
       
       const fallbackPaths = [
-        `./article/${decodedId}.md`,
+        `/article/${decodedId}.md`,
       ];
       
       for (const path of fallbackPaths) {
