@@ -77,13 +77,16 @@ export const loadArticles = async (): Promise<Article[]> => {
   try {
     // 在生产环境中，这应该是从API获取的
     // 由于Vue应用无法直接读取本地文件系统，这里使用fetch获取public目录下的文件
+    // 使用绝对路径以确保在GitHub Pages等部署环境中也能正确访问
     const response = await fetch('/article/articles.json');
     
     if (response.ok) {
+      console.log('成功加载文章列表，状态码:', response.status);
       // 如果存在预生成的文章列表JSON文件
       const articleList = await response.json();
       return articleList;
     } else {
+      console.error('加载文章列表失败，状态码:', response.status);
       // 如果没有预生成的JSON文件，则尝试获取目录中的文件列表
       // 这里只是一个fallback，实际中可能需要后端API来列出文件
       console.warn('没有找到预生成的文章列表，使用默认数据');
@@ -100,56 +103,36 @@ export const loadArticles = async (): Promise<Article[]> => {
 // 根据ID加载特定文章
 export const getArticleById = async (id: string): Promise<Article | null> => {
   try {
-    // 尝试不同的路径格式
-    const pathsToTry = [
-      `/article/${encodeURIComponent(id)}.md`,  // URL编码的相对路径
-      `/article/${id}.md`,                     // 原始相对路径
-    ];
+    // 使用绝对路径访问文章文件，适用于GitHub Pages部署
+    const articleUrl = `/article/${encodeURIComponent(id)}.md`;
     
     let response;
-    let filePath;
     
-    for (const path of pathsToTry) {
+    try {
+      response = await fetch(articleUrl);
+      console.log(`尝试获取文章: ${articleUrl}, 状态: ${response.status}`);
+    } catch (fetchError) {
+      console.error(`网络错误: ${fetchError}`);
+      // 如果fetch失败，尝试不编码的路径
+      const fallbackUrl = `/article/${id}.md`;
       try {
-        response = await fetch(path);
-        if (response.ok) {
-          filePath = path;
-          break;
-        }
-      } catch (e) {
-        console.warn(`尝试路径失败: ${path}`, e);
+        response = await fetch(fallbackUrl);
+        console.log(`尝试回退路径: ${fallbackUrl}, 状态: ${response.status}`);
+      } catch (fallbackError) {
+        console.error(`回退路径也失败: ${fallbackError}`);
+        return null;
       }
     }
     
-    // 如果上面的路径都失败，尝试解码ID
-    if (!response || !response.ok) {
-      let decodedId = id;
-      try {
-        decodedId = decodeURIComponent(id);
-      } catch (e) {
-        console.warn('无法解码文章ID:', id);
+    if (!response.ok) {
+      console.error(`获取文章失败，状态码: ${response.status}`);
+      // 再次尝试不编码的路径
+      const fallbackResponse = await fetch(`/article/${id}.md`);
+      if (!fallbackResponse.ok) {
+        console.error(`两次尝试均失败，状态码: ${response.status}, 回退路径状态码: ${fallbackResponse.status}`);
+        return null;
       }
-      
-      const fallbackPaths = [
-        `/article/${decodedId}.md`,
-      ];
-      
-      for (const path of fallbackPaths) {
-        try {
-          response = await fetch(path);
-          if (response.ok) {
-            filePath = path;
-            break;
-          }
-        } catch (e) {
-          console.warn(`尝试备用路径失败: ${path}`, e);
-        }
-      }
-    }
-    
-    if (!response || !response.ok) {
-      console.error(`所有路径尝试均失败`);
-      throw new Error(`Failed to fetch article from any path`);
+      response = fallbackResponse;
     }
 
     const content = await response.text();
