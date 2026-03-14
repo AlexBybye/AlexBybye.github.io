@@ -328,12 +328,10 @@ const filterByTag = (tag: string) => {
 };
 
 const openArticle = (id: string) => {
-  // 修改路由路径为 animation3/article/:id 格式
   router.push(`/Animation3/article/detail/${id}`);
 };
 
 const goBackToList = () => {
-  // 修改返回路由为 animation3/article
   router.push('/Animation3/article');
 };
 

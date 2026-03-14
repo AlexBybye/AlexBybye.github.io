@@ -72,13 +72,16 @@ const parseMarkdownWithFrontMatter = (content: string): { metadata: any; body: s
   return { metadata: {}, body: content };
 };
 
+// 定义基础路径
+const BASE_PATH = import.meta.env.BASE_URL || '/';
+
 // 加载文章列表
 export const loadArticles = async (): Promise<Article[]> => {
   try {
     // 在生产环境中，这应该是从API获取的
     // 由于Vue应用无法直接读取本地文件系统，这里使用fetch获取public目录下的文件
-    // 使用绝对路径以确保在GitHub Pages等部署环境中也能正确访问
-    const response = await fetch('/article/articles.json');
+    // 使用动态构建的路径以确保在GitHub Pages等部署环境中也能正确访问
+    const response = await fetch(`${BASE_PATH}article/articles.json`.replace('//', '/'));
     
     if (response.ok) {
       console.log('成功加载文章列表，状态码:', response.status);
@@ -103,8 +106,8 @@ export const loadArticles = async (): Promise<Article[]> => {
 // 根据ID加载特定文章
 export const getArticleById = async (id: string): Promise<Article | null> => {
   try {
-    // 使用绝对路径访问文章文件，适用于GitHub Pages部署
-    const articleUrl = `/article/${encodeURIComponent(id)}.md`;
+    // 使用动态构建的路径访问文章文件，适用于GitHub Pages部署
+    const articleUrl = `${BASE_PATH}article/${encodeURIComponent(id)}.md`.replace('//', '/');
     
     let response;
     
@@ -114,7 +117,7 @@ export const getArticleById = async (id: string): Promise<Article | null> => {
     } catch (fetchError) {
       console.error(`网络错误: ${fetchError}`);
       // 如果fetch失败，尝试不编码的路径
-      const fallbackUrl = `/article/${id}.md`;
+      const fallbackUrl = `${BASE_PATH}article/${id}.md`.replace('//', '/');
       try {
         response = await fetch(fallbackUrl);
         console.log(`尝试回退路径: ${fallbackUrl}, 状态: ${response.status}`);
@@ -127,7 +130,7 @@ export const getArticleById = async (id: string): Promise<Article | null> => {
     if (!response.ok) {
       console.error(`获取文章失败，状态码: ${response.status}`);
       // 再次尝试不编码的路径
-      const fallbackResponse = await fetch(`/article/${id}.md`);
+    const fallbackResponse = await fetch(`${BASE_PATH}article/${id}.md`.replace('//', '/'));
       if (!fallbackResponse.ok) {
         console.error(`两次尝试均失败，状态码: ${response.status}, 回退路径状态码: ${fallbackResponse.status}`);
         return null;

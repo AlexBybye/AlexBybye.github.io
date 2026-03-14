@@ -43,7 +43,7 @@ const routes = [
       {
         path: 'article/detail/:id',
         name: 'ArticleDetail',
-        component: Article, // 这里应该使用一个专门的详情组件或修复逻辑
+        component: Article, 
         props: true
       },
       {
