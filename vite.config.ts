@@ -40,5 +40,9 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: false,
+  },
+  // 静态资源服务配置，有助于解决部署时的MIME类型问题
+  optimizeDeps: {
+    exclude: ['canvas-confetti']
   }
 })
