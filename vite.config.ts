@@ -1,9 +1,28 @@
 import { fileURLToPath, URL } from 'node:url'
-
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import { copyFileSync } from 'fs'
+import { join } from 'path'
+
+// 自定义插件：复制 .nojekyll 文件到输出目录
+function copyNoJekyllPlugin() {
+  return {
+    name: 'copy-nojekyll',
+    closeBundle() {
+      // 在构建完成后复制 .nojekyll 文件到输出目录
+      const outputPath = join(process.cwd(), 'dist', '.nojekyll');
+      const inputPath = join(process.cwd(), '.nojekyll');
+      
+      try {
+        copyFileSync(inputPath, outputPath);
+      } catch (error) {
+        console.error('无法复制 .nojekyll 文件:', (error as Error).message);
+      }
+    }
+  };
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,6 +31,7 @@ export default defineConfig({
     vue(),
     vueJsx(),
     vueDevTools(),
+    copyNoJekyllPlugin(), // 添加自定义插件
   ],
   resolve: {
     alias: {
