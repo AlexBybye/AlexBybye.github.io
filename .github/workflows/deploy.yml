@@ -3,12 +3,10 @@ name: Deploy to GitHub Pages
 on:
   workflow_dispatch:
   push:
-    branches: [ master, display ]
+    branches: [ display ]
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -17,29 +15,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --include=dev
+        run: pnpm install --no-frozen-lockfile
 
       - name: Type check
-        run: npm run type-check
+        run: pnpm type-check
 
       - name: Build
-        run: npm run build-only
+        run: pnpm build-only
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish dist branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: './dist' # Vite 默认生成的打包目录
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: dist
+          publish_dir: ./dist
+          force_orphan: true
