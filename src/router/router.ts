@@ -28,6 +28,7 @@ const routes = [
     path: '/Animation3',
     name: 'Animation3',
     component: Animation3,
+    redirect: { name: 'Animation3Index' },
     children: [
       {
         path: '',
