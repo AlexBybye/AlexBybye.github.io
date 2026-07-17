@@ -1,0 +1,9 @@
+name = "lin-eclipse-github-oauth"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+workers_dev = true
+preview_urls = false
+
+[vars]
+ALLOWED_ORIGIN = "https://alexbybye.github.io"
+GITHUB_CLIENT_ID = "Ov23lizYsDwIU9vpqlev"

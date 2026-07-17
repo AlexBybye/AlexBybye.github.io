@@ -2,6 +2,10 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia' // 引入Pinia
 import { useMusicStore } from '@/stores/musicStore' // 导入音乐store
 import { useAudioManager } from '@/stores/audioManager' // 导入音频管理器
+import '@fontsource-variable/geist'
+import '@fontsource-variable/geist-mono'
+import '@/styles/main.css'
+import { completeGithubOAuth } from '@/service/auth/githubOAuth'
 
 import App from './App.vue'
 import router from './router/router'
@@ -21,3 +25,7 @@ musicStore.loadTracks()
 // 初始化音频管理器
 const audioManager = useAudioManager()
 audioManager.initialize()
+
+completeGithubOAuth().catch((error) => {
+  console.error('GitHub OAuth callback failed:', error)
+})

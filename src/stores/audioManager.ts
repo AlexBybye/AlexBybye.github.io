@@ -6,6 +6,9 @@ export const useAudioManager = defineStore('audioManager', () => {
   // 创建一个全局音频元素
   const audioElement = new Audio();
   const isInitialized = ref(false);
+  let audioContext: AudioContext | null = null;
+  let analyser: AnalyserNode | null = null;
+  let source: MediaElementAudioSourceNode | null = null;
   
   // 从音乐store获取状态
   const musicStore = useMusicStore();
@@ -15,7 +18,7 @@ export const useAudioManager = defineStore('audioManager', () => {
     if (isInitialized.value) return;
     
     // 设置音频属性
-    audioElement.preload = 'metadata';
+    audioElement.preload = 'none';
     
     // 监听播放结束事件
     audioElement.addEventListener('ended', () => {
@@ -34,11 +37,32 @@ export const useAudioManager = defineStore('audioManager', () => {
     
     isInitialized.value = true;
   };
+
+  const ensureAudioGraph = async () => {
+    if (!audioContext) audioContext = new AudioContext();
+    if (!source) {
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 128;
+      analyser.smoothingTimeConstant = 0.78;
+      source = audioContext.createMediaElementSource(audioElement);
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
+    }
+    if (audioContext.state === 'suspended') await audioContext.resume();
+  };
+
+  const getFrequencyData = () => {
+    if (!analyser) return null;
+    const values = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(values);
+    return values;
+  };
   
   // 播放当前曲目
   const playCurrentTrack = () => {
     if (musicStore.currentTrack) {
-      audioElement.src = `/music/${musicStore.currentTrack.filename}`;
+      const nextSource = `${window.location.origin}/music/${musicStore.currentTrack.filename}`;
+      if (audioElement.src !== nextSource) audioElement.src = `/music/${musicStore.currentTrack.filename}`;
       audioElement.volume = musicStore.volume / 100;
       
       if (musicStore.isPlaying) {
@@ -54,8 +78,9 @@ export const useAudioManager = defineStore('audioManager', () => {
     playCurrentTrack();
   });
   
-  watch(() => musicStore.isPlaying, (isPlaying) => {
+  watch(() => musicStore.isPlaying, async (isPlaying) => {
     if (isPlaying) {
+      await ensureAudioGraph();
       audioElement.play().catch(error => {
         console.error('Error playing track:', error);
       });
@@ -85,6 +110,8 @@ export const useAudioManager = defineStore('audioManager', () => {
     playCurrentTrack,
     setCurrentTime,
     seekToPercentage,
-    audioElement
+    audioElement,
+    ensureAudioGraph,
+    getFrequencyData
   };
 });

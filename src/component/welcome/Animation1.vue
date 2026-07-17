@@ -11,7 +11,7 @@
     <svg class="shot-trajectory" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
       <path
         class="trajectory-aura"
-        d="M 72 94 C 63 74 56 52 54 44 C 51 38 51 56 50 64"
+        d="M 72 94 C 63 76 56 55 54 47 C 51 41 51 62 50 70"
         pathLength="100"
         fill="transparent"
         stroke-linecap="round"
@@ -19,7 +19,7 @@
       />
       <path
         class="trajectory-core"
-        d="M 72 94 C 63 74 56 52 54 44 C 51 38 51 56 50 64"
+        d="M 72 94 C 63 76 56 55 54 47 C 51 41 51 62 50 70"
         pathLength="100"
         fill="transparent"
         stroke-linecap="round"
@@ -46,6 +46,10 @@
       <span class="goal-word">GOAL</span>
     </div>
 
+    <span class="handoff-ball-source" aria-hidden="true">
+      <img src="/images/soccer.jpeg" alt="" draggable="false">
+    </span>
+
     <div class="pitch-wake" aria-hidden="true"></div>
     <div class="vignette"></div>
   </section>
@@ -53,7 +57,6 @@
 
 <script setup>
 import { onUnmounted, ref } from 'vue'
-import confetti from 'canvas-confetti'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -67,8 +70,11 @@ let goalTimer = null
 let confettiStopTimer = null
 let routeTimer = null
 
-const launchConfetti = () => {
+const launchConfetti = async () => {
   if (!canvas.value) return
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const { default: confetti } = await import('canvas-confetti')
 
   myConfetti = confetti.create(canvas.value, {
     resize: true,
@@ -87,7 +93,7 @@ const launchConfetti = () => {
       decayNumber: 0.7,
       gravity: 0.9,
       ticks: 700,
-      colors: ['#bb0000', '#ffffff', '#00bb00', '#0000bb', '#ffff00'],
+      colors: ['#e30613', '#f4f4f5', '#71717a'],
     })
   }, 100)
 }
@@ -99,8 +105,23 @@ const stopConfetti = () => {
   }
 }
 
+const enterShowcase = () => {
+  const navigate = () => router.push({ name: 'Animation2' })
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!reduceMotion && typeof document.startViewTransition === 'function') {
+    document.startViewTransition(navigate)
+    return
+  }
+  navigate()
+}
+
 const handleKick = () => {
   if (isKicked.value) return
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    enterShowcase()
+    return
+  }
 
   isKicked.value = true
 
@@ -114,7 +135,7 @@ const handleKick = () => {
   }, 4550)
 
   routeTimer = window.setTimeout(() => {
-    router.push({ name: 'Animation2' })
+    enterShowcase()
   }, 5300)
 }
 
@@ -135,11 +156,11 @@ onUnmounted(() => {
 #app-background {
   position: relative;
   width: 100vw;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   background-image:
     linear-gradient(180deg, rgba(5, 8, 11, 0.06), rgba(5, 8, 11, 0.5)),
-    url('/images/background_1.png');
+    url('/images/background_1.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -162,7 +183,7 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   pointer-events: none;
   z-index: 12;
 }
@@ -177,6 +198,19 @@ onUnmounted(() => {
   text-align: center;
 }
 
+.header-section::after {
+  position: absolute;
+  right: 18%;
+  bottom: -18px;
+  left: 18%;
+  height: 2px;
+  content: '';
+  background: linear-gradient(90deg, transparent, rgba(244, 244, 245, 0.82), #e30613, transparent);
+  opacity: 0.55;
+  transform: scaleX(0.34);
+  animation: stadiumLightSweep 3.1s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
 .eyebrow,
 .sub-hint {
   margin: 0;
@@ -189,15 +223,15 @@ onUnmounted(() => {
 
 .breathing-text {
   margin: 8px 0 10px;
-  color: #fff;
+  color: #f4f4f5;
   font-size: 5.8rem;
   font-weight: 950;
   line-height: 0.88;
   letter-spacing: 0;
+  -webkit-text-stroke: 1px rgba(227, 6, 19, 0.58);
   text-shadow:
     0 2px 0 #b90012,
-    0 12px 28px rgba(0, 0, 0, 0.48),
-    0 0 38px rgba(219, 0, 18, 0.72);
+    0 12px 28px rgba(0, 0, 0, 0.48);
   animation: titlePulse 2.6s ease-in-out infinite;
 }
 
@@ -272,6 +306,16 @@ onUnmounted(() => {
   display: block;
   border-radius: 50%;
   filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.42));
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), filter 260ms ease;
+}
+
+.football-click-area:not(.is-flying):hover .football-ball {
+  transform: translate3d(0, 9px, 0) rotate(-8deg) scale(0.94);
+  filter: drop-shadow(0 9px 14px rgba(0, 0, 0, 0.5));
+}
+
+.football-click-area:not(.is-flying):active .football-ball {
+  transform: translate3d(0, 13px, 0) rotate(-11deg) scale(0.88);
 }
 
 .ball-img {
@@ -318,13 +362,43 @@ onUnmounted(() => {
 .goal-impact {
   position: absolute;
   left: 50%;
-  top: 64vh;
+  top: 70vh;
   z-index: 7;
   width: 210px;
   height: 110px;
   transform: translate(-50%, -50%);
   pointer-events: none;
   opacity: 0;
+}
+
+.handoff-ball-source {
+  position: absolute;
+  top: 70vh;
+  left: 50%;
+  z-index: 8;
+  display: block;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.4) rotate(-80deg);
+  transition: opacity 280ms ease, transform 680ms cubic-bezier(0.16, 1, 0.3, 1);
+  view-transition-name: match-ball;
+}
+
+.handoff-ball-source img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.scored .handoff-ball-source {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1) rotate(18deg);
+  animation: matchBallIdle 1.6s 1s ease-in-out infinite;
 }
 
 .scored .goal-impact {
@@ -354,14 +428,13 @@ onUnmounted(() => {
   display: grid;
   align-items: center;
   justify-items: center;
-  color: #fff;
+  color: #f4f4f5;
   font-size: 3rem;
   font-weight: 950;
   letter-spacing: 0;
   text-shadow:
     0 3px 0 #e30613,
-    0 12px 30px rgba(0, 0, 0, 0.55),
-    0 0 24px rgba(255, 255, 255, 0.6);
+    0 12px 30px rgba(0, 0, 0, 0.55);
   transform: scale(0.72);
   opacity: 0;
 }
@@ -388,9 +461,18 @@ onUnmounted(() => {
   }
 
   50% {
-    transform: translateY(-4px) scale(1.018);
+    transform: translateY(-2px) scale(1.009);
     opacity: 1;
   }
+}
+
+@keyframes stadiumLightSweep {
+  0%, 100% { opacity: 0.3; transform: scaleX(0.28) translateX(-16%); }
+  50% { opacity: 0.86; transform: scaleX(1) translateX(0); }
+}
+
+@keyframes matchBallIdle {
+  50% { transform: translate(-50%, -54%) scale(1.08) rotate(46deg); }
 }
 
 @keyframes cometTrail {
@@ -435,11 +517,11 @@ onUnmounted(() => {
   }
 
   82% {
-    transform: translateX(-50%) translate3d(-21vw, -41vh, 0) scale(0.21);
+    transform: translateX(-50%) translate3d(-21vw, -35vh, 0) scale(0.21);
   }
 
   100% {
-    transform: translateX(-50%) translate3d(-22vw, calc(-30vh + 66px), 0) scale(0.14);
+    transform: translateX(-50%) translate3d(-22vw, calc(-24vh + 66px), 0) scale(0.14);
   }
 }
 
@@ -521,12 +603,29 @@ onUnmounted(() => {
   }
 
   .goal-impact {
-    top: 64vh;
+    top: 70vh;
     width: 160px;
   }
 
   .goal-word {
     font-size: 2.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathing-text,
+  .football-click-area,
+  .football-ball,
+  .pitch-wake,
+  .impact-ring,
+  .goal-word,
+  .handoff-ball-source,
+  .animate-trail {
+    animation: none !important;
+  }
+
+  .header-section::after {
+    animation: none;
   }
 }
 </style>

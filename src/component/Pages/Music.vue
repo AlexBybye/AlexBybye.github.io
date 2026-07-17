@@ -1,510 +1,188 @@
 <template>
-  <div class="page-container" :class="{ 'page-throw-up': isLeaving }">
-    <h1>Music</h1>
-    <p>Melody is an art form that subtly expresses the inner self, while lyrics are an open and honest outpouring.</p>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <!-- 上方入口区域 -->
-    <div class="music-interaction-area">
-      <div class="music-entry floating-entry" @click="startTransition('/animation3/music/playlist')">
-        <div class="music-icon glitch-hover" data-glitch="♬">♬</div>
-        <div class="telemetry">
-          <span>LN_01: ACTIVE</span>
-          <span>FREQ: 44.1KHZ</span>
-        </div>
-      </div>
+  <div class="music-page">
+    <div class="page-shell">
+      <section class="music-hero" aria-labelledby="music-title">
+        <RevealOnScroll class="music-copy">
+          <h1 id="music-title">Late nights. Match days.</h1>
+          <p>Browse the collection, play a track, and leave a reaction through GitHub.</p>
+          <RouterLink to="/Animation3/music/playlist">
+            打开播放列表 <PhArrowRight :size="19" weight="bold" aria-hidden="true" />
+          </RouterLink>
+        </RevealOnScroll>
 
-      <div class="music-entry playlist-card" @click="startTransition('/animation3/music/playlist')">
-        <div class="playlist-content">
-          <div class="playlist-icon">📻</div>
-          <span>PLAYLIST</span>
-        </div>
-        <div class="telemetry center">
-          <span>SYSTEM_SYNC: OK [98.2%]</span>
-        </div>
-      </div>
-
-      <div class="music-entry floating-entry" @click="startTransition('/animation3/music/playlist')">
-        <div class="music-icon glitch-hover" data-glitch="♫">♫</div>
-        <div class="telemetry">
-          <span>BITRATE: 320K</span>
-          <span>LATENCY: 12MS</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 中央电路图层 -->
-    <div class="tech-grid-overlay">
-      <svg viewBox="0 0 1000 300" class="circuit-lines">
-        <defs>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        <g filter="url(#glow)">
-          <!-- 主连接线 -->
-          <path d="M200,50 V100 L500,200" class="path-line" />
-          <path d="M500,50 V200" class="path-line" />
-          <path d="M800,50 V100 L500,200" class="path-line" />
-
-          <!-- 辅助连接线 -->
-          <path d="M200,150 L400,180" class="path-line secondary" />
-          <path d="M600,180 L800,150" class="path-line secondary" />
-        </g>
-
-        <!-- 动态数据点 -->
-        <circle r="5" fill="#00f3ff" class="data-pulse">
-          <animateMotion dur="2.5s" repeatCount="indefinite" path="M200,50 V100 L500,200" />
-        </circle>
-        <circle r="5" fill="#ff00ff" class="data-pulse">
-          <animateMotion dur="2s" repeatCount="indefinite" path="M500,50 V200" />
-        </circle>
-        <circle r="5" fill="#00f3ff" class="data-pulse">
-          <animateMotion dur="2.2s" repeatCount="indefinite" path="M800,50 V100 L500,200" />
-        </circle>
-        <circle r="4" fill="#ffff00" class="data-pulse">
-          <animateMotion dur="3s" repeatCount="indefinite" path="M200,150 L400,180" />
-        </circle>
-        <circle r="4" fill="#00ff00" class="data-pulse">
-          <animateMotion dur="2.8s" repeatCount="indefinite" path="M600,180 L800,150" />
-        </circle>
-      </svg>
-      <div class="core-tag">CORE_LINK_ESTABLISHED</div>
-    </div>
-
-    <!-- 底部遥测信息 -->
-    <div class="telemetry-grid">
-      <div class="telemetry-code">LOADING... 78%</div>
-      <div class="telemetry-code">BITRATE: 320KBPS</div>
-      <div class="telemetry-code">FREQ: 44.1KHZ</div>
-      <div class="telemetry-code">BUFFER: 2.4S</div>
-      <div class="telemetry-code">STATUS: ONLINE</div>
-      <div class="telemetry-code">PEAK: -1.2dB</div>
-      <div class="telemetry-code">RMS: -8.7dB</div>
-      <div class="telemetry-code">CPU: 12%</div>
-      <div class="telemetry-code">RAM: 34%</div>
-    </div>
-
-    <Teleport to="body">
-      <div v-if="isAnimating" class="animation-overlay">
-        <div class="wave-bars">
-          <div v-for="i in 25" :key="i" class="wave-bar" :style="getWaveStyle(i)"></div>
-        </div>
-        <div class="floating-notes">
-          <div v-for="i in 10" :key="i" class="note" :style="getNoteStyle(i)">
-            {{ ['♪', '♫', '♬', '♭'][i % 4] }}
+        <RevealOnScroll :delay="80" class="now-playing">
+          <img :src="cover" :alt="currentTrack ? currentTrack.title : '音乐封面'" fetchpriority="high" decoding="async">
+          <div class="track-copy">
+            <span class="mono">{{ musicStore.isPlaying ? 'PLAYING' : 'PAUSED' }}</span>
+            <h2>{{ currentTrack?.title || 'Loading library' }}</h2>
+            <p>{{ currentTrack?.artist || 'Please wait' }}</p>
           </div>
+          <button class="play-button" type="button" :aria-label="musicStore.isPlaying ? '暂停' : '播放'" @click="musicStore.togglePlay">
+            <PhPause v-if="musicStore.isPlaying" :size="24" weight="fill" aria-hidden="true" />
+            <PhPlay v-else :size="24" weight="fill" aria-hidden="true" />
+          </button>
+        </RevealOnScroll>
+      </section>
+
+      <section class="genre-section" aria-labelledby="genre-title">
+        <div class="genre-heading">
+          <div>
+            <h2 id="genre-title">Find a frequency</h2>
+            <p>Choose a moving tag to open that part of the library.</p>
+          </div>
+          <RouterLink to="/Animation3/music/playlist">
+            全部歌曲 <PhArrowRight :size="18" weight="bold" aria-hidden="true" />
+          </RouterLink>
         </div>
-      </div>
-    </Teleport>
+        <TagCloud :tags="musicTypes" :model-value="musicStore.selectedType" @tag-click="openGenre" />
+      </section>
+
+      <section class="wave-section" aria-labelledby="wave-title">
+        <div class="wave-heading">
+          <h2 id="wave-title">Live waveform</h2>
+          <dl>
+            <div><dt>Position</dt><dd class="mono">{{ formatTime(musicStore.currentTime) }}</dd></div>
+            <div><dt>Duration</dt><dd class="mono">{{ formatTime(musicStore.totalTime || Number(currentTrack?.duration)) }}</dd></div>
+            <div><dt>Tracks</dt><dd class="mono">{{ musicStore.tracks.length }}</dd></div>
+          </dl>
+        </div>
+        <div class="waveform" :class="{ active: musicStore.isPlaying }" aria-hidden="true">
+          <span v-for="index in 48" :key="index" :ref="(el) => setBar(el as HTMLElement, index - 1)" />
+        </div>
+      </section>
+
+      <section v-if="currentTrack" class="track-social" aria-labelledby="track-social-title">
+        <div class="social-heading">
+          <div><h2 id="track-social-title">React to this track</h2><p>{{ currentTrack.title }} by {{ currentTrack.artist }}</p></div>
+          <ReactionBar target-type="song" :target-id="trackSlug" />
+        </div>
+        <CommentThread :slug="`song:${trackSlug}`" />
+      </section>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { PhArrowRight, PhPause, PhPlay } from '@/design/icons'
+import { useAudioManager } from '@/stores/audioManager'
+import { useMusicStore } from '@/stores/musicStore'
+import CommentThread from '@/components/social/CommentThread.vue'
+import ReactionBar from '@/components/social/ReactionBar.vue'
+import RevealOnScroll from '@/components/ui/RevealOnScroll.vue'
+import TagCloud from './TagCloud.vue'
 
-const router = useRouter();
-const isLeaving = ref(false);
-const isAnimating = ref(false);
+const musicStore = useMusicStore()
+const audioManager = useAudioManager()
+const router = useRouter()
+const bars: HTMLElement[] = []
+let animationFrame = 0
+let reducedMotionQuery: MediaQueryList | null = null
 
-const startTransition = (path) => {
-  isLeaving.value = true;
-  setTimeout(() => {
-    isAnimating.value = true;
-  }, 300);
-  setTimeout(() => {
-    router.push(path);
-  }, 1500);
-};
+const currentTrack = computed(() => musicStore.currentTrack)
+const cover = computed(() => currentTrack.value?.coverImage ? `/music/${currentTrack.value.coverImage.replace(/\.(jpe?g|png)$/i, '.webp')}` : '/music/img/soccer.webp')
+const trackSlug = computed(() => encodeURIComponent(currentTrack.value?.filename || 'unknown-track').replace(/%/g, '').toLowerCase())
+const musicTypes = computed(() => musicStore.getMusicTypes())
 
-const getWaveStyle = (i) => ({
-  animationDelay: `${i * 0.05}s`,
-  left: `${(i - 1) * 4}%`,
-  height: `${Math.random() * 50 + 30}%`
-});
+function setBar(element: HTMLElement | null, index: number) { if (element) bars[index] = element }
+function formatTime(seconds: number | string | undefined) {
+  const value = Number(seconds) || 0
+  const minutes = Math.floor(value / 60)
+  return `${minutes}:${Math.floor(value % 60).toString().padStart(2, '0')}`
+}
 
-const getNoteStyle = (i) => ({
-  animationDelay: `${i * 0.2}s`,
-  left: `${Math.random() * 90}%`
-});
+function stopWaveform() {
+  cancelAnimationFrame(animationFrame)
+  bars.forEach((bar) => { bar.style.transform = 'scaleY(.08)' })
+}
+
+function drawWaveform() {
+  cancelAnimationFrame(animationFrame)
+  if (reducedMotionQuery?.matches) {
+    bars.forEach((bar, index) => { bar.style.transform = `scaleY(${.12 + index % 5 * .08})` })
+    return
+  }
+  const render = () => {
+    if (!musicStore.isPlaying) return
+    const values = audioManager.getFrequencyData()
+    if (values) {
+      bars.forEach((bar, index) => {
+        const sourceIndex = Math.min(values.length - 1, Math.floor(index * values.length / bars.length))
+        bar.style.transform = `scaleY(${Math.max(.08, values[sourceIndex] / 255)})`
+      })
+    }
+    animationFrame = requestAnimationFrame(render)
+  }
+  render()
+}
+
+function openGenre(name: string) {
+  musicStore.filterByType(name)
+  void router.push('/Animation3/music/playlist')
+}
+
+function handleMotionPreference() {
+  if (reducedMotionQuery?.matches) drawWaveform()
+  else if (musicStore.isPlaying) drawWaveform()
+}
+
+watch(() => musicStore.isPlaying, (playing) => playing ? drawWaveform() : stopWaveform())
+onMounted(async () => {
+  reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reducedMotionQuery.addEventListener('change', handleMotionPreference)
+  if (!musicStore.tracks.length) await musicStore.loadTracks()
+  if (musicStore.isPlaying) drawWaveform()
+})
+onBeforeUnmount(() => {
+  stopWaveform()
+  reducedMotionQuery?.removeEventListener('change', handleMotionPreference)
+})
 </script>
 
-<style scoped>
-/* --- 原有基础样式保持不变 --- */
-.page-container {
-  width: 80%;
-  margin: 0 auto;
-  padding: 60px 40px;
-  /* 增加上下内边距增加呼吸感 */
-  background-color: #1a1a1a;
-  /* 加深背景，让科幻光效更明显 */
-  min-height: calc(100vh - 30% - 40px);
-  opacity: 0.1;
-  transition: all 0.5s ease;
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(0, 243, 255, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+<style scoped lang="less">
+@import '../../styles/tokens.less';
+.music-page { min-height: 100dvh; background: @surface; color: @text; }
+.music-page > .page-shell { padding-block: 0; }
+.music-hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(2rem, 7vw, 6rem); min-height: calc(100dvh - 86px); align-items: center; padding-block: clamp(2.5rem, 6vw, 5rem); }
+.music-copy h1 { max-width: 11ch; margin: 0; font-size: clamp(3rem, 7vw, 6.3rem); font-weight: 700; letter-spacing: -.07em; line-height: .92; }
+.music-copy p { max-width: 45ch; margin: 1.5rem 0 0; color: @text-muted; font-size: 1.1rem; line-height: 1.6; }
+.music-copy a { display: inline-flex; min-height: 46px; align-items: center; gap: .55rem; margin-top: 2rem; border-radius: 12px; padding: .75rem 1rem; background: @accent; color: @text; font-weight: 680; text-decoration: none; white-space: nowrap; }
+.now-playing { position: relative; overflow: hidden; min-height: 520px; border: 1px solid @line; border-radius: 16px; background: @surface-raised; }
+.now-playing > img { position: absolute; width: 100%; height: 100%; object-fit: cover; filter: saturate(.65) contrast(1.08); }
+.now-playing::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(9,9,11,.05), rgba(9,9,11,.95)); }
+.track-copy { position: absolute; z-index: 1; right: 1.5rem; bottom: 1.5rem; left: 1.5rem; }
+.track-copy span { color: @accent-strong; font-size: .75rem; font-weight: 650; letter-spacing: .12em; }
+.track-copy h2 { max-width: 16ch; margin: .7rem 0 .35rem; font-size: clamp(1.8rem, 4vw, 3.2rem); letter-spacing: -.05em; line-height: 1; }
+.track-copy p { margin: 0; color: #d4d4d8; }
+.play-button { position: absolute; z-index: 2; top: 1rem; right: 1rem; display: grid; width: 52px; height: 52px; place-items: center; border: 0; border-radius: 12px; background: @accent; color: @text; cursor: pointer; }
+.genre-section { padding-block: clamp(4rem, 8vw, 7rem); border-top: 1px solid @line; }
+.genre-heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: 1.5rem; }
+.genre-heading h2 { margin: 0; font-size: clamp(2rem, 5vw, 4.3rem); letter-spacing: -.06em; line-height: .95; }
+.genre-heading p { margin: .8rem 0 0; color: @text-muted; }
+.genre-heading a { display: inline-flex; min-height: 44px; align-items: center; gap: .45rem; color: @text; font-weight: 650; text-decoration: none; white-space: nowrap; }
+.genre-heading a:hover { color: @accent-strong; }
+.wave-section { padding-block: clamp(4rem, 9vw, 8rem); border-top: 1px solid @line; }
+.wave-heading { display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: end; }
+.wave-heading h2, .social-heading h2 { margin: 0; font-size: clamp(2rem, 5vw, 4.3rem); letter-spacing: -.06em; line-height: .95; }
+.wave-heading dl { display: flex; gap: 1.5rem; margin: 0; }
+.wave-heading dl div { display: grid; gap: .35rem; }.wave-heading dt { color: @text-muted; font-size: .75rem; }.wave-heading dd { margin: 0; }
+.waveform { display: grid; height: 210px; grid-template-columns: repeat(48, 1fr); gap: clamp(2px, .35vw, 6px); align-items: center; margin-top: 2.5rem; overflow: hidden; border-radius: 16px; padding: 1rem; background: @surface-raised; }
+.waveform span { height: 100%; border-radius: 4px; background: @accent; transform: scaleY(.08); transition: transform 100ms linear; }
+.waveform span:nth-child(3n) { opacity: .72; }
+.track-social { padding-block: clamp(4rem, 9vw, 8rem); border-top: 1px solid @line; }
+.social-heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; }
+.social-heading p { margin: .8rem 0 0; color: @text-muted; }
+@media (max-width: 767px) {
+  .music-hero { grid-template-columns: 1fr; min-height: auto; }
+  .music-copy h1 { font-size: clamp(3rem, 15vw, 4.8rem); }
+  .now-playing { min-height: 400px; }
+  .genre-heading { align-items: stretch; flex-direction: column; }
+  .wave-heading, .social-heading { grid-template-columns: 1fr; flex-direction: column; align-items: stretch; }
+  .wave-heading dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; }
+  .wave-heading dl div { min-width: 0; }
+  .waveform { height: 160px; grid-template-columns: repeat(24, 1fr); }
+  .waveform span:nth-child(n+25) { display: none; }
 }
-
-.page-container:hover {
-  opacity: 0.8;
-}
-
-/* 增加悬停透明度，更清晰 */
-
-.music-interaction-area {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 100px;
-  /* 进一步拉大间距防止挤压 */
-  margin: 60px 0 80px 0;
-  /* 使用margin而非padding，更灵活 */
-  position: relative;
-  z-index: 10;
-  width: 100%;
-}
-
-/* --- 音乐入口项 --- */
-.music-entry {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  z-index: 15;
-}
-
-.music-entry:hover {
-  transform: scale(1.05);
-}
-
-.music-icon {
-  font-size: 80px;
-  /* 进一步增大图标 */
-  margin-bottom: 12px;
-  text-shadow: 0 0 15px rgba(0, 243, 255, 0.7);
-}
-
-.playlist-card {
-  padding: 50px 70px;
-  /* 进一步增大卡片 */
-  border: 2px solid rgba(0, 243, 255, 0.3);
-  background: rgba(0, 243, 255, 0.05);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.playlist-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #00f3ff, transparent);
-  animation: scanline 3s infinite linear;
-}
-
-@keyframes scanline {
-  100% {
-    left: 100%;
-  }
-}
-
-.playlist-card span {
-  font-size: 20px;
-  /* 进一步增大文字 */
-  margin-top: 10px;
-}
-
-.playlist-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
-}
-
-/* --- 技术网格覆盖层 --- */
-.tech-grid-overlay {
-  position: relative;
-  width: 100%;
-  height: 300px;
-  /* 固定高度避免挤压 */
-  margin: 40px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.circuit-lines {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: -180px;
-  left: 0;
-}
-
-/* --- 线条与数据流优化 --- */
-.path-line {
-  fill: none;
-  stroke: #00f3ff;
-  stroke-width: 2.5;
-  stroke-dasharray: 6, 6;
-  /* 间隙进一步拉大 */
-  filter: drop-shadow(0 0 5px rgba(0, 243, 255, 0.5));
-}
-
-.path-line.secondary {
-  stroke: rgba(0, 243, 255, 0.4);
-  stroke-width: 1.5;
-  stroke-dasharray: 4, 4;
-}
-
-.data-pulse {
-  filter: drop-shadow(0 0 10px #00f3ff);
-  /* 数据点外发光增强 */
-}
-
-/* --- 字体大小优化 --- */
-.telemetry {
-  font-size: 12px;
-  /* 进一步增大字体 */
-  font-weight: bold;
-  color: rgba(0, 243, 255, 0.9);
-  text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
-  margin-top: 8px;
-  white-space: nowrap;
-  /* 防止文字换行造成挤压 */
-}
-
-.telemetry span {
-  display: block;
-  margin: 3px 0;
-}
-
-.telemetry-code {
-  font-size: 13px;
-  /* 进一步增大字体 */
-  font-weight: 800;
-  color: rgba(0, 243, 255, 0.5);
-  letter-spacing: 1.2px;
-  margin: 6px 0;
-  white-space: nowrap;
-  /* 防止文字换行 */
-}
-
-.core-tag {
-  font-size: 14px;
-  /* 增大标签字体 */
-  font-weight: bold;
-  padding: 6px 16px;
-  border: 2px solid #00f3ff;
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
-  background: rgba(0, 0, 0, 0.3);
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 20;
-}
-
-/* --- 遥测网格 --- */
-.telemetry-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  /* 自适应列宽 */
-  gap: 15px;
-  width: 100%;
-  margin-top: 60px;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(0, 243, 255, 0.1);
-  border-radius: 8px;
-}
-
-/* --- 其余动画逻辑保持一致 --- */
-.glitch-hover {
-  position: relative;
-  display: inline-block;
-  transition: all 0.3s ease;
-}
-
-.glitch-hover::before,
-.glitch-hover::after {
-  content: attr(data-glitch);
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.glitch-hover::before {
-  left: 3px;
-  text-shadow: -3px 0 #ff00ff;
-  clip: rect(44px, 450px, 56px, 0);
-  animation: glitch-anim 0.5s infinite linear alternate-reverse;
-}
-
-.glitch-hover::after {
-  left: -3px;
-  text-shadow: -3px 0 #00ffff;
-  clip: rect(10px, 450px, 30px, 0);
-  animation: glitch-anim2 0.5s infinite linear alternate-reverse;
-}
-
-.glitch-hover:hover::before,
-.glitch-hover:hover::after {
-  opacity: 0.8;
-}
-
-@keyframes glitch-anim {
-  0% {
-    clip: rect(20px, 999px, 30px, 0);
-  }
-
-  100% {
-    clip: rect(60px, 999px, 80px, 0);
-  }
-}
-
-@keyframes glitch-anim2 {
-  0% {
-    clip: rect(40px, 999px, 50px, 0);
-  }
-
-  100% {
-    clip: rect(10px, 999px, 40px, 0);
-  }
-}
-
-.telemetry-grid {
-  position: absolute;
-  top: 15%;
-  left: 5%;
-  width: 90%;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  pointer-events: none;
-}
-
-@keyframes floatUpDown {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-.page-throw-up {
-  pointer-events: none;
-  animation: throwOut 0.8s forwards cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes throwOut {
-  0% {
-    transform: translateY(0);
-    opacity: 0.8;
-  }
-
-  100% {
-    transform: translateY(-100vh) rotate(-2deg);
-    opacity: 0;
-  }
-}
-
-.animation-overlay {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
-  z-index: 9999;
-}
-
-.wave-bar {
-  position: absolute;
-  bottom: 0;
-  width: 3%;
-  background: linear-gradient(to top, #00f3ff, #ff00ff);
-  animation: waveBurst 1.2s infinite ease-in-out;
-  border-radius: 5px 5px 0 0;
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
-}
-
-@keyframes waveBurst {
-
-  0%,
-  100% {
-    transform: scaleY(0.2);
-    opacity: 0.3;
-  }
-
-  50% {
-    transform: scaleY(1);
-    opacity: 0.8;
-  }
-}
-
-.note {
-  position: absolute;
-  bottom: 0;
-  color: #fff;
-  font-size: 40px;
-  text-shadow: 0 0 10px #00f3ff;
-  animation: floatNoteUp 2s forwards linear;
-}
-
-@keyframes floatNoteUp {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-
-  20% {
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateY(-100vh) rotate(360deg);
-    opacity: 0;
-  }
-}
-
-h1 {
-  font-size: 3rem;
-  text-transform: uppercase;
-  letter-spacing: 10px;
-  color: #00f3ff;
-  text-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
-}
-
-p {
-  text-transform: uppercase;
-  letter-spacing: 10px;
-  color: #00f3ff;
-  text-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
-}
+@media (prefers-reduced-motion: reduce) { .waveform span { transition: none; } }
 </style>

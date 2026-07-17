@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import tailwindcss from '@tailwindcss/vite'
 import { copyFileSync } from 'fs'
 import { join } from 'path'
 
@@ -30,7 +31,8 @@ export default defineConfig({
   plugins: [
     vue(),
     vueJsx(),
-    vueDevTools(),
+    tailwindcss(),
+    ...(process.env.NODE_ENV === 'development' ? [vueDevTools()] : []),
     copyNoJekyllPlugin(), // 添加自定义插件
   ],
   resolve: {
@@ -53,7 +55,12 @@ export default defineConfig({
           return 'assets/[name].[hash][extname]';
         },
         chunkFileNames: 'assets/[name].[hash].js',
-        entryFileNames: 'assets/[name].[hash].js'
+        entryFileNames: 'assets/[name].[hash].js',
+        manualChunks(id) {
+          if (id.includes('node_modules/vue') || id.includes('node_modules/pinia')) return 'vue-vendor'
+          if (id.includes('@phosphor-icons')) return 'icons'
+          if (id.includes('marked')) return 'markdown'
+        }
       }
     }
   },

@@ -1,126 +1,27 @@
 <template>
-  <div class="friend-links-container">
-    <h1>友情链接</h1>
-    <div class="links-grid">
-      <div 
-        v-for="(link, index) in friendLinks" 
-        :key="index" 
-        class="link-card"
-        @click="openLink(link.url)"
-      >
-        <div class="link-avatar">
-          <img :src="link.avatar" :alt="link.name" />
-        </div>
-        <div class="link-info">
-          <h3>{{ link.name }}</h3>
-          <p>{{ link.description }}</p>
-          <span class="link-url">{{ link.url }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="friends-page"><div class="page-shell">
+    <header><h1>友情链接</h1><p>认识的人，以及我愿意继续访问的个人空间。</p></header>
+    <section class="friends-list" aria-label="友链列表">
+      <a v-for="friend in friendLinks" :key="friend.url" :href="friend.url" target="_blank" rel="noreferrer">
+        <img :src="friend.avatar" :alt="`${friend.name} 的头像`" loading="lazy" decoding="async">
+        <div><h2>{{ friend.name }}</h2><p>{{ friend.description }}</p><span class="mono">{{ cleanUrl(friend.url) }}</span></div>
+        <PhArrowRight :size="23" weight="bold" aria-hidden="true" />
+      </a>
+    </section>
+  </div></div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-
-interface FriendLink {
-  name: string;
-  url: string;
-  description: string;
-  avatar: string;
-}
-
-const friendLinks = ref<FriendLink[]>([
-  {
-    name: '肖恩',
-    url: 'https://devilsean.github.io./',
-    description: '这是肖恩的个人博客',
-    avatar: 'https://avatars.githubusercontent.com/u/170224409?v=4'
-  },
-]);
-
-const openLink = (url: string) => {
-  window.open(url, '_blank');
-};
+import { PhArrowRight } from '@/design/icons'
+import { friendLinks } from '@/content/friends'
+function cleanUrl(url: string) { return url.replace(/^https?:\/\//, '').replace(/\/$/, '') }
 </script>
 
-<style scoped>
-.friend-links-container {
-  padding: 40px 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.friend-links-container h1 {
-  font-size: 2.5rem;
-  margin-bottom: 40px;
-  color: #333;
-}
-
-.links-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  justify-items: center;
-}
-
-.link-card {
-  width: 100%;
-  max-width: 350px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  text-align: left;
-}
-
-.link-card:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
-
-.link-avatar {
-  flex-shrink: 0;
-}
-
-.link-avatar img {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.link-info {
-  flex-grow: 1;
-}
-
-.link-info h3 {
-  margin: 0 0 8px 0;
-  font-size: 1.2rem;
-  color: #fff;
-}
-
-.link-info p {
-  margin: 0 0 8px 0;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.link-url {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+<style scoped lang="less">
+@import '../../styles/tokens.less';
+.friends-page { min-height: 100dvh; background: @surface; color: @text; }
+header { max-width: 760px; padding-block: clamp(2.5rem, 7vw, 6rem); } header h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); letter-spacing: -.08em; line-height: .9; } header p { margin: 1.3rem 0 0; color: @text-muted; font-size: 1.08rem; }
+.friends-list { border-top: 1px solid @line; }.friends-list a { display: grid; grid-template-columns: 80px 1fr auto; gap: 1.25rem; align-items: center; border-bottom: 1px solid @line; padding-block: 1.5rem; color: @text; text-decoration: none; transition: color 160ms ease, padding 200ms ease; }.friends-list a:hover { padding-inline: 1rem; color: @accent-strong; }.friends-list img { width: 80px; height: 80px; border-radius: 16px; object-fit: cover; }.friends-list h2 { margin: 0; font-size: 1.5rem; }.friends-list p { margin: .35rem 0; color: @text-muted; }.friends-list span { color: @text-muted; font-size: .75rem; }
+@media (max-width: 767px) { .friends-list a { grid-template-columns: 60px 1fr; }.friends-list img { width: 60px; height: 60px; }.friends-list a > :last-child { display: none; } }
+@media (prefers-reduced-motion: reduce) { .friends-list a { transition: none; } }
 </style>

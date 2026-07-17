@@ -1,743 +1,180 @@
 <template>
-  <div class="page-container">
-    <div v-if="currentArticleId && !currentTag" class="article-detail">
-      <button @click="goBackToList" class="back-button">← 返回文章列表</button>
-      <div v-if="currentArticle" class="article-content">
-        <h1>{{ currentArticle.title }}</h1>
-        <div class="article-meta">
-          <div class="meta-top">
-            <span class="date">{{ formatDate(currentArticle.date) }}</span>
-            <span class="category" v-if="currentArticle.category">{{ currentArticle.category }}</span>
-          </div>
+  <div class="article-page">
+    <div v-if="currentArticleId" class="page-shell article-detail-shell">
+      <button class="back-button" type="button" @click="goBackToList"><PhArrowLeft :size="18" weight="bold" />返回文章列表</button>
 
-          <div class="tags" v-if="currentArticle.tags && currentArticle.tags.length > 0">
-            <span class="tag" v-for="tag in currentArticle.tags" :key="tag">{{ tag }}</span>
+      <div v-if="loading" class="article-loading"><span /><span /><span /></div>
+      <div v-else-if="loadError" class="state-box"><PhWarningCircle :size="25" /><p>{{ loadError }}</p><button type="button" @click="loadArticleDetail(currentArticleId)">重新加载</button></div>
+      <article v-else-if="currentArticle" class="article-detail">
+        <header class="article-header">
+          <div class="article-heading">
+            <h1>{{ currentArticle.title }}</h1>
+            <p v-if="currentArticle.description">{{ currentArticle.description }}</p>
           </div>
-
-          <!-- 文章统计信息 -->
-          <div class="article-stats">
-            <span class="stat-item">
-              👍 <strong>{{ articleLikeCount }}</strong> 个赞
-              <button @click="toggleArticleLike" :class="['like-btn', { 'liked': isArticleLiked }]">
-                {{ isArticleLiked ? '取消点赞' : '点赞' }}
-              </button>
-            </span>
-            <span class="stat-item">
-              💬 <strong>{{ commentCount }}</strong> 条评论
-            </span>
-            <button class="scroll-to-comment-btn" @click="scrollToCommentSection">
-              去评论
-            </button>
+          <div class="article-meta">
+            <span class="mono">{{ formatDate(currentArticle.date) }}</span>
+            <span v-if="currentArticle.category">{{ currentArticle.category }}</span>
+            <span class="mono">{{ commentCount }} comments</span>
           </div>
-        </div>
-        <div class="markdown-content" v-html="currentArticle.content"></div>
+          <div v-if="currentArticle.tags?.length" class="tags">
+            <Tag v-for="tag in currentArticle.tags" :key="tag">{{ tag }}</Tag>
+          </div>
+          <ReactionBar target-type="article" :target-id="currentArticle.id" />
+        </header>
 
-        <!-- 评论区 -->
-        <CommentSection ref="commentSectionRef" v-if="currentArticleId" :article-id="currentArticleId"
-          class="comment-section" />
-      </div>
-      <div v-else class="loading">加载文章中...</div>
+        <div class="markdown-content" v-html="currentArticle.content" />
+        <CommentThread :slug="`article:${currentArticle.id}`" @count-change="commentCount = $event" />
+      </article>
     </div>
 
-    <div v-else-if="currentTag" class="tag-articles">
-      <button @click="goBackToList" class="back-button">← 返回文章列表</button>
-      <h2>标签: {{ currentTag }}</h2>
-      <div v-if="filteredArticles.length > 0" class="articles-grid">
-        <div v-for="article in filteredArticles" :key="article.id" class="article-card"
-          @click="openArticle(article.id)">
-          <h3>{{ article.title }}</h3>
-          <div class="article-meta">
-            <span class="date">{{ formatDate(article.date) }}</span>
-            <span class="category" v-if="article.category">{{ article.category }}</span>
+    <div v-else class="page-shell article-index">
+      <header class="article-index-header">
+        <h1>Articles</h1>
+        <p>Notes on engineering, language learning, and the process behind this site.</p>
+      </header>
 
-            <!-- 列表视图中的统计信息 -->
-            <div class="article-stats-small">
-              <span class="stat-item-small">
-                👍 {{ getArticleLikeCount(article.id) }}
-              </span>
-              <span class="stat-item-small">
-                💬 {{ getArticleCommentCount(article.id) }}
-              </span>
-            </div>
-          </div>
-          <div class="tags" v-if="article.tags && article.tags.length > 0">
-            <span class="tag" v-for="tag in article.tags" :key="tag">{{ tag }}</span>
-          </div>
-          <p class="summary">{{ article.description || truncateText(article.content, 100) }}</p>
+      <div class="article-tools">
+        <TagCloud :tags="allTags" :model-value="selectedTag" @tag-click="toggleTag" />
+        <div class="filters">
+          <label>
+            <span>分类</span>
+            <select v-model="selectedCategory"><option value="">所有分类</option><option v-for="category in categories" :key="category" :value="category">{{ category }}</option></select>
+          </label>
+          <label class="search-label">
+            <span>搜索</span>
+            <span class="search-input"><PhMagnifyingGlass :size="19" aria-hidden="true" /><input v-model="searchQuery" type="search" placeholder="输入标题、内容或标签"></span>
+          </label>
         </div>
       </div>
-      <div v-else class="no-articles">
-        <p>没有找到包含此标签的文章</p>
-      </div>
-    </div>
 
-    <div v-else class="article-list">
-      <h1>Articles</h1>
-      <p>Explore my article base and technical articles.</p>
-
-      <!-- 标签云图 -->
-      <TagCloud :tags="allTags" @tag-click="filterByTag" />
-
-      <div class="filters">
-        <select v-model="selectedCategory" @change="filterArticles" class="filter-select">
-          <option value="">所有分类</option>
-          <option v-for="category in categories" :key="category" :value="category">
-            {{ category }}
-          </option>
-        </select>
-
-        <input v-model="searchQuery" @input="filterArticles" placeholder="搜索文章..." class="search-input" />
-      </div>
-
-      <div v-if="filteredArticles.length > 0" class="articles-grid">
-        <div v-for="article in filteredArticles" :key="article.id" class="article-card"
-          @click="openArticle(article.id)">
-          <h3>{{ article.title }}</h3>
-          <div class="article-meta">
-            <span class="date">{{ formatDate(article.date) }}</span>
-            <span class="category" v-if="article.category">{{ article.category }}</span>
-
-            <!-- 列表视图中的统计信息 -->
-            <div class="article-stats-small">
-              <span class="stat-item-small">
-                👍 {{ getArticleLikeCount(article.id) }}
-              </span>
-              <span class="stat-item-small">
-                💬 {{ getArticleCommentCount(article.id) }}
-              </span>
-            </div>
-          </div>
-          <div class="tags" v-if="article.tags && article.tags.length > 0">
-            <span class="tag" v-for="tag in article.tags" :key="tag">{{ tag }}</span>
-          </div>
-          <p class="summary">{{ article.description || truncateText(article.content, 100) }}</p>
-        </div>
-      </div>
-      <div v-else class="no-articles">
-        <p>没有找到匹配的文章</p>
-      </div>
+      <div v-if="loading" class="article-grid"><div v-for="n in 4" :key="n" class="article-card skeleton" /></div>
+      <div v-else-if="loadError" class="state-box"><PhWarningCircle :size="25" /><p>{{ loadError }}</p><button type="button" @click="loadAllArticles">重新加载</button></div>
+      <div v-else-if="!filteredArticles.length" class="state-box"><PhArticle :size="25" /><p>没有找到匹配的文章，试试清除筛选条件。</p><button type="button" @click="clearFilters">清除筛选</button></div>
+      <section v-else class="article-grid" aria-label="文章列表">
+        <RouterLink v-for="(article, index) in filteredArticles" :key="article.id" :to="`/Animation3/article/detail/${article.id}`" class="article-card" :class="{ featured: index === 0 }">
+          <div class="card-meta"><span class="mono">{{ formatDate(article.date) }}</span><span v-if="article.category">{{ article.category }}</span></div>
+          <h2>{{ article.title }}</h2>
+          <p>{{ article.description || truncateText(article.content, 120) }}</p>
+          <div class="card-footer"><div class="tags"><Tag v-for="tag in article.tags.slice(0, 3)" :key="tag">{{ tag }}</Tag></div><PhArrowRight :size="22" weight="bold" /></div>
+        </RouterLink>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import TagCloud from './TagCloud.vue'; // 导入标签云组件
-import CommentSection from '../CommentSection.vue'; // 导入评论组件
-import { loadArticles, getArticleById } from '@/service/articleService'; // 导入文章服务
-import { likeService } from '@/service/LikeService'; // 导入点赞服务
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { PhArrowLeft, PhArrowRight, PhArticle, PhMagnifyingGlass, PhWarningCircle } from '@/design/icons'
+import { getArticleById, loadArticles } from '@/service/articleService'
+import CommentThread from '@/components/social/CommentThread.vue'
+import ReactionBar from '@/components/social/ReactionBar.vue'
+import Tag from '@/components/ui/Tag.vue'
+import TagCloud from './TagCloud.vue'
 
-interface Article {
-  id: string;
-  title: string;
-  date: string;
-  category: string;
-  tags: string[];
-  content: string;
-  description?: string;
+interface ArticleItem {
+  id: string
+  title: string
+  date: string
+  category: string
+  tags: string[]
+  content: string
+  description?: string
 }
 
-const route = useRoute();
-const router = useRouter();
+const route = useRoute()
+const router = useRouter()
+const articles = ref<ArticleItem[]>([])
+const currentArticle = ref<ArticleItem | null>(null)
+const selectedCategory = ref('')
+const selectedTag = ref<string | null>(null)
+const searchQuery = ref('')
+const loading = ref(true)
+const loadError = ref('')
+const commentCount = ref(0)
 
-const articles = ref<Article[]>([]);
-const currentArticleId = computed(() => route.params.id as string);
-const currentTag = computed(() => route.params.tag as string);
-const currentArticle = ref<Article | null>(null);
-const selectedCategory = ref('');
-const searchQuery = ref('');
-const filteredArticles = ref<Article[]>([]);
-
-// 引用CommentSection组件
-const commentSectionRef = ref<InstanceType<typeof CommentSection> | null>(null);
-
-// 用于强制更新UI的响应式变量
-const forceUpdateTrigger = ref(0);
-
-
-// 计算属性：获取当前文章的点赞数和评论数
-const articleLikeCount = computed(() => {
-  // 依赖forceUpdateTrigger以确保响应变化
-  forceUpdateTrigger.value;
-
-  if (currentArticle.value) {
-    return likeService.getArticleLikes(currentArticle.value.id);
-  }
-  return 0;
-});
-
-const isArticleLiked = computed(() => {
-  // 依赖forceUpdateTrigger以确保响应变化
-  forceUpdateTrigger.value;
-
-  if (currentArticle.value) {
-    return likeService.isItemLiked(currentArticle.value.id, 'article');
-  }
-  return false;
-});
-
-const commentCount = computed(() => {
-  // 依赖forceUpdateTrigger以确保响应变化
-  forceUpdateTrigger.value;
-
-  // 直接从localStorage获取评论数，而不是依赖组件引用
-  try {
-    const stored = localStorage.getItem('comments');
-    if (stored) {
-      const allComments = JSON.parse(stored);
-      return allComments.filter((comment: any) => comment.articleId === currentArticleId.value).length;
-    }
-  } catch (error) {
-    console.error('获取评论数失败:', error);
-  }
-  return 0;
-});
-
-// 获取文章列表中每篇文章的点赞数
-const getArticleLikeCount = (articleId: string) => {
-  return likeService.getArticleLikes(articleId);
-};
-
-// 获取文章列表中每篇文章的评论数
-const getArticleCommentCount = (articleId: string) => {
-  // 依赖forceUpdateTrigger以确保响应变化
-  forceUpdateTrigger.value;
-
-  // 从localStorage获取评论数据
-  try {
-    const stored = localStorage.getItem('comments');
-    if (stored) {
-      const allComments = JSON.parse(stored);
-      return allComments.filter((comment: any) => comment.articleId === articleId).length;
-    }
-  } catch (error) {
-    console.error('获取评论数失败:', error);
-  }
-  return 0;
-};
-
-// 获取所有可用的分类
-const categories = computed(() => {
-  const cats = new Set<string>();
-  articles.value.forEach(article => {
-    if (article.category) {
-      cats.add(article.category);
-    }
-  });
-  return Array.from(cats);
-});
-
-// 获取所有标签用于标签云
+const currentArticleId = computed(() => String(route.params.id || ''))
+const categories = computed(() => Array.from(new Set(articles.value.map((article) => article.category).filter(Boolean))))
 const allTags = computed(() => {
-  const tagCounts: Record<string, number> = {};
-  articles.value.forEach(article => {
-    article.tags.forEach(tag => {
-      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-    });
-  });
+  const counts = new Map<string, number>()
+  articles.value.forEach((article) => article.tags.forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1)))
+  return Array.from(counts, ([name, count]) => ({ name, count }))
+})
+const filteredArticles = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  return articles.value.filter((article) => {
+    const categoryMatch = !selectedCategory.value || article.category === selectedCategory.value
+    const tagMatch = !selectedTag.value || article.tags.includes(selectedTag.value)
+    const queryMatch = !query || [article.title, article.description || '', article.content || '', ...article.tags].some((value) => value.toLowerCase().includes(query))
+    return categoryMatch && tagMatch && queryMatch
+  })
+})
 
-  return Object.entries(tagCounts).map(([name, count]) => ({
-    name,
-    count
-  }));
-});
-
-// 监听路由参数变化
-watch([() => route.params.id, () => route.params.tag], async ([newId, newTag]) => {
-  if (newId) {
-    await loadArticleDetail(newId as string);
-  } else if (newTag) {
-    filterByTag(newTag as string);
-  } else {
-    // 显示所有文章
-    filteredArticles.value = [...articles.value];
-    currentArticle.value = null;
-  }
-}, { immediate: true });
-
-onMounted(async () => {
-  await loadAllArticles();
-
-  // 检查路由参数并相应地加载内容
-  if (currentArticleId.value) {
-    await loadArticleDetail(currentArticleId.value);
-  } else if (currentTag.value) {
-    filterByTag(currentTag.value as string);
-  } else {
-    filteredArticles.value = [...articles.value];
-  }
-  // 监听localStorage变化以更新UI
-  window.addEventListener('storage', handleStorageChange);
-});
-// 组件卸载时移除监听器
-onUnmounted(() => {
-  window.removeEventListener('storage', handleStorageChange);
-});
-// 处理localStorage变化
-const handleStorageChange = () => {
-  forceUpdateTrigger.value++;
-};
-
-const loadAllArticles = async () => {
-  try {
-    // 从服务加载文章
-    const loadedArticles = await loadArticles();
-    articles.value = loadedArticles;
-
-    // 根据路由参数决定如何初始化显示
-    if (currentArticleId.value) {
-      await loadArticleDetail(currentArticleId.value);
-    } else if (currentTag.value) {
-      filterByTag(currentTag.value as string);
-    } else {
-      filteredArticles.value = [...articles.value];
-    }
-  } catch (error) {
-    console.error('加载文章失败:', error);
-
-    // 作为fallback，可以加载一些示例数据
-    articles.value = [];
-    filteredArticles.value = [];
-  }
-};
+async function loadAllArticles() {
+  loading.value = true
+  loadError.value = ''
+  try { articles.value = await loadArticles() as ArticleItem[] }
+  catch (error) { loadError.value = error instanceof Error ? error.message : '文章加载失败' }
+  finally { loading.value = false }
+}
 
 async function loadArticleDetail(id: string) {
+  if (!id) return
+  loading.value = true
+  loadError.value = ''
+  currentArticle.value = null
   try {
-    // 从服务加载特定文章
-    const article = await getArticleById(id);
-    if (article) {
-      currentArticle.value = article;
-      filteredArticles.value = []; // 清空文章列表
-    } else {
-      console.error(`未找到ID为 ${id} 的文章`);
-      currentArticle.value = null;
-    }
-  } catch (error) {
-    console.error(`加载文章 ${id} 失败:`, error);
-    currentArticle.value = null;
-  }
-};
+    currentArticle.value = await getArticleById(id) as ArticleItem | null
+    if (!currentArticle.value) loadError.value = '没有找到这篇文章。'
+  } catch (error) { loadError.value = error instanceof Error ? error.message : '文章加载失败' }
+  finally { loading.value = false }
+}
 
-const filterByTag = (tag: string) => {
-  const result = articles.value.filter(article =>
-    article.tags.includes(tag)
-  );
-  filteredArticles.value = result;
-  currentArticle.value = null;
-};
+function toggleTag(tag: string) { selectedTag.value = selectedTag.value === tag ? null : tag }
+function clearFilters() { selectedTag.value = null; selectedCategory.value = ''; searchQuery.value = '' }
+function goBackToList() { router.push('/Animation3/article') }
+function formatDate(value: string) { return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value)) }
+function truncateText(html: string, maxLength: number) {
+  const container = document.createElement('div')
+  container.innerHTML = html
+  const text = container.textContent || ''
+  return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
+}
 
-const openArticle = (id: string) => {
-  router.push(`/Animation3/article/detail/${id}`);
-};
-
-const goBackToList = () => {
-  router.push('/Animation3/article');
-};
-
-const filterArticles = () => {
-  let result = articles.value;
-
-  if (selectedCategory.value) {
-    result = result.filter(article => article.category === selectedCategory.value);
-  }
-
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    result = result.filter(article =>
-      article.title.toLowerCase().includes(query) ||
-      article.tags.some(tag => tag.toLowerCase().includes(query)) ||
-      (article.content && article.content.toLowerCase().includes(query))
-    );
-  }
-
-  filteredArticles.value = result;
-  currentArticle.value = null;
-};
-
-// 点赞/取消点赞当前文章
-const toggleArticleLike = () => {
-  // 获取当前用户标识
-  let currentUsername = localStorage.getItem('comment_username');
-
-  if (!currentUsername) {
-    currentUsername = prompt('请输入您的GitHub用户名以进行点赞：');
-    if (currentUsername) {
-      localStorage.setItem('comment_username', currentUsername.trim());
-    } else {
-      // 用户取消输入，不执行点赞
-      return;
-    }
-  }
-
-  if (currentArticle.value) {
-    const result = likeService.toggleArticleLike(currentArticle.value.id);
-    console.log(`文章 ${currentArticle.value.id} 点赞状态:`, result);
-
-    // 强制更新UI，使用nextTick确保DOM更新
-    forceUpdateTrigger.value++;
-
-    // 同时触发storage事件以通知其他组件更新
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'article-likes',
-      newValue: JSON.stringify(likeService.getAllArticleLikes())
-    }));
-  }
-};
-// 滚动到评论区
-const scrollToCommentSection = () => {
-  nextTick(() => {
-    const commentSection = document.querySelector('.comment-section');
-    if (commentSection) {
-      commentSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  });
-};
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-const truncateText = (html: string, maxLength: number) => {
-  // 简单地去除HTML标签并截取文本
-  const tmp = document.createElement("div");
-  tmp.innerHTML = html;
-  const text = tmp.textContent || tmp.innerText || "";
-
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + '...';
-};
+watch(currentArticleId, (id) => id ? loadArticleDetail(id) : loadAllArticles(), { immediate: true })
+onMounted(() => { if (!articles.value.length && !currentArticleId.value) loadAllArticles() })
 </script>
 
-<style scoped>
-.page-container {
-  width: 80%;
-  margin: 0 auto;
-  padding: 40px;
-  background-color: #333;
-  min-height: calc(100vh - 30% - 40px);
-  opacity: 0.1;
-  transition: all 0.5s ease;
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-  /* 裁剪溢出的导线 */
+<style scoped lang="less">
+@import '../../styles/tokens.less';
+.article-page { min-height: 100dvh; background: @surface; color: @text; }
+.article-index-header { max-width: 800px; padding-block: clamp(2.5rem, 7vw, 6rem) 2.5rem; }
+.article-index-header h1 { margin: 0; font-size: clamp(3.2rem, 10vw, 7.4rem); letter-spacing: -.08em; line-height: .9; }
+.article-index-header p { max-width: 52ch; margin: 1.3rem 0 0; color: @text-muted; font-size: 1.1rem; line-height: 1.65; }
+.article-tools { display: grid; gap: 1.2rem; margin-bottom: 2rem; border-top: 1px solid @line; padding-top: 1.5rem; }
+.filters { display: grid; grid-template-columns: minmax(180px, .45fr) minmax(280px, 1fr); gap: 1rem; }
+.filters label { display: grid; gap: .5rem; color: @text-muted; font-size: .8rem; }
+select, input { min-height: 46px; border: 1px solid @line; border-radius: 12px; background: @surface-raised; color: @text; font-size: 16px; }
+select { padding: 0 .85rem; }.search-input { display: grid; grid-template-columns: auto 1fr; align-items: center; border: 1px solid @line; border-radius: 12px; padding-left: .85rem; background: @surface-raised; }.search-input input { width: 100%; border: 0; background: transparent; }.search-input input:focus { outline: 0; }
+.article-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.article-card { display: flex; min-height: 330px; flex-direction: column; border: 1px solid @line; border-radius: 16px; padding: clamp(1.25rem, 3vw, 2rem); background: @surface-raised; color: @text; text-decoration: none; cursor: pointer; transition: border-color 180ms ease, transform 180ms ease; }
+.article-card.featured { grid-row: span 2; min-height: 676px; background: linear-gradient(155deg, #2b1114, @surface-raised 58%); }
+.article-card:hover { border-color: @accent; transform: translateY(-2px); }
+.card-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .7rem; color: @text-muted; font-size: .76rem; }
+.article-card h2 { max-width: 17ch; margin: auto 0 1rem; font-size: clamp(1.6rem, 3.4vw, 3rem); letter-spacing: -.055em; line-height: 1; }
+.article-card p { display: -webkit-box; overflow: hidden; margin: 0; color: @text-muted; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.card-footer { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; }.tags { display: flex; flex-wrap: wrap; gap: .5rem; }
+.skeleton { min-height: 330px; cursor: default; animation: pulse 1.2s ease-in-out infinite alternate; } @keyframes pulse { to { opacity: .48; } }
+.state-box { display: flex; align-items: center; gap: 1rem; border: 1px dashed @line; border-radius: 16px; padding: 2rem; color: @text-muted; }.state-box p { margin: 0; }.state-box button { min-height: 44px; margin-left: auto; border: 0; border-radius: 12px; padding: .7rem 1rem; background: @accent; color: @text; font-weight: 650; cursor: pointer; }
+.article-detail-shell { max-width: 980px; }.back-button { display: inline-flex; min-height: 44px; align-items: center; gap: .5rem; border: 1px solid @line; border-radius: 12px; padding: .65rem .85rem; background: @surface-raised; color: @text; cursor: pointer; }
+.article-header { padding-block: clamp(2.5rem, 7vw, 6rem); border-bottom: 1px solid @line; }.article-heading h1 { max-width: 16ch; margin: 0; font-size: clamp(2.8rem, 8vw, 6.5rem); letter-spacing: -.075em; line-height: .94; }.article-heading p { max-width: 56ch; margin: 1.5rem 0 0; color: @text-muted; font-size: 1.08rem; line-height: 1.65; }.article-meta { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; margin-top: 2rem; color: @text-muted; font-size: .82rem; }.article-header > .tags { margin-block: 1.25rem; }
+.markdown-content { padding-block: clamp(3rem, 7vw, 5.5rem); color: #d4d4d8; font-size: 1.04rem; line-height: 1.82; }
+.markdown-content :deep(h1), .markdown-content :deep(h2), .markdown-content :deep(h3) { color: @text; letter-spacing: -.035em; line-height: 1.12; }.markdown-content :deep(h2) { margin-top: 2.5em; font-size: clamp(1.7rem, 4vw, 2.7rem); }.markdown-content :deep(a) { color: @accent-strong; }.markdown-content :deep(code) { border-radius: 6px; padding: .12em .35em; background: @surface-soft; font-family: 'Geist Mono Variable', monospace; }.markdown-content :deep(pre) { overflow-x: auto; border: 1px solid @line; border-radius: 16px; padding: 1rem; background: @surface-raised; }.markdown-content :deep(pre code) { padding: 0; background: transparent; }.markdown-content :deep(img) { height: auto; border-radius: 16px; }
+.article-loading { display: grid; gap: 1rem; padding-block: 4rem; }.article-loading span { height: 28px; border-radius: 10px; background: @surface-raised; animation: pulse 1.2s ease-in-out infinite alternate; }.article-loading span:first-child { width: 80%; height: 76px; }.article-loading span:last-child { width: 62%; }
+@media (max-width: 767px) {
+  .filters, .article-grid { grid-template-columns: 1fr; }.article-card.featured { grid-row: auto; min-height: 380px; }.article-card { min-height: 300px; }
+  .state-box { align-items: start; flex-direction: column; }.state-box button { width: 100%; margin-left: 0; }
+  .article-heading h1 { font-size: clamp(2.8rem, 15vw, 4.8rem); }
 }
-
-.page-container:hover {
-  opacity: 0.8;
-}
-
-h1 {
-  color: #fff;
-  font-size: 2rem;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-h2 {
-  color: #fff;
-  font-size: 1.5rem;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-p {
-  color: #ccc;
-  font-size: 1.2rem;
-  line-height: 1.6;
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.filters {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.filter-select,
-.search-input {
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: 1px solid #555;
-  background-color: #222;
-  color: #fff;
-  font-size: 14px;
-}
-
-.search-input {
-  flex: 1;
-  min-width: 200px;
-}
-
-.articles-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.article-card {
-  background-color: #444;
-  border-radius: 8px;
-  padding: 20px;
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid #555;
-  min-height: 180px;
-}
-
-.article-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-  background-color: #4a4a4a;
-}
-
-.article-card h3 {
-  color: #fff;
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 1.3rem;
-}
-
-.article-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 15px;
-  font-size: 0.9rem;
-}
-
-.meta-top {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.article-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-top: 10px;
-  padding: 10px 0;
-  border-top: 1px solid #555;
-  border-bottom: 1px solid #555;
-  align-items: center;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.9rem;
-  color: #ccc;
-}
-
-.like-btn {
-  padding: 3px 8px;
-  border: 1px solid #03dac6;
-  border-radius: 4px;
-  background-color: transparent;
-  color: #03dac6;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.like-btn:hover:not(:disabled) {
-  background-color: #03dac6;
-  color: #000;
-}
-
-.like-btn:disabled {
-  background-color: #03dac6;
-  color: #000;
-  cursor: not-allowed;
-}
-
-.liked {
-  background-color: #03dac6;
-  color: #000;
-}
-
-.scroll-to-comment-btn {
-  padding: 5px 10px;
-  border: 1px solid #6200ea;
-  border-radius: 4px;
-  background-color: transparent;
-  color: #bb86fc;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.scroll-to-comment-btn:hover {
-  background-color: #6200ea;
-  color: white;
-}
-
-.date {
-  color: #888;
-}
-
-.category {
-  background-color: #6200ea;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.tag {
-  background-color: #03dac6;
-  color: #000;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}
-
-.summary {
-  color: #ccc;
-  line-height: 1.5;
-  margin-bottom: 0;
-}
-
-.back-button {
-  background-color: #555;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-bottom: 20px;
-  font-size: 1rem;
-}
-
-.back-button:hover {
-  background-color: #666;
-}
-
-.article-detail {
-  min-height: 400px;
-  /* 确保详情页有足够的空间 */
-}
-
-.article-content {
-  color: #ddd;
-  background-color: #2a2a2a;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.article-content h1 {
-  color: #fff;
-  text-align: left;
-  margin-top: 0;
-}
-
-.markdown-content {
-  margin-top: 20px;
-  line-height: 1.7;
-  color: #ddd;
-}
-
-.markdown-content h1,
-.markdown-content h2,
-.markdown-content h3 {
-  color: #fff;
-  margin-top: 1.5em;
-  margin-bottom: 0.8em;
-}
-
-.markdown-content p {
-  margin-bottom: 1em;
-}
-
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #ccc;
-  font-size: 1.2rem;
-}
-
-.no-articles {
-  text-align: center;
-  padding: 40px;
-  color: #ccc;
-  font-size: 1.2rem;
-}
-
-.tag-articles {
-  min-height: 400px;
-}
-
-.comment-section {
-  margin-top: 40px;
-}
-
-/* 文章统计信息样式 */
-.article-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-top: 10px;
-  padding: 10px 0;
-  border-top: 1px solid #555;
-  border-bottom: 1px solid #555;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.9rem;
-  color: #ccc;
-}
-
-.like-btn {
-  padding: 3px 8px;
-  border: 1px solid #03dac6;
-  border-radius: 4px;
-  background-color: transparent;
-  color: #03dac6;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.like-btn:hover:not(:disabled) {
-  background-color: #03dac6;
-  color: #000;
-}
-
-.like-btn:disabled {
-  background-color: #03dac6;
-  color: #000;
-  cursor: not-allowed;
-}
-
-.liked {
-  background-color: #03dac6;
-  color: #000;
-}
-
-.article-stats-small {
-  display: flex;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.stat-item-small {
-  font-size: 0.8rem;
-  color: #aaa;
-}
+@media (prefers-reduced-motion: reduce) { .article-card { transition: none; } }
 </style>

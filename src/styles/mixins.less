@@ -1,0 +1,23 @@
+@import './tokens.less';
+
+.card-surface() {
+  border: 1px solid @line;
+  border-radius: @radius-card;
+  background: @surface-raised;
+}
+
+.clip-strike() {
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
+}
+
+.reduced-motion(@rules) {
+  @media (prefers-reduced-motion: reduce) {
+    @rules();
+  }
+}
+
+.hover-capable(@rules) {
+  @media (hover: hover) and (pointer: fine) {
+    @rules();
+  }
+}

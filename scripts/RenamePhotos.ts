@@ -38,14 +38,6 @@ function getAllImageFiles(dir: string, fileList: string[] = []): string[] {
 }
 
 /**
- * 检查目标文件名是否已存在
- */
-function isTargetNameExists(targetDir: string, baseName: string, ext: string): boolean {
-  const targetPath = path.join(targetDir, `${baseName}${ext}`);
-  return fs.existsSync(targetPath);
-}
-
-/**
  * 检测当前目录中已使用的photo_x序号
  */
 function getUsedPhotoNumbers(targetDir: string): Set<number> {

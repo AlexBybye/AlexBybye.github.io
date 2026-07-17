@@ -1,427 +1,200 @@
 <template>
-  <div class="animation3-container">
-    <!-- 右上角友链按钮 -->
-    <div class="friend-links-button" @click="goToFriendLinks">
-      <span class="friend-links-icon">🌐</span>
-      <span class="friend-links-text">友链</span>
-    </div>
+  <div class="site-layout">
+    <div class="reading-progress" aria-hidden="true"><span /><PhSoccerBall :size="17" weight="fill" /></div>
 
-    <!-- 左上角悬浮音乐播放器 -->
-    <div class="floating-music-player" v-if="showFloatingPlayer">
-      <div class="player-header">
-        <div class="album-art" @click="goToMusicPlaylist">
-          <img :src="currentTrackCover" alt="Album Art" class="album-thumb" />
-        </div>
-        <div class="track-info" @click="goToMusicPlaylist">
-          <h4>{{ currentTrackTitle }}</h4>
-          <p>{{ currentTrackArtist }}</p>
-        </div>
-        <div class="player-controls">
-          <button @click.stop="playPrevious" class="control-btn mini">⏮️</button>
-          <button @click.stop="togglePlay" class="control-btn mini">{{ isPlaying ? '⏸️' : '▶️' }}</button>
-          <button @click.stop="playNext" class="control-btn mini">⏭️</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="header-section">
-      <div class="header-bg">
-        <img src="/images/background_2.jpg" alt="Background" />
-      </div>
-
-      <div class="scroll-banner-container" ref="bannerContainer">
-        <div class="scroll-banner-wrapper" ref="bannerWrapper">
-          <img src="/images/rolling.png" alt="banner" class="original-img" />
+    <header class="site-header">
+      <div class="legacy-marquee" role="img" aria-label="Lin_eclipse 滚动视觉横幅">
+        <div class="marquee-track">
+          <div v-for="group in 2" :key="group" class="marquee-group" :aria-hidden="group === 2">
+            <img v-for="image in 8" :key="image" src="/images/rolling.webp" alt="" decoding="async">
+          </div>
         </div>
       </div>
 
-      <nav class="nav-bar">
-        <ul>
-          <li @click="$router.push('/animation3/about')" class="nav-item">
-            <span class="nav-text">About</span>
-          </li>
-          <li @click="$router.push('/animation3/article')" class="nav-item">
-            <span class="nav-text">Article</span>
-          </li>
-          <li @click="$router.push('/animation3/music')" class="nav-item">
-            <span class="nav-text">Music</span>
-          </li>
-          <li @click="$router.push('/animation3/album')" class="nav-item">
-            <span class="nav-text">Album</span>
-          </li>
-        </ul>
+      <nav class="site-nav" aria-label="主导航">
+        <RouterLink to="/Animation3/about" class="site-mark" aria-label="Lin_eclipse 首页">
+          <span>LE</span>
+          <strong>Lin_eclipse</strong>
+        </RouterLink>
+
+        <button class="menu-button" type="button" :aria-expanded="menuOpen" aria-controls="primary-links" @click="menuOpen = !menuOpen">
+          <PhX v-if="menuOpen" :size="23" weight="bold" aria-hidden="true" />
+          <PhList v-else :size="23" weight="bold" aria-hidden="true" />
+          <span class="sr-only">{{ menuOpen ? '关闭导航' : '打开导航' }}</span>
+        </button>
+
+        <div id="primary-links" class="nav-links" :class="{ open: menuOpen }">
+          <div class="page-links">
+            <RouterLink v-for="link in navLinks" :key="link.to" :to="link.to" @click="menuOpen = false">
+              <span>{{ link.label }}</span>
+            </RouterLink>
+          </div>
+          <RouterLink class="friends-link" to="/Animation3/friends" aria-label="友链" @click="menuOpen = false">
+            <PhUsers :size="20" aria-hidden="true" /><span>友链</span>
+          </RouterLink>
+        </div>
       </nav>
-    </div>
+    </header>
 
-    <main class="content-section">
-      <router-view />
+    <aside class="floating-player" aria-label="音乐播放器">
+      <button class="track-link" type="button" @click="goToMusicPlaylist">
+        <img :src="currentTrackCover" :alt="currentTrack ? currentTrack.title : '暂无播放封面'" decoding="async">
+        <span><strong>{{ currentTrack?.title || '选择一首歌' }}</strong><small>{{ currentTrack?.artist || '音乐播放器' }}</small></span>
+      </button>
+      <div class="player-controls">
+        <IconButton label="上一首" @click="musicStore.playPrevious"><PhSkipBack :size="18" weight="fill" /></IconButton>
+        <IconButton :label="musicStore.isPlaying ? '暂停' : '播放'" @click="musicStore.togglePlay">
+          <PhPause v-if="musicStore.isPlaying" :size="19" weight="fill" />
+          <PhPlay v-else :size="19" weight="fill" />
+        </IconButton>
+        <IconButton label="下一首" @click="musicStore.playNext"><PhSkipForward :size="18" weight="fill" /></IconButton>
+      </div>
+    </aside>
+
+    <main class="site-content">
+      <RouterView v-slot="{ Component, route }">
+        <Transition name="route-slice" mode="out-in">
+          <div :key="route.path" class="route-stage">
+            <component :is="Component" />
+          </div>
+        </Transition>
+      </RouterView>
     </main>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { PhList, PhPause, PhPlay, PhSkipBack, PhSkipForward, PhSoccerBall, PhUsers, PhX } from '@/design/icons'
 import { useMusicStore } from '@/stores/musicStore'
+import IconButton from '@/components/ui/IconButton.vue'
 
-const bannerContainer = ref(null)
-const bannerWrapper = ref(null)
 const router = useRouter()
 const musicStore = useMusicStore()
+const menuOpen = ref(false)
 
-let animationFrameId = null
-let isPaused = false
-let imgWidth = 0
+const navLinks = [
+  { label: 'About', to: '/Animation3/about' },
+  { label: 'Article', to: '/Animation3/article' },
+  { label: 'Music', to: '/Animation3/music' },
+  { label: 'Album', to: '/Animation3/album' }
+]
 
-// 悬浮音乐播放器相关状态
-const showFloatingPlayer = ref(true) // 总是显示悬浮播放器
-const currentTrackTitle = ref('暂无歌曲')
-const currentTrackArtist = ref('未知艺术家')
-const currentTrackCover = ref('/images/background_1.png')
-const isPlaying = ref(false)
-
-// 同步音乐播放器状态
-watch(() => musicStore.currentTrack, (newTrack) => {
-  if (newTrack) {
-    currentTrackTitle.value = newTrack.title
-    currentTrackArtist.value = newTrack.artist
-    currentTrackCover.value = `/music/${newTrack.coverImage}`
-  } else {
-    currentTrackTitle.value = '暂无歌曲'
-    currentTrackArtist.value = '未知艺术家'
-    currentTrackCover.value = '/images/background_1.png'
-  }
-}, { immediate: true })
-
-watch(() => musicStore.isPlaying, (newPlayingState) => {
-  isPlaying.value = newPlayingState
-}, { immediate: true })
-
-// 导航到音乐播放列表页
-const goToMusicPlaylist = () => {
-  router.push('/animation3/music/playlist')
-}
-
-// 导航到友链页面
-const goToFriendLinks = () => {
-  router.push('/animation3/friends')
-}
-
-// 播放/暂停控制
-const togglePlay = () => {
-  musicStore.togglePlay()
-}
-
-// 下一首
-const playNext = () => {
-  musicStore.playNext()
-}
-
-// 上一首
-const playPrevious = () => {
-  musicStore.playPrevious()
-}
-
-const pauseAnimation = () => { isPaused = true }
-const resumeAnimation = () => { isPaused = false }
-
-// --- 保持你原始的滚动逻辑不变 ---
-const fillBannerImages = () => {
-  if (!bannerContainer.value || !bannerWrapper.value) return
-  const container = bannerContainer.value
-  const wrapper = bannerWrapper.value
-  const img = wrapper.querySelector('.original-img')
-
-  const loadImage = () => {
-    imgWidth = img.offsetWidth
-    const containerWidth = container.offsetWidth
-    const needCount = Math.ceil((containerWidth * 2) / imgWidth) + 1
-    const existingClones = wrapper.querySelectorAll('.clone-img')
-    existingClones.forEach(clone => clone.remove())
-    
-    for (let i = 0; i < needCount; i++) {
-      const clone = img.cloneNode(true)
-      clone.classList.remove('original-img')
-      clone.classList.add('clone-img')
-      wrapper.appendChild(clone)
-    }
-    nextTick(() => { startBannerAnimation() })
-  }
-
-  if (!img.complete) { img.onload = loadImage } else { loadImage() }
-}
-
-const startBannerAnimation = () => {
-  if (!bannerWrapper.value || imgWidth === 0) return
-  const wrapper = bannerWrapper.value
-  let translateX = 0
-  if (animationFrameId) { cancelAnimationFrame(animationFrameId) }
-
-  const animate = () => {
-    if (!isPaused) {
-      translateX -= 0.25
-      if (Math.abs(translateX) >= imgWidth) { translateX += imgWidth }
-      wrapper.style.transform = `translateX(${translateX}px)`
-    }
-    animationFrameId = requestAnimationFrame(animate)
-  }
-  animate()
-}
-
-const handleResize = () => {
-  isPaused = true
-  nextTick(() => { fillBannerImages(); isPaused = false })
-}
-
-onMounted(() => {
-  fillBannerImages()
-  bannerContainer.value?.addEventListener('mouseenter', pauseAnimation)
-  bannerContainer.value?.addEventListener('mouseleave', resumeAnimation)
-  window.addEventListener('resize', handleResize)
-  
-  // 监听路由变化更新播放器信息
-  router.afterEach(() => {
-    // 更新播放器信息通过响应式状态已经自动处理
-  })
-})
+const currentTrack = computed(() => musicStore.currentTrack)
+const currentTrackCover = computed(() => currentTrack.value?.coverImage ? `/music/${currentTrack.value.coverImage.replace(/\.(jpe?g|png)$/i, '.webp')}` : '/music/img/soccer.webp')
+const goToMusicPlaylist = () => router.push('/Animation3/music/playlist')
+watch(() => router.currentRoute.value.fullPath, () => { menuOpen.value = false })
 </script>
 
-<style scoped>
-.animation3-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  position: relative;
+<style scoped lang="less">
+@import '../../styles/tokens.less';
+
+.site-layout { position: relative; min-height: 100dvh; overflow-x: clip; background: @surface; }
+/* 方案 A：熄灯球场 —— 顶部拜仁红反光 + 割草明暗条 + 底部暗角 */
+.site-layout::before {
+  content: ''; position: fixed; z-index: 0; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(120% 60% at 50% -12%, rgba(227, 6, 19, .10), transparent 55%),
+    radial-gradient(150% 100% at 50% 128%, rgba(0, 0, 0, .58), transparent 62%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .016) 0 7vw, transparent 7vw 14vw),
+    @surface;
+}
+/* 方案 C：胶片颗粒 —— 让暗部不死平，近乎无形 */
+.site-layout::after {
+  content: ''; position: fixed; z-index: 0; inset: 0; pointer-events: none; opacity: .045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.site-header { position: sticky; z-index: 20; top: 0; border-bottom: 1px solid rgba(63,63,70,.86); background: rgba(9,9,11,.92); backdrop-filter: blur(16px); }
+.legacy-marquee { height: 22px; overflow: hidden; border-bottom: 1px solid rgba(244,244,245,.12); background: @accent; }
+.marquee-track { display: flex; width: max-content; height: 100%; will-change: transform; animation: legacy-marquee 34s linear infinite; }
+.marquee-group { display: flex; height: 100%; flex-shrink: 0; }
+.marquee-group img { width: auto; height: 100%; flex: none; object-fit: contain; }
+.legacy-marquee:hover .marquee-track { animation-play-state: paused; }
+@keyframes legacy-marquee { to { transform: translate3d(-50%, 0, 0); } }
+
+.site-nav { display: flex; width: min(100% - 2rem, 1200px); height: 64px; align-items: center; justify-content: space-between; gap: 2rem; margin-inline: auto; }
+.site-mark { display: inline-flex; align-items: center; gap: .75rem; color: @text; text-decoration: none; white-space: nowrap; }
+.site-mark > span { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; background: @accent; color: @text; font-family: 'Geist Mono Variable', monospace; font-size: .8rem; font-weight: 750; }
+.site-mark strong { font-size: .95rem; }
+.nav-links { display: flex; align-items: center; gap: 1rem; }
+.page-links { display: flex; width: clamp(420px, 48vw, 610px); height: 44px; align-items: stretch; }
+.page-links a {
+  position: relative; display: grid; min-width: 0; flex: 1; place-items: center; overflow: hidden; color: @text-muted;
+  font-size: .91rem; font-weight: 640; text-decoration: none; white-space: nowrap;
+  transition: flex 560ms cubic-bezier(.16, 1, .3, 1), color 220ms ease, opacity 300ms ease;
+}
+.page-links a::before { content: ''; position: absolute; inset: 3px -10px; z-index: -1; background: @accent; opacity: 0; transform: translate3d(-108%, 0, 0) skewX(-16deg); transition: transform 420ms cubic-bezier(.16,1,.3,1), opacity 160ms ease; }
+.page-links a span { transition: transform 420ms cubic-bezier(.16,1,.3,1), letter-spacing 420ms cubic-bezier(.16,1,.3,1); }
+.page-links:hover a { flex: .34; opacity: .34; }
+.page-links:hover a:hover { flex: 2.6; color: @text; opacity: 1; }
+.page-links a:hover::before, .page-links a.router-link-active::before { opacity: 1; transform: translate3d(0,0,0) skewX(-16deg); }
+.page-links a:hover span { letter-spacing: .14em; transform: translate3d(.08em, 0, 0); }
+.page-links a.router-link-active { color: @text; }
+.friends-link { position: relative; display: inline-flex; min-height: 44px; align-items: center; gap: .4rem; color: @text-muted; font-size: .88rem; font-weight: 620; text-decoration: none; white-space: nowrap; transition: color 180ms ease, transform 180ms ease; }
+.friends-link:hover, .friends-link.router-link-active { color: @text; transform: translateY(-2px); }
+.menu-button { display: none; width: 44px; height: 44px; place-items: center; border: 1px solid @line; border-radius: 12px; background: @surface-raised; color: @text; }
+.reading-progress { position: fixed; z-index: 30; top: 0; right: 0; left: 0; height: 3px; pointer-events: none; }
+.reading-progress span { position: absolute; width: 100%; height: 100%; background: @accent; transform: scaleX(0); transform-origin: left; animation: reading-progress linear both; animation-timeline: scroll(root); }
+.reading-progress :deep(svg) { position: absolute; top: -7px; left: 0; color: @text; animation: reading-ball linear both; animation-timeline: scroll(root); filter: drop-shadow(0 3px 7px rgba(227,6,19,.4)); }
+@keyframes reading-progress { to { transform: scaleX(1); } }
+@keyframes reading-ball { to { transform: translate3d(calc(100vw - 17px), 0, 0) rotate(720deg); } }
+.site-content { position: relative; z-index: 1; min-height: calc(100dvh - 86px); padding-bottom: 4rem; }
+.route-stage { position: relative; min-height: calc(100dvh - 86px); }
+.route-stage::before { content: ''; position: fixed; z-index: 45; top: 86px; bottom: 0; left: -24vw; width: 24vw; pointer-events: none; background: @accent; opacity: 0; transform: skewX(-10deg) translate3d(-140%,0,0); }
+.route-slice-enter-active { transition: opacity 520ms ease, transform 680ms cubic-bezier(.16,1,.3,1); }
+.route-slice-leave-active { transition: opacity 220ms ease, transform 260ms ease; }
+.route-slice-enter-active::before { animation: route-curtain 760ms cubic-bezier(.7,0,.2,1) both; }
+.route-slice-enter-from { opacity: 0; transform: translate3d(38px,0,0); }
+.route-slice-leave-to { opacity: 0; transform: translate3d(-22px,0,0); }
+@keyframes route-curtain {
+  0% { opacity: 1; transform: skewX(-10deg) translate3d(-140%,0,0); }
+  48% { opacity: 1; }
+  100% { opacity: 0; transform: skewX(-10deg) translate3d(720%,0,0); }
 }
 
-/* 友链按钮 */
-.friend-links-button {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 8px 15px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+.floating-player {
+  position: fixed; z-index: 30; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom));
+  display: flex; width: min(430px, calc(100vw - 2rem)); align-items: center; justify-content: space-between; gap: 1rem;
+  border: 1px solid rgba(244,244,245,.16); border-radius: 16px; padding: .65rem;
+  background: rgba(24,24,27,.78); color: @text; backdrop-filter: blur(22px) saturate(135%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 20px 60px rgba(9,9,11,.42);
+}
+.track-link { display: grid; min-width: 0; flex: 1; grid-template-columns: 44px 1fr; gap: .7rem; align-items: center; border: 0; padding: 0; background: transparent; color: @text; text-align: left; cursor: pointer; }
+.track-link img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; }
+.track-link span { display: grid; min-width: 0; gap: .18rem; }
+.track-link strong, .track-link small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.track-link strong { font-size: .83rem; } .track-link small { color: @text-muted; font-size: .72rem; }
+.player-controls { display: flex; gap: .35rem; }
+.player-controls :deep(.icon-button) { width: 38px; height: 38px; border-color: transparent; background: transparent; }
+
+@media (max-width: 767px) {
+  .site-nav { width: min(100% - 1.25rem, 1200px); }
+  .menu-button { display: grid; }
+  .nav-links { position: absolute; top: 86px; right: 0; left: 0; display: none; align-items: stretch; gap: 0; border-bottom: 1px solid @line; padding: .6rem; background: @surface; }
+  .nav-links.open { display: grid; }
+  .page-links { display: grid; width: 100%; height: auto; }
+  .page-links:hover a, .page-links:hover a:hover { flex: none; opacity: 1; }
+  .page-links a, .friends-link { display: flex; min-height: 50px; justify-content: space-between; border-radius: 12px; padding-inline: 1rem; }
+  .page-links a::before { inset: 4px; border-radius: 10px; transform: translate3d(-104%,0,0); }
+  .page-links a:hover::before, .page-links a.router-link-active::before { transform: translate3d(0,0,0); }
+  .page-links a:hover span { letter-spacing: normal; transform: none; }
+  .friends-link:hover { transform: none; }
+  .floating-player { right: 0; bottom: 0; left: 0; width: 100%; border-right: 0; border-bottom: 0; border-left: 0; border-radius: 16px 16px 0 0; padding: .6rem max(.75rem, env(safe-area-inset-right)) max(.6rem, env(safe-area-inset-bottom)) max(.75rem, env(safe-area-inset-left)); }
+  .player-controls :deep(.icon-button:first-child) { display: none; }
+  .site-content { padding-bottom: 6.5rem; }
+  .route-stage::before { top: 86px; width: 42vw; }
 }
 
-.friend-links-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+@media (prefers-reduced-transparency: reduce) {
+  .site-header, .floating-player { background: @surface-raised; backdrop-filter: none; }
 }
 
-.friend-links-icon {
-  font-size: 1.2rem;
-}
-
-.friend-links-text {
-  color: white;
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-/* 悬浮音乐播放器 */
-.floating-music-player {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 99;
-  width: 300px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-}
-
-.floating-music-player:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.player-header {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  gap: 10px;
-}
-
-.album-art {
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.album-thumb {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.track-info {
-  flex-grow: 1;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.track-info h4 {
-  margin: 0 0 4px 0;
-  color: white;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.track-info p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.8rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.player-controls {
-  display: flex;
-  gap: 5px;
-  flex-shrink: 0;
-}
-
-.control-btn.mini {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  transition: all 0.2s ease;
-}
-
-.control-btn.mini:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-.header-section {
-  position: relative;
-  height: 30%;
-  overflow: hidden;
-}
-
-/* 背景图层：z-index 设为最小，保证不挡住横幅 */
-.header-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1; 
-}
-.header-bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* 滚动横幅层：z-index 调高，确保脚本能抓到元素 */
-.scroll-banner-container {
-  position: relative;
-  z-index: 5; 
-  width: 100%;
-  height: 25px;
-  overflow: hidden;
-}
-.scroll-banner-wrapper {
-  display: flex;
-  will-change: transform;
-}
-.scroll-banner-wrapper img {
-  max-height: 25px;
-  max-width: 250px; 
-  flex-shrink: 0;
-  object-fit: contain;
-}
-
-/* 导航栏层 */
-.nav-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50px;
-  background-color: rgba(255, 255, 255, 0.6);
-  z-index: 10;
-  transition: background-color 0.4s ease;
-}
-
-.nav-bar ul {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.nav-item {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  overflow: hidden;
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.nav-text {
-  font-weight: bold;
-  color: #333;
-  white-space: nowrap;
-  transition: all 0.4s ease;
-}
-
-/* 悬停动画逻辑 */
-.nav-bar ul:hover .nav-item {
-  flex: 0;
-  opacity: 0;
-}
-.nav-bar ul .nav-item:hover {
-  flex: 1;
-  opacity: 1;
-  background-color: rgba(255, 255, 255, 0.8);
-}
-.nav-item:hover .nav-text {
-  font-size: 1.4rem;
-  letter-spacing: 4px;
-}
-
-.content-section {
-  flex: 1;
-  overflow-y: auto;
-  background-image: url('/images/background_3.png'); 
-  background-size: cover; 
-  background-position: center; 
-  padding: 20px; 
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; transform: none; }
+  .page-links a, .page-links a::before, .page-links a span, .friends-link, .route-slice-enter-active, .route-slice-leave-active { transition: none; }
+  .route-slice-enter-active::before { animation: none; }
+  .route-slice-enter-from, .route-slice-leave-to { opacity: 1; transform: none; }
+  .reading-progress { display: none; }
 }
 </style>

@@ -1,17 +1,16 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-// 导入组件
-import Animation1 from '@/component/welcome/Animation1.vue'
-import Animation2 from '@/component/welcome/Animation2.vue'
-import Animation3 from '@/component/Main/Animation3.vue'
-import About from '@/component/Pages/About.vue'
-import Album from '@/component/Pages/Album.vue'
-import AlbumDetail from '@/component/Pages/AlbumDetail.vue'
-import Article from '@/component/Pages/Article.vue'
-import Music from '@/component/Pages/Music.vue'
-import MusicPlaylist from '@/component/Pages/MusicPlaylist.vue'
-import TagCloud from '@/component/Pages/TagCloud.vue'
-import FriendLinks from '@/component/Pages/Friendlinks.vue'
+const Animation1 = () => import('@/component/welcome/Animation1.vue')
+const Animation2 = () => import('@/component/welcome/Animation2.vue')
+const Animation3 = () => import('@/component/Main/Animation3.vue')
+const About = () => import('@/component/Pages/About.vue')
+const Album = () => import('@/component/Pages/Album.vue')
+const AlbumDetail = () => import('@/component/Pages/AlbumDetail.vue')
+const Article = () => import('@/component/Pages/Article.vue')
+const Music = () => import('@/component/Pages/Music.vue')
+const MusicPlaylist = () => import('@/component/Pages/MusicPlaylist.vue')
+const TagCloud = () => import('@/component/Pages/TagCloud.vue')
+const FriendLinks = () => import('@/component/Pages/Friendlinks.vue')
 
 const routes = [
   {
@@ -29,6 +28,11 @@ const routes = [
     name: 'Animation3',
     component: Animation3,
     children: [
+      {
+        path: '',
+        name: 'Animation3Index',
+        redirect: { name: 'About' }
+      },
       {
         path: 'about',
         name: 'About',
@@ -82,7 +86,10 @@ const routes = [
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
+  scrollBehavior() {
+    return { left: 0, top: 0, behavior: 'auto' }
+  }
 })
 
 export default router

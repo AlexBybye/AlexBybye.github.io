@@ -35,23 +35,23 @@ export const welcomeResources = {
   },
   photos: {
     teamUcl: {
-      src: resourceUrl('bayern_team_UCL.jpg'),
+      src: resourceUrl('bayern_team_UCL.webp'),
       alt: 'Bayern Munich team lineup in Champions League',
     },
     musiala: {
-      src: resourceUrl('Musiala.jpg'),
+      src: resourceUrl('Musiala.webp'),
       alt: 'Jamal Musiala dribbling past a defender in Champions League',
     },
     kimmich: {
-      src: resourceUrl('Kimmich.jpg'),
+      src: resourceUrl('Kimmich.webp'),
       alt: 'Joshua Kimmich commanding a set piece',
     },
     diaz: {
-      src: resourceUrl('Diaz.jpg'),
+      src: resourceUrl('Diaz.webp'),
       alt: 'Luis Diaz driving forward with the ball',
     },
     olise: {
-      src: resourceUrl('Olise.jpg'),
+      src: resourceUrl('Olise.webp'),
       alt: 'Michael Olise celebrating a goal',
     },
   },

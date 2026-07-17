@@ -1,401 +1,110 @@
 <template>
-  <div class="music-playlist-container">
-    <h1>Music Playlist</h1>
-    <p>Enjoy my curated music collection.</p>
+  <div class="playlist-page">
+    <div class="page-shell">
+      <header class="playlist-header">
+        <div><h1>Music Playlist</h1><p>Filter the collection, play a track, and open its discussion.</p></div>
+        <div class="library-count mono">{{ filteredTracks.length }} tracks</div>
+      </header>
 
-    <div class="playlist-controls">
-      <div class="player-controls">
-        <button @click="musicStore.togglePlay" class="control-btn">
-          {{ musicStore.isPlaying ? '⏸️' : '▶️' }}
-        </button>
-        <button @click="musicStore.playPrevious" class="control-btn">⏮️</button>
-        <button @click="musicStore.playNext" class="control-btn">⏭️</button>
-        <input 
-          type="range" 
-          v-model="musicStore.volume" 
-          min="0" 
-          max="100" 
-          class="volume-slider"
-          @change="setVolume"
-        />
-        <span class="volume-value">{{ musicStore.volume }}%</span>
-      </div>
-
-      <div class="current-track-info" v-if="musicStore.currentTrack">
-        <div class="current-track-cover">
-          <img 
-            :src="'/music/' + musicStore.currentTrack.coverImage" 
-            :alt="musicStore.currentTrack.title"
-            @error="onImageError"
-            class="cover-image"
-          />
+      <section v-if="musicStore.currentTrack" class="player-panel" aria-label="当前播放">
+        <img :src="coverFor(musicStore.currentTrack.coverImage)" :alt="musicStore.currentTrack.title" @error="onImageError">
+        <div class="current-details"><span class="mono">NOW PLAYING</span><h2>{{ musicStore.currentTrack.title }}</h2><p>{{ musicStore.currentTrack.artist }}</p></div>
+        <div class="main-controls">
+          <IconButton label="上一首" @click="musicStore.playPrevious"><PhSkipBack :size="20" weight="fill" /></IconButton>
+          <button class="primary-play" type="button" :aria-label="musicStore.isPlaying ? '暂停' : '播放'" @click="musicStore.togglePlay">
+            <PhPause v-if="musicStore.isPlaying" :size="24" weight="fill" /><PhPlay v-else :size="24" weight="fill" />
+          </button>
+          <IconButton label="下一首" @click="musicStore.playNext"><PhSkipForward :size="20" weight="fill" /></IconButton>
         </div>
-        <div class="current-track-details">
-          <h2>{{ musicStore.currentTrack.title }}</h2>
-          <p>{{ musicStore.currentTrack.artist }}</p>
-          <p>Type: {{ musicStore.currentTrack.type }}</p>
+        <div class="progress-area">
+          <button class="progress-bar" type="button" aria-label="调整播放进度" @click="seekMusic"><span :style="{ width: `${progressPercent}%` }" /></button>
+          <div class="time-row mono"><span>{{ formatTime(musicStore.currentTime) }}</span><span>{{ formatTime(musicStore.totalTime) }}</span></div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- 音乐类型词云 -->
-    <TagCloud :tags="musicTypes" @tag-click="filterByType" />
-
-    <div class="playlist-container">
-      <h3>Playlist</h3>
-      <div class="track-grid">
-        <div 
-          v-for="(track, index) in filteredTracks" 
-          :key="getTrackKey(track, index)"
-          :class="{ 'active-track': isTrackActive(track) }"
-          @click="selectTrackByTrack(track)"
-          class="track-card"
-        >
-          <div class="track-cover">
-            <img 
-              :src="'/music/' + track.coverImage" 
-              :alt="track.title"
-              @error="onImageError"
-              class="cover-image"
-            />
-          </div>
-          <div class="track-info">
-            <h4 class="track-title">{{ track.title }}</h4>
-            <p class="track-artist">{{ track.artist }}</p>
-            <p class="track-type">{{ track.type }}</p>
-          </div>
-        </div>
+      <div class="filter-row">
+        <TagCloud :tags="musicTypes" :model-value="musicStore.selectedType" @tag-click="filterByType" />
+        <label class="volume-control"><span>音量</span><input v-model.number="musicStore.volume" type="range" min="0" max="100"><b class="mono">{{ musicStore.volume }}%</b></label>
       </div>
-    </div>
 
-    <!-- 移除了本地audio元素，改用全局音频管理 -->
+      <div v-if="!musicStore.tracks.length" class="track-skeletons" aria-label="正在加载歌曲">
+        <div v-for="n in 4" :key="n" />
+      </div>
+      <div v-else-if="!filteredTracks.length" class="empty-state"><PhMusicNote :size="30" /><p>这个筛选条件下没有歌曲。</p></div>
+      <section v-else class="track-grid" aria-label="歌曲列表">
+        <article v-for="(track, index) in filteredTracks" :key="track.filename" v-memo="[track.filename, isTrackActive(track)]"
+          class="track-card" :class="{ active: isTrackActive(track) }" role="button" tabindex="0"
+          @click="selectTrack(track)" @keydown.enter="selectTrack(track)" @keydown.space.prevent="selectTrack(track)">
+          <img :src="coverFor(track.coverImage)" :alt="track.title" loading="lazy" decoding="async" @error="onImageError">
+          <div class="track-info"><span class="mono">{{ String(index + 1).padStart(2, '0') }}</span><h3>{{ track.title }}</h3><p>{{ track.artist }}</p><small>{{ track.type }}</small></div>
+          <div class="track-reaction" @click.stop><ReactionBar target-type="song" :target-id="slugFor(track.filename)" compact /></div>
+        </article>
+      </section>
 
-    <div class="progress-container">
-      <div class="progress-bar" @click="seekMusic">
-        <div class="progress" :style="{ width: progressPercent + '%' }"></div>
-      </div>
-      <div class="time-info">
-        <span>{{ formatTime(musicStore.currentTime) }}</span>
-        <span>{{ formatTime(musicStore.totalTime) }}</span>
-      </div>
+      <section v-if="musicStore.currentTrack" class="active-discussion">
+        <h2>Discuss {{ musicStore.currentTrack.title }}</h2>
+        <CommentThread :slug="`song:${slugFor(musicStore.currentTrack.filename)}`" />
+      </section>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, nextTick, computed, watch } from 'vue';
-import { useMusicStore } from '@/stores/musicStore';
-import { useAudioManager } from '@/stores/audioManager';
-import TagCloud from './TagCloud.vue';
+<script setup lang="ts">
+import { computed, onMounted } from 'vue'
+import { PhMusicNote, PhPause, PhPlay, PhSkipBack, PhSkipForward } from '@/design/icons'
+import { useAudioManager } from '@/stores/audioManager'
+import { useMusicStore } from '@/stores/musicStore'
+import CommentThread from '@/components/social/CommentThread.vue'
+import ReactionBar from '@/components/social/ReactionBar.vue'
+import IconButton from '@/components/ui/IconButton.vue'
+import TagCloud from './TagCloud.vue'
 
-// 移除了本地audioPlayer ref
-const progressPercent = ref(0);
-const musicStore = useMusicStore();
-const audioManager = useAudioManager(); // 使用全局音频管理器
+const musicStore = useMusicStore()
+const audioManager = useAudioManager()
+const musicTypes = computed(() => musicStore.getMusicTypes())
+const filteredTracks = computed(() => musicStore.getFilteredTracks())
+const progressPercent = computed(() => musicStore.totalTime ? musicStore.currentTime / musicStore.totalTime * 100 : 0)
 
-// 修复：添加辅助函数来判断当前曲目是否激活
-const isTrackActive = (track) => {
-  if (!musicStore.currentTrack) return false;
-  return (
-    track.title === musicStore.currentTrack.title &&
-    track.artist === musicStore.currentTrack.artist &&
-    track.filename === musicStore.currentTrack.filename
-  );
-};
-
-// 修复：通过曲目对象来选择曲目
-const selectTrackByTrack = (track) => {
-  // 在原始tracks数组中查找匹配的索引
-  const actualIndex = musicStore.tracks.findIndex(t => 
-    t.title === track.title && 
-    t.artist === track.artist && 
-    t.filename === track.filename
-  );
-  
-  if (actualIndex !== -1) {
-    musicStore.playTrack(actualIndex);
-    // 不再调用本地播放函数，而是依赖store和全局音频管理器
-  }
-};
-
-// 添加辅助函数来生成唯一的key
-const getTrackKey = (track, index) => {
-  return `${track.title}-${track.artist}-${track.filename}-${index}`;
-};
-
-// 获取所有音乐类型用于词云
-const musicTypes = computed(() => {
-  return musicStore.getMusicTypes();
-});
-
-// 过滤后的歌曲列表
-const filteredTracks = computed(() => {
-  return musicStore.getFilteredTracks();
-});
-
-// 按类型过滤
-const filterByType = (typeName) => {
-  const currentType = musicStore.selectedType;
-  musicStore.filterByType(currentType === typeName ? null : typeName);
-};
-
-// 处理图片加载错误
-const onImageError = (event) => {
-  event.target.src = '/images/background_1.png'; // 使用默认图片
-};
-
-// 格式化时间显示
-const formatTime = (seconds) => {
-  if (!seconds || isNaN(seconds)) return '0:00';
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-};
-
-// 格式化持续时间
-const formatDuration = (duration) => {
-  return formatTime(duration);
-};
-
-// 设置音量
-const setVolume = () => {
-  // 音量变化会通过watch自动同步到全局音频管理器
-};
-
-// 更新进度条百分比
-const updateProgressPercent = () => {
-  if (musicStore.totalTime > 0) {
-    progressPercent.value = (musicStore.currentTime / musicStore.totalTime) * 100;
-  }
-};
-
-// 跳转到指定时间点
-const seekMusic = (event) => {
-  if (musicStore.totalTime > 0) {
-    const progressBar = event.currentTarget;
-    const rect = progressBar.getBoundingClientRect();
-    const pos = (event.clientX - rect.left) / rect.width;
-    const newTime = pos * musicStore.totalTime;
-    musicStore.setCurrentTime(newTime); // 更新store的时间
-    audioManager.seekToPercentage(pos * 100); // 同步到全局音频管理器
-  }
-};
-
-// 监听音乐store的状态变化并更新进度条
-watch(() => musicStore.currentTime, () => {
-  updateProgressPercent();
-});
-
-watch(() => musicStore.totalTime, () => {
-  updateProgressPercent();
-});
-
-onMounted(async () => {
-  await musicStore.loadTracks();
-  if (musicStore.tracks.length > 0) {
-    await nextTick();
-    // 初始化时不需要主动播放，因为音频管理器会监听store状态
-  }
-});
+type Track = NonNullable<typeof musicStore.currentTrack>
+function isTrackActive(track: Track) { return musicStore.currentTrack?.filename === track.filename }
+function selectTrack(track: Track) { const index = musicStore.tracks.findIndex((item) => item.filename === track.filename); if (index >= 0) musicStore.playTrack(index) }
+function filterByType(type: string) { musicStore.filterByType(musicStore.selectedType === type ? null : type) }
+function slugFor(filename: string) { return encodeURIComponent(filename).replace(/%/g, '').toLowerCase() }
+function formatTime(seconds: number) { const value = Number(seconds) || 0; return `${Math.floor(value / 60)}:${Math.floor(value % 60).toString().padStart(2, '0')}` }
+function coverFor(value: string) { return `/music/${value.replace(/\.(jpe?g|png)$/i, '.webp')}` }
+function onImageError(event: Event) { (event.target as HTMLImageElement).src = '/music/img/soccer.webp' }
+function seekMusic(event: MouseEvent) { const rect = (event.currentTarget as HTMLElement).getBoundingClientRect(); audioManager.seekToPercentage((event.clientX - rect.left) / rect.width * 100) }
+onMounted(() => { if (!musicStore.tracks.length) musicStore.loadTracks() })
 </script>
 
-<style scoped>
-.music-playlist-container {
-  width: 80%;
-  margin: 0 auto;
-  padding: 40px;
-  background-color: #333;
-  min-height: calc(100vh - 30% - 40px);
-  opacity: 0.1;
-  transition: all 0.5s ease;
-  border-radius: 20px;
+<style scoped lang="less">
+@import '../../styles/tokens.less';
+.playlist-page { min-height: 100dvh; background: @surface; color: @text; }
+.playlist-header { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-block: 2.5rem 2rem; }
+.playlist-header h1 { margin: 0; font-size: clamp(2.8rem, 7vw, 5.8rem); letter-spacing: -.07em; line-height: .94; }
+.playlist-header p { margin: 1rem 0 0; color: @text-muted; font-size: 1.05rem; }
+.library-count { color: @text-muted; white-space: nowrap; }
+.player-panel { display: grid; grid-template-columns: 170px 1fr auto; gap: 1.5rem; align-items: center; border: 1px solid @line; border-radius: 16px; padding: 1rem; background: @surface-raised; }
+.player-panel > img { width: 170px; aspect-ratio: 1; border-radius: 12px; object-fit: cover; }
+.current-details span { color: @accent-strong; font-size: .72rem; letter-spacing: .12em; }.current-details h2 { max-width: 18ch; margin: .65rem 0 .4rem; font-size: clamp(1.5rem, 3vw, 2.5rem); letter-spacing: -.04em; }.current-details p { margin: 0; color: @text-muted; }
+.main-controls { display: flex; gap: .5rem; }.primary-play { display: grid; width: 50px; height: 50px; place-items: center; border: 0; border-radius: 12px; background: @accent; color: @text; cursor: pointer; }
+.progress-area { grid-column: 2 / -1; }.progress-bar { display: block; width: 100%; height: 18px; border: 0; padding: 7px 0; background: transparent; cursor: pointer; }.progress-bar::before { content: ''; position: absolute; right: 0; left: 0; height: 3px; background: @line; }.progress-bar { position: relative; }.progress-bar span { position: absolute; z-index: 1; top: 7px; left: 0; height: 3px; background: @accent; }.time-row { display: flex; justify-content: space-between; color: @text-muted; font-size: .72rem; }
+.filter-row { display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; margin-block: 2rem; }
+.volume-control { display: grid; grid-template-columns: auto 120px 42px; gap: .7rem; align-items: center; color: @text-muted; font-size: .8rem; }.volume-control input { accent-color: @accent; }
+.track-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; content-visibility: auto; contain-intrinsic-size: 900px; }
+.track-card { display: grid; grid-template-columns: 108px 1fr; gap: 1rem; min-width: 0; overflow: hidden; border: 1px solid @line; border-radius: 16px; padding: .75rem; background: @surface-raised; cursor: pointer; transition: border-color 160ms ease, transform 160ms ease; }
+.track-card:nth-child(5n + 1) { grid-column: span 2; grid-template-columns: 160px 1fr auto; }
+.track-card:hover, .track-card.active { border-color: @accent; }.track-card:hover { transform: translateY(-2px); }
+.track-card > img { width: 108px; height: 108px; border-radius: 12px; object-fit: cover; }.track-card:nth-child(5n + 1) > img { width: 160px; height: 160px; }
+.track-info { min-width: 0; align-self: center; }.track-info > span { color: @accent-strong; font-size: .7rem; }.track-info h3 { overflow: hidden; margin: .55rem 0 .3rem; font-size: 1.05rem; text-overflow: ellipsis; white-space: nowrap; }.track-info p { overflow: hidden; margin: 0; color: @text-muted; font-size: .86rem; text-overflow: ellipsis; white-space: nowrap; }.track-info small { display: inline-block; margin-top: .65rem; color: #d4d4d8; font-size: .72rem; }
+.track-reaction { grid-column: 1 / -1; }.track-card:nth-child(5n + 1) .track-reaction { grid-column: 3; grid-row: 1; align-self: end; }
+.track-skeletons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }.track-skeletons div { min-height: 135px; border-radius: 16px; background: @surface-raised; animation: pulse 1.2s ease-in-out infinite alternate; } @keyframes pulse { to { opacity: .5; } }
+.empty-state { display: flex; align-items: center; gap: 1rem; border: 1px dashed @line; border-radius: 16px; padding: 2rem; color: @text-muted; }
+.active-discussion { padding-block: clamp(4rem, 8vw, 7rem); }.active-discussion > h2 { margin: 0; font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -.055em; }
+@media (max-width: 767px) {
+  .playlist-header { align-items: start; flex-direction: column; }.player-panel { grid-template-columns: 92px 1fr; }.player-panel > img { width: 92px; }.main-controls { grid-column: 1 / -1; justify-content: center; }.progress-area { grid-column: 1 / -1; }
+  .filter-row { grid-template-columns: 1fr; }.volume-control { grid-template-columns: auto 1fr 42px; }
+  .track-grid, .track-skeletons { grid-template-columns: 1fr; }.track-card, .track-card:nth-child(5n + 1) { grid-column: auto; grid-template-columns: 88px 1fr; }.track-card > img, .track-card:nth-child(5n + 1) > img { width: 88px; height: 88px; }.track-card:nth-child(5n + 1) .track-reaction { grid-column: 1 / -1; grid-row: auto; }
 }
-
-.music-playlist-container:hover {
-  opacity: 0.8;
-}
-
-h1, h2, h3, h4 {
-  color: #fff;
-  text-align: center;
-}
-
-p {
-  color: #ccc;
-  font-size: 1.2rem;
-  line-height: 1.6;
-  text-align: center;
-}
-
-.playlist-controls {
-  margin: 30px 0;
-  text-align: center;
-}
-
-.player-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.control-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: 1.5rem;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.control-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-.volume-slider {
-  width: 150px;
-  margin: 0 10px;
-}
-
-.volume-value {
-  color: white;
-  min-width: 40px;
-}
-
-.current-track-info {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  margin-top: 20px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-
-.current-track-cover {
-  flex-shrink: 0;
-}
-
-.current-track-details {
-  text-align: left;
-  flex-grow: 1;
-}
-
-.current-track-details h2 {
-  margin: 0 0 10px 0;
-  color: #fff;
-}
-
-.current-track-details p {
-  margin: 5px 0;
-  color: #ccc;
-}
-
-.cover-image {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.playlist-container {
-  margin: 30px 0;
-}
-
-.track-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.track-card {
-  display: flex;
-  flex-direction: column;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: fit-content;
-}
-
-.track-card:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-}
-
-.track-card.active-track {
-  background: rgba(255, 255, 255, 0.2);
-  border-left: 3px solid #00dbde;
-}
-
-.track-cover {
-  margin-bottom: 15px;
-}
-
-.track-cover .cover-image {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-.track-info {
-  flex-grow: 1;
-}
-
-.track-title {
-  margin: 0 0 8px 0;
-  color: #fff;
-  font-size: 1.1rem;
-}
-
-.track-artist {
-  margin: 5px 0;
-  color: #aaa;
-  font-size: 0.9rem;
-}
-
-.track-type {
-  margin: 5px 0;
-  color: #888;
-  font-size: 0.8rem;
-}
-
-.progress-container {
-  margin-top: 30px;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  cursor: pointer;
-  margin-bottom: 10px;
-  position: relative;
-}
-
-.progress {
-  height: 100%;
-  background: linear-gradient(to right, #00dbde, #fc00ff);
-  border-radius: 4px;
-  transition: width 0.1s linear;
-}
-
-.time-info {
-  display: flex;
-  justify-content: space-between;
-  color: #aaa;
-  font-size: 0.9rem;
-}
+@media (prefers-reduced-motion: reduce) { .track-card { transition: none; } }
 </style>

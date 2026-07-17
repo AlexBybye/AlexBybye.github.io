@@ -131,6 +131,7 @@ const generateAlbumsJson = () => {
         const ext = path.extname(file).toLowerCase();
         return ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'].includes(ext);
       });
+      const logicalPhotoCount = new Set(imageFiles.map(file => path.parse(file).name)).size;
       
       const albumId = getAlbumId(folderName);
       
@@ -152,13 +153,13 @@ const generateAlbumsJson = () => {
         title = folderName.replace(/[_-]/g, ' ');
       }
       
-      console.log(`📊 相册信息: ID=${albumId}, 标题="${title}", 图片数量=${imageFiles.length}`);
+      console.log(`📊 相册信息: ID=${albumId}, 标题="${title}", 图片数量=${logicalPhotoCount}`);
       
       albums.push({
         id: albumId,
         title: title,
         date: date,
-        count: imageFiles.length,
+        count: logicalPhotoCount,
         description: description
       });
     } catch (error) {

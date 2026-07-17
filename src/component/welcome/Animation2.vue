@@ -1,13 +1,20 @@
 <template>
   <section class="showcase-stage">
+    <span class="handoff-ball-target" aria-hidden="true">
+      <img src="/images/soccer.jpeg" alt="" draggable="false">
+    </span>
+
     <div class="backdrop-stack" aria-hidden="true">
       <img
         v-for="(panel, index) in panels"
+        v-show="currentPanelIndex === index"
         :key="panel.id"
         :src="panel.heroImage.src"
         :alt="panel.heroImage.alt"
         class="backdrop-image"
         :class="{ active: currentPanelIndex === index }"
+        :loading="index === 0 ? 'eager' : 'lazy'"
+        decoding="async"
       />
     </div>
 
@@ -17,6 +24,7 @@
     <div class="panel-viewport">
       <article
         v-for="(panel, index) in panels"
+        v-show="currentPanelIndex === index"
         :key="panel.id"
         class="showcase-panel"
         :class="[panel.tone, panel.direction, { active: currentPanelIndex === index }]"
@@ -29,33 +37,33 @@
             <span v-for="n in 14" :key="n"></span>
           </div>
           <div class="copy-content">
-            <p class="panel-kicker">{{ panel.kicker }}</p>
-            <h1>{{ panel.title }}</h1>
-            <p>{{ panel.body }}</p>
-            <span>{{ panel.stat }}</span>
+            <div class="copy-strike">
+              <p class="panel-kicker">{{ panel.kicker }}</p>
+              <h1>{{ panel.title }}</h1>
+            </div>
+            <div class="copy-readable">
+              <p>{{ panel.body }}</p>
+              <span>{{ panel.stat }}</span>
+            </div>
           </div>
         </div>
 
         <div class="media-zone">
           <figure class="hero-photo">
-            <img :src="panel.photos[0].src" :alt="panel.photos[0].alt" />
+            <img :src="panel.photos[0].src" :alt="panel.photos[0].alt" :loading="index === 0 ? 'eager' : 'lazy'" decoding="async" />
           </figure>
 
           <figure v-if="panel.photos[1]" class="support-photo">
-            <img :src="panel.photos[1].src" :alt="panel.photos[1].alt" />
+            <img :src="panel.photos[1].src" :alt="panel.photos[1].alt" loading="lazy" decoding="async" />
           </figure>
 
           <div class="gif-strip" aria-hidden="true">
             <figure v-for="(gif, gifIndex) in panel.gifs" :key="gif.src" :class="`gif-chip gif-${gifIndex + 1}`">
-              <img :src="gif.src" :alt="gif.alt" />
+              <img :src="gif.src" :alt="gif.alt" loading="lazy" decoding="async" />
             </figure>
           </div>
         </div>
       </article>
-    </div>
-
-    <div class="resource-rail" aria-hidden="true">
-      <img v-for="resource in resources" :key="resource.src" :src="resource.src" :alt="resource.alt" />
     </div>
 
     <div class="stage-footer">
@@ -168,13 +176,47 @@ onUnmounted(() => {
 .showcase-stage {
   position: relative;
   width: 100vw;
-  height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   background:
     linear-gradient(110deg, #050505 0%, #181818 46%, #070707 100%),
     #090909;
-  color: #fff;
+  color: #f4f4f5;
   isolation: isolate;
+}
+
+.handoff-ball-target {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  z-index: 12;
+  display: block;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.52));
+  transform: translateX(-50%);
+  view-transition-name: match-ball;
+  animation: handoffBallSettle 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.handoff-ball-target::after {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 8px);
+  width: clamp(70px, 10vw, 160px);
+  height: 2px;
+  content: '';
+  background: linear-gradient(90deg, transparent, rgba(227, 6, 19, 0.84));
+  transform: translateY(-50%);
+}
+
+.handoff-ball-target img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .backdrop-stack {
@@ -293,7 +335,7 @@ onUnmounted(() => {
 
 .triangle-fill {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent), #fff 12%), rgba(0, 0, 0, 0.82)),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent), #f4f4f5 12%), rgba(9, 9, 11, 0.82)),
     var(--accent);
   box-shadow:
     inset 0 0 60px rgba(255, 255, 255, 0.12),
@@ -321,19 +363,34 @@ onUnmounted(() => {
   z-index: 2;
   width: min(74%, 440px);
   margin-left: 16%;
-  color: #fff;
-  /* 让整段文字与三角形斜边平行：斜边由左顶点向右上升，文字逆时针微旋 */
-  transform: rotate(-22deg);
-  transform-origin: left center;
+  color: #f4f4f5;
 }
 
 .to-left .copy-content {
   margin-right: 16%;
   margin-left: auto;
   text-align: right;
-  /* 黑色对称面：斜边镜像，文字顺时针微旋 */
+}
+
+.copy-strike {
+  transform: rotate(-22deg);
+  transform-origin: left bottom;
+}
+
+.to-left .copy-strike {
   transform: rotate(22deg);
-  transform-origin: right center;
+  transform-origin: right bottom;
+}
+
+.copy-readable {
+  margin-top: 2rem;
+  transform: rotate(-6deg);
+  transform-origin: left top;
+}
+
+.to-left .copy-readable {
+  transform: rotate(6deg);
+  transform-origin: right top;
 }
 
 .panel-kicker {
@@ -353,8 +410,8 @@ onUnmounted(() => {
   text-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
 }
 
-.copy-content p:not(.panel-kicker) {
-  margin: 20px 0 18px;
+.copy-readable p {
+  margin: 0 0 18px;
   max-width: 26rem;
   color: rgba(255, 255, 255, 0.86);
   font-size: 1.02rem;
@@ -362,7 +419,7 @@ onUnmounted(() => {
   text-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
 }
 
-.copy-content span {
+.copy-readable span {
   display: inline-flex;
   align-items: center;
   min-height: 38px;
@@ -630,7 +687,7 @@ onUnmounted(() => {
   background:
     linear-gradient(135deg, rgba(20, 20, 20, 0.92), rgba(8, 8, 8, 0.94)),
     #101010;
-  color: #fff;
+  color: #f4f4f5;
   font-size: 1rem;
   font-weight: 900;
   letter-spacing: 0;
@@ -709,6 +766,23 @@ onUnmounted(() => {
   }
 }
 
+@keyframes handoffBallSettle {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(34px) rotate(-80deg) scale(0.62);
+  }
+
+  62% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-3px) rotate(22deg) scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) rotate(0) scale(1);
+  }
+}
+
 @keyframes arrowNudge {
   0%,
   100% {
@@ -783,8 +857,17 @@ onUnmounted(() => {
     width: min(84%, 560px);
     margin: 0 auto;
     text-align: left;
-    /* 移动端三角形改为顶边水平，文字恢复正常摆放 */
+  }
+
+  .copy-strike,
+  .to-left .copy-strike,
+  .copy-readable,
+  .to-left .copy-readable {
     transform: none;
+  }
+
+  .copy-readable {
+    margin-top: 1rem;
   }
 
   .copy-content h1 {
@@ -792,7 +875,7 @@ onUnmounted(() => {
     font-size: 3rem;
   }
 
-  .copy-content p:not(.panel-kicker) {
+  .copy-readable p {
     margin: 14px 0 12px;
     font-size: 0.98rem;
     line-height: 1.55;
@@ -861,11 +944,11 @@ onUnmounted(() => {
     font-size: 2.34rem;
   }
 
-  .copy-content p:not(.panel-kicker) {
+  .copy-readable p {
     font-size: 0.9rem;
   }
 
-  .copy-content span {
+  .copy-readable span {
     min-height: 32px;
     font-size: 0.66rem;
   }
@@ -919,6 +1002,27 @@ onUnmounted(() => {
     height: 48px;
     padding: 0 16px;
     font-size: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop-image,
+  .showcase-panel,
+  .arrow-rail span,
+  .resource-rail img,
+  .button-fill,
+  .button-arrow {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .handoff-ball-target {
+    animation: none !important;
+  }
+
+  .button-fill {
+    transform: scaleX(1);
+    opacity: .35;
   }
 }
 </style>

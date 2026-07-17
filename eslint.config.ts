@@ -18,5 +18,19 @@ export default defineConfigWithVueTs(
 
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
+  {
+    name: 'app/project-conventions',
+    rules: {
+      'vue/multi-word-component-names': 'off',
+      'vue/block-lang': 'off',
+    },
+  },
+  {
+    name: 'app/maintenance-scripts',
+    files: ['scripts/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
   skipFormatting,
 )

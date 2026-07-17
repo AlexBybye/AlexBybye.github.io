@@ -10,16 +10,25 @@ interface Article {
   description?: string;
 }
 
+interface ArticleMetadata {
+  title?: string;
+  date?: string;
+  category?: string;
+  tags?: string | string[];
+  description?: string;
+  [key: string]: string | string[] | undefined;
+}
+
 // 简单的YAML解析器
-const parseYAML = (yamlStr: string): any => {
-  const result: any = {};
+const parseYAML = (yamlStr: string): ArticleMetadata => {
+  const result: ArticleMetadata = {};
   const lines = yamlStr.split('\n');
 
   for (const line of lines) {
     const colonIndex = line.indexOf(':');
     if (colonIndex !== -1) {
       const key = line.substring(0, colonIndex).trim();
-      let value: string | string[] | boolean | number = line.substring(colonIndex + 1).trim();
+      let value: string | string[] = line.substring(colonIndex + 1).trim();
 
       // 尝试解析数组
       if (value.startsWith('[') && value.endsWith(']')) {
@@ -31,10 +40,6 @@ const parseYAML = (yamlStr: string): any => {
         value = value.substring(1, value.length - 1);
       } else if (value.startsWith("'") && value.endsWith("'")) {
         value = value.substring(1, value.length - 1);
-      } else if (value === 'true' || value === 'false') {
-        value = value === 'true';
-      } else if (!isNaN(Number(value))) {
-        value = Number(value);
       }
 
       result[key] = value;
@@ -44,7 +49,7 @@ const parseYAML = (yamlStr: string): any => {
   return result;
 };
 
-const parseMarkdownWithFrontMatter = (content: string): { metadata: any; body: string } => {
+const parseMarkdownWithFrontMatter = (content: string): { metadata: ArticleMetadata; body: string } => {
   // 建议：使用正则统一处理换行符，并去掉前后空白
   const lines = content.trim().split(/\r?\n/);
 
