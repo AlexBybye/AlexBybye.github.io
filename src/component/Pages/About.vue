@@ -98,7 +98,7 @@
         <div class="achievement-list">
           <div class="achieve-item special">
             <span class="achieve-year">2025</span>
-            <span class="achieve-content">First Author of a <b>Large Language Model (LLM)</b> paper (Under Review at
+            <span class="achieve-content">Second Author of a <b>Large Language Model (LLM)</b> paper (Under Review at
               Top-tier Conference)</span>
           </div>
           <div class="achieve-item special">

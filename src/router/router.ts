@@ -12,7 +12,6 @@ import Music from '@/component/Pages/Music.vue'
 import MusicPlaylist from '@/component/Pages/MusicPlaylist.vue'
 import TagCloud from '@/component/Pages/TagCloud.vue'
 import FriendLinks from '@/component/Pages/Friendlinks.vue'
-import path from 'path'
 
 const routes = [
   {

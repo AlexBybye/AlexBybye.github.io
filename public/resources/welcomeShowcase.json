@@ -1,0 +1,64 @@
+{
+  "timing": {
+    "panelDurationMs": 5000,
+    "totalDurationMs": 30000
+  },
+  "styles": {
+    "red": {
+      "tone": "red",
+      "direction": "to-right",
+      "accent": "#e30613"
+    },
+    "black": {
+      "tone": "black",
+      "direction": "to-left",
+      "accent": "#0d0d0d"
+    }
+  },
+  "panels": [
+    {
+      "id": "musiala",
+      "style": "red",
+      "kicker": "ATTACK CHANNEL 01",
+      "title": "JAMAL MUSIALA",
+      "body": "10 号的贴地变向像水一样绕过防线，重心一沉就能撕开半个禁区。这里预留他的技术特点与高光集锦。",
+      "stat": "DRIBBLE / VISION / SPARK",
+      "heroPhoto": "musiala",
+      "photos": ["musiala", "teamUcl"],
+      "gifs": ["musiala", "kane"]
+    },
+    {
+      "id": "diaz",
+      "style": "black",
+      "kicker": "MOMENT CHANNEL 02",
+      "title": "LUIS DÍAZ",
+      "body": "接球即启动，一步过顶带球狂奔，把边路变成属于他的高速公路。这里预留他的爆点瞬间与代表进球。",
+      "stat": "BURST / DUEL / DRIVE",
+      "heroPhoto": "diaz",
+      "photos": ["diaz", "teamUcl"],
+      "gifs": ["muller", "kompany"]
+    },
+    {
+      "id": "kimmich",
+      "style": "red",
+      "kicker": "TACTIC CHANNEL 03",
+      "title": "JOSHUA KIMMICH",
+      "body": "举起手臂的那一刻，全队的节奏就交到了他脚下。定位球、调度、拦截，队长用黑白对称的冷静掌控全场。",
+      "stat": "SHAPE / TEMPO / CONTROL",
+      "heroPhoto": "kimmich",
+      "photos": ["kimmich"],
+      "gifs": ["kimmich", "neuer"]
+    },
+    {
+      "id": "olise",
+      "style": "black",
+      "kicker": "FINISH CHANNEL 04",
+      "title": "MICHAEL OLISE",
+      "body": "进球之后食指轻抵嘴唇，让整座客场球场安静下来。收束在这份从容里，也是进入主页前最后的定格。",
+      "stat": "CREATE / FINISH / SILENCE",
+      "heroPhoto": "olise",
+      "photos": ["olise"],
+      "gifs": ["olise", "kompany"]
+    }
+  ]
+}

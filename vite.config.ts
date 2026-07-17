@@ -58,7 +58,13 @@ export default defineConfig({
     }
   },
   server: {
+    host: 'localhost',
     port: 3000,
+    strictPort: false,
+  },
+  preview: {
+    host: 'localhost',
+    port: 4173,
     strictPort: false,
   },
   // 静态资源服务配置，有助于解决部署时的MIME类型问题

@@ -110,7 +110,8 @@ src/ ├── component/ # Vue组件
 public/ ├── article/ # 文章Markdown文件
         ├── album/ # 相册图片 
         ├── music/ # 音频文件 
-        └── images/ # 其他图片资源
+        ├── images/ # 其他图片资源
+        └── resources/ # 欢迎页展示墙的图片/GIF 及 welcomeShowcase.json 配置
 
 scripts/ # 自动化脚本 
        ├── generate-articles-json.ts # 生成文章索引
@@ -159,6 +160,64 @@ npm run generate-albums
 ```bash
 npm run generate-songs
 ```
+
+### 自定义欢迎页展示墙（Animation2）
+
+欢迎页轮播展示墙的**全部内容与时序**都抽离到了 `public/resources/welcomeShowcase.json`，改动无需修改组件代码，保存 JSON 即可生效。
+
+#### 1. 准备资源文件
+将图片与 GIF 放入 `public/resources/` 目录，然后在 `src/component/welcome/welcomeResources.ts` 中登记资源 key：
+
+```ts
+export const welcomeResources = {
+  gifs: {
+    musiala: { src: resourceUrl('Musiala.gif'), alt: '...' },
+    // 新增 GIF：key 名可自定义，供 JSON 引用
+  },
+  photos: {
+    diaz: { src: resourceUrl('Diaz.jpg'), alt: '...' },
+    // 新增图片同理
+  },
+}
+```
+
+> `welcomeResources.ts` 只维护「资源 key → { src, alt }」的映射，是资源的唯一登记表；JSON 中一律通过 key 引用，避免路径散落各处。
+
+#### 2. 配置文件结构（`welcomeShowcase.json`）
+
+```jsonc
+{
+  "timing": {
+    "panelDurationMs": 5000,   // 每个页面停留时长（毫秒）
+    "totalDurationMs": 30000   // 整个 Animation2 强制跳转的总时长（毫秒）
+  },
+  "styles": {                  // 可复用的样式模板，批量增删页面时直接引用
+    "red":   { "tone": "red",   "direction": "to-right", "accent": "#e30613" },
+    "black": { "tone": "black", "direction": "to-left",  "accent": "#0d0d0d" }
+  },
+  "panels": [
+    {
+      "id": "musiala",         // 页面唯一标识
+      "style": "red",          // 引用 styles 中的模板（red / black）
+      "kicker": "ATTACK CHANNEL 01",
+      "title": "JAMAL MUSIALA",
+      "body": "描述性文字……",
+      "stat": "DRIBBLE / VISION / SPARK",
+      "heroPhoto": "musiala",  // 引用 welcomeResources.photos 的 key
+      "photos": ["musiala", "teamUcl"],
+      "gifs": ["musiala", "kane"]  // 引用 welcomeResources.gifs 的 key
+    }
+  ]
+}
+```
+
+#### 3. 批量增删页面
+- **新增页面**：在 `panels` 数组追加一项，`style` 选择 `red` 或 `black` 复用样式，`photos` / `gifs` 填入已登记的资源 key 即可。
+- **删除页面**：直接移除对应的数组元素。
+- **调整节奏**：只改 `timing.panelDurationMs`（单页停留）与 `timing.totalDurationMs`（总时长强制跳转），组件的轮播定时器、倒计时按钮均从此处读取。
+- **黑红相间**：按顺序交替使用 `red` / `black` 两种 style 即可保证配色节奏一致。
+
+> 提示：`gifs` 支持将同一 GIF 用于多个页面；底部资源滚动条会自动对全部页面用到的图片与 GIF 去重后展示。
 
 ## 🔧 自动化脚本
 

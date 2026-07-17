@@ -18,6 +18,7 @@
     "generate-albums": "tsx scripts/generate-albums-json.ts"
   },
   "dependencies": {
+    "@phosphor-icons/vue": "^2.2.1",
     "canvas-confetti": "^1.9.3",
     "marked": "^17.0.1",
     "pinia": "^3.0.3",
