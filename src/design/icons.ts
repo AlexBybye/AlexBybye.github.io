@@ -9,6 +9,7 @@ export {
   PhChatCircle,
   PhChartLineUp,
   PhCode,
+  PhDeviceMobile,
   PhGitFork,
   PhGithubLogo,
   PhGraduationCap,

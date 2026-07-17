@@ -3,6 +3,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 const Animation1 = () => import('@/component/welcome/Animation1.vue')
 const Animation2 = () => import('@/component/welcome/Animation2.vue')
 const Animation3 = () => import('@/component/Main/Animation3.vue')
+const PackReveal = () => import('@/component/Main/PackReveal.vue')
 const About = () => import('@/component/Pages/About.vue')
 const Album = () => import('@/component/Pages/Album.vue')
 const AlbumDetail = () => import('@/component/Pages/AlbumDetail.vue')
@@ -31,7 +32,7 @@ const routes = [
       {
         path: '',
         name: 'Animation3Index',
-        redirect: { name: 'About' }
+        component: PackReveal
       },
       {
         path: 'about',
