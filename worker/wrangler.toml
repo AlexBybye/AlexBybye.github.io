@@ -7,3 +7,10 @@ preview_urls = false
 [vars]
 ALLOWED_ORIGIN = "https://alexbybye.github.io"
 GITHUB_CLIENT_ID = "Ov23lizYsDwIU9vpqlev"
+
+[[kv_namespaces]]
+binding = "GITHUB_PUBLIC_CACHE"
+id = "2c99c6cd36e3440cbf3d408ec8889a78"
+
+[triggers]
+crons = ["0 */12 * * *"]

@@ -63,8 +63,8 @@
 
       <footer class="pulse-note">
         <PhPulse :size="20" weight="bold" aria-hidden="true" />
-        <span>数据源为 GitHub 免费公共事件接口，仅统计公开动作，缓存 15 分钟。</span>
-        <span v-if="summary.lastActionAt" class="mono">LAST {{ formatLastAction(summary.lastActionAt) }}</span>
+        <span>GitHub 公开动作全局快照，每 12 小时刷新一次。</span>
+        <span class="mono">{{ summary.stale ? 'STALE' : 'UPDATED' }} {{ formatLastAction(summary.fetchedAt) }}</span>
       </footer>
     </template>
   </section>

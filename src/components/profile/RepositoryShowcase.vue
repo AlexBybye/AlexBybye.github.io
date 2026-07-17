@@ -38,8 +38,8 @@
 
           <template v-else-if="item.metrics">
             <div class="card-topline">
-              <span class="repository-origin" title="GitHub 实时公共数据">
-                <PhGithubLogo :size="23" weight="fill" aria-hidden="true" />GitHub API
+              <span class="repository-origin" title="GitHub 公共数据，每 12 小时刷新">
+                <PhGithubLogo :size="23" weight="fill" aria-hidden="true" />GitHub / 12H
               </span>
               <span class="language mono">{{ item.metrics.language }}</span>
             </div>

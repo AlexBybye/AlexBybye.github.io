@@ -1,35 +1,10 @@
-const GITHUB_API = 'https://api.github.com'
-const CACHE_TTL = 15 * 60 * 1000
+const CACHE_KEY = 'lin_eclipse.github_public.snapshot.v1'
+const CACHE_TTL = 12 * 60 * 60 * 1000
+const STALE_RETRY_TTL = 60 * 60 * 1000
 
-interface CacheEntry<T> {
-  expires: number
-  value: T
-}
-
-interface GithubRepositoryResponse {
-  name: string
-  full_name: string
-  description: string | null
-  html_url: string
-  language: string | null
-  stargazers_count: number
-  forks_count: number
-  open_issues_count: number
-  updated_at: string
-  topics?: string[]
-  license?: { spdx_id: string } | null
-}
-
-interface GithubEventResponse {
-  id: string
-  type: string
-  created_at: string
-  repo: { name: string }
-  payload?: {
-    action?: string
-    commits?: unknown[]
-    size?: number
-  }
+interface CacheEntry {
+  nextRefreshAt: number
+  value: GithubPublicSnapshot
 }
 
 export interface PublicRepoMetrics {
@@ -61,134 +36,113 @@ export interface AttackSummary {
   repositories: number
   topEvent: string
   lastActionAt: string | null
+  fetchedAt: string
+  stale: boolean
 }
 
-function cacheKey(key: string) {
-  return `lin_eclipse.github_public.${key}`
+type SnapshotAttackSummary = Omit<AttackSummary, 'fetchedAt' | 'stale'>
+
+interface GithubPublicSnapshot {
+  version: 1
+  username: string
+  repositories: Record<string, PublicRepoMetrics>
+  attackSummary: SnapshotAttackSummary
+  fetchedAt: string
+  expiresAt: string
+  stale: boolean
 }
 
-function readCache<T>(key: string): T | null {
+let snapshotRequest: Promise<GithubPublicSnapshot> | null = null
+
+function repositoryKey(owner: string, name: string) {
+  return `${owner}/${name}`.toLowerCase()
+}
+
+function readCache(): CacheEntry | null {
   try {
-    const raw = sessionStorage.getItem(cacheKey(key))
+    const raw = localStorage.getItem(CACHE_KEY)
     if (!raw) return null
-    const entry = JSON.parse(raw) as CacheEntry<T>
-    if (entry.expires <= Date.now()) {
-      sessionStorage.removeItem(cacheKey(key))
-      return null
-    }
-    return entry.value
+    const entry = JSON.parse(raw) as CacheEntry
+    if (entry.value?.version !== 1 || !entry.value.repositories || !entry.value.attackSummary) return null
+    return entry
   } catch {
     return null
   }
 }
 
-function writeCache<T>(key: string, value: T) {
+function writeCache(value: GithubPublicSnapshot) {
   try {
-    sessionStorage.setItem(cacheKey(key), JSON.stringify({ expires: Date.now() + CACHE_TTL, value }))
+    const expiresAt = Date.parse(value.expiresAt)
+    const freshUntil = Number.isFinite(expiresAt) ? expiresAt : Date.now() + CACHE_TTL
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      nextRefreshAt: value.stale ? Date.now() + STALE_RETRY_TTL : freshUntil,
+      value
+    } satisfies CacheEntry))
   } catch {
-    // Metrics can still render when storage is unavailable.
+    // The in-memory singleton still prevents duplicate requests for this page load.
   }
 }
 
-async function githubJson<T>(path: string, key: string): Promise<T> {
-  const cached = readCache<T>(key)
-  if (cached) return cached
+function workerSnapshotUrl() {
+  const workerUrl = import.meta.env.VITE_GITHUB_WORKER_URL
+  if (!workerUrl) throw new Error('VITE_GITHUB_WORKER_URL is not configured')
+  return `${workerUrl.replace(/\/$/, '')}/github/public-snapshot`
+}
 
-  const response = await fetch(`${GITHUB_API}${path}`, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28'
-    }
+async function fetchSnapshot(): Promise<GithubPublicSnapshot> {
+  const response = await fetch(workerSnapshotUrl(), {
+    headers: { accept: 'application/json' }
   })
   if (!response.ok) {
-    const reason = response.status === 403 ? 'GitHub 公共接口请求次数已达上限' : `GitHub 数据加载失败 (${response.status})`
-    throw new Error(reason)
+    const payload = await response.json().catch(() => null) as { error?: string } | null
+    throw new Error(payload?.error || `GitHub 快照加载失败 (${response.status})`)
   }
-  const value = await response.json() as T
-  writeCache(key, value)
-  return value
+  const snapshot = await response.json() as GithubPublicSnapshot
+  if (snapshot.version !== 1 || !snapshot.repositories || !snapshot.attackSummary) {
+    throw new Error('GitHub 快照格式不兼容')
+  }
+  writeCache(snapshot)
+  return snapshot
+}
+
+async function loadSnapshot() {
+  const cached = readCache()
+  if (cached && cached.nextRefreshAt > Date.now()) return cached.value
+  if (snapshotRequest) return snapshotRequest
+
+  snapshotRequest = fetchSnapshot()
+    .catch((error) => {
+      if (cached) {
+        const staleSnapshot = { ...cached.value, stale: true }
+        writeCache(staleSnapshot)
+        return staleSnapshot
+      }
+      throw error
+    })
+    .finally(() => { snapshotRequest = null })
+  return snapshotRequest
 }
 
 export async function loadPublicRepository(owner: string, name: string): Promise<PublicRepoMetrics> {
-  const data = await githubJson<GithubRepositoryResponse>(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`, `repo.${owner}.${name}`)
-  return {
-    name: data.name,
-    fullName: data.full_name,
-    description: data.description || '',
-    href: data.html_url,
-    language: data.language || 'Mixed',
-    stars: data.stargazers_count,
-    forks: data.forks_count,
-    openIssues: data.open_issues_count,
-    updatedAt: data.updated_at,
-    topics: data.topics?.slice(0, 3) || [],
-    license: data.license?.spdx_id || 'No license'
-  }
-}
-
-function eventWeight(event: GithubEventResponse) {
-  if (event.type === 'PushEvent') return Math.max(2, event.payload?.commits?.length || event.payload?.size || 0)
-  if (event.type === 'PullRequestEvent') return 4
-  if (event.type === 'PullRequestReviewEvent') return 3
-  if (event.type === 'ReleaseEvent') return 5
-  if (event.type === 'IssuesEvent' || event.type === 'ForkEvent') return 2
-  return 1
-}
-
-function eventLabel(type: string) {
-  const labels: Record<string, string> = {
-    PushEvent: '推进代码',
-    PullRequestEvent: '发起合并',
-    PullRequestReviewEvent: '参与评审',
-    IssuesEvent: '处理议题',
-    IssueCommentEvent: '参与讨论',
-    CreateEvent: '创建项目',
-    ForkEvent: '分支推进',
-    ReleaseEvent: '发布版本',
-    WatchEvent: '关注项目'
-  }
-  return labels[type] || '公开动作'
-}
-
-function isoDay(date: Date) {
-  return date.toISOString().slice(0, 10)
+  const snapshot = await loadSnapshot()
+  const repository = snapshot.repositories[repositoryKey(owner, name)]
+  if (!repository) throw new Error(`GitHub 快照中没有 ${owner}/${name}`)
+  return repository
 }
 
 export async function loadAttackSummary(username: string, dayCount = 42): Promise<AttackSummary> {
-  const events = await githubJson<GithubEventResponse[]>(`/users/${encodeURIComponent(username)}/events/public?per_page=100`, `events.${username}`)
-  const today = new Date()
-  today.setUTCHours(0, 0, 0, 0)
-  const days: AttackDay[] = Array.from({ length: dayCount }, (_, index) => {
-    const date = new Date(today)
-    date.setUTCDate(today.getUTCDate() - (dayCount - 1 - index))
-    return {
-      date: isoDay(date),
-      label: new Intl.DateTimeFormat('zh-CN', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(date),
-      actions: 0,
-      events: 0
-    }
-  })
-  const dayMap = new Map(days.map((day) => [day.date, day]))
-  const eventTypes = new Map<string, number>()
-  const repositories = new Set<string>()
-
-  events.forEach((event) => {
-    const day = dayMap.get(event.created_at.slice(0, 10))
-    if (!day) return
-    day.actions += eventWeight(event)
-    day.events += 1
-    repositories.add(event.repo.name)
-    eventTypes.set(event.type, (eventTypes.get(event.type) || 0) + 1)
-  })
-
-  const topType = Array.from(eventTypes.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || ''
+  const snapshot = await loadSnapshot()
+  if (snapshot.username.toLowerCase() !== username.toLowerCase()) {
+    throw new Error(`GitHub 快照中没有用户 ${username}`)
+  }
+  const days = snapshot.attackSummary.days.slice(-dayCount)
   return {
+    ...snapshot.attackSummary,
     days,
     totalActions: days.reduce((sum, day) => sum + day.actions, 0),
     eventCount: days.reduce((sum, day) => sum + day.events, 0),
     activeDays: days.filter((day) => day.events > 0).length,
-    repositories: repositories.size,
-    topEvent: eventLabel(topType),
-    lastActionAt: events[0]?.created_at || null
+    fetchedAt: snapshot.fetchedAt,
+    stale: snapshot.stale
   }
 }
