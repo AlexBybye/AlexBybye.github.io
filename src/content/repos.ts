@@ -17,11 +17,11 @@ export const featuredRepos: FeaturedRepo[] = [
     href: 'https://github.com/AlexBybye/Make_Video_Great_Again'
   },
   {
-    owner: 'scutcsweaver',
-    name: 'SCUT_CS',
-    visitorPageId: '/SCUTCSWeaver/SCUT_CS',
+    owner: 'AlexBybye',
+    name: 'SCUT_CS_temporary',
+    visitorPageId: '/AlexBybye/SCUT_CS_temporary',
     description: 'A shared learning resource for SCUT computer science students.',
     language: 'Community',
-    href: 'https://github.com/scutcsweaver/SCUT_CS'
+    href: 'https://github.com/AlexBybye/SCUT_CS_temporary'
   }
 ]
