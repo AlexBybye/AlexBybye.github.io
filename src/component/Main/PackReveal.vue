@@ -255,6 +255,8 @@ onBeforeUnmount(() => {
 }
 .back-word { position: absolute; bottom: 12%; z-index: 2; color: @accent-strong; font-size: clamp(.8rem, 2.4vw, 1.05rem); font-weight: 700; letter-spacing: .28em; }
 .back-le { position: absolute; top: 7%; z-index: 2; color: rgba(244, 244, 245, .5); font-size: .8rem; font-weight: 750; letter-spacing: .2em; }
+/* 翻面后隐藏卡背的问号与文字，避免透背 */
+.card.flipped .pixel-mark, .card.flipped .back-word, .card.flipped .back-le { opacity: 0; }
 
 /* 卡正面：照片 + 全息 */
 .card-front { transform: rotateY(180deg); border: 1px solid rgba(244, 244, 245, .2); background: #0b0b0e; }
