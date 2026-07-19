@@ -47,10 +47,10 @@ description: 卡了电竞y少如何能够脱离卡死？
     - **"From my perspective, it's quite clear that..."** (Part 3)
     - **"It’s a bit of a mixed bag, but I lean towards..."** （Part 3）
 - **R (Reason):** 给出1-2个理由。
-    - **"There are two-fold reasons for this. Firstly..."** （**这是提分大招，展现你脑子里有结构**）
+    - **"There are two-fold reasons for this. Firstly..."** （**——这是提分大招，展现你脑子里有结构**）
     - **"The main reason behind this is..."** （Part 1）
 - **E (Example/Evidence):** 举个具体的栗子（你桂林的经历就能用）。
-    - **"I remember back in last May, when I was in Guilin..."** （**直接带入个人经历**）
+    - **"I remember back in last May, when I was in Guilin..."** （**——直接带入个人经历**）
     - **"A prime example of this would be..."** （Part 1&3）
 - **O (Opinion/Observation):** 总结观点或展望未来。
     - **"So, all in all, that's why I believe..."**

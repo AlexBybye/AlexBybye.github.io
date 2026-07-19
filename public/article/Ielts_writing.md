@@ -29,7 +29,7 @@ description: 卡了电竞y少如何能够书写奇迹？
 - **P1: 改写题目 (Introduction)**
     - 只写一句话。把题目的动词、名词换掉。
     - _公式：The [图表类型] shows/illustrates/depicts the [对象] in [地点] from [时间]._
-- **P2: 综述段 (Overview) - 最重要的一段！**
+- **P2: 综述段 (Overview) —— 最重要的一段！**
     - 不写细节数字，只说整体最明显的特征。
     - _公式：Overall, it is manifest that [趋势A] increased, while [趋势B] decreased. [某项] remained the most dominant category._
 - **P3: 细节描述 1 (Details 1)**
@@ -49,9 +49,9 @@ description: 卡了电竞y少如何能够书写奇迹？
 - **倍数**：_doubled / tripled / fourfold 
 - **描述数据动词**：accounted for / constituted [30%]/stood at /witnessed[趋势变化]
 - **对比**：
-    - **...In stark contrast, ...** - **用于数据差距巨大时**
-    - **...followed by...** - **用于描述排名第二、第三的数据**
-    - **...Whereas / While...** - **把两个句子连在一起对比，极其万能**
+    - **...In stark contrast, ...**    —— **用于数据差距巨大时**
+    - **...followed by...**    —— **用于描述排名第二、第三的数据**
+    - **...Whereas / While...**    —— **把两个句子连在一起对比，极其万能**
 - 为避免总是用the number of the percentage of, 可以：
     - **The former / The latter** 
     - **......,however,the figure for...** 
@@ -116,7 +116,7 @@ BUT：
 - **This stems from the fact that...** (这源于...)
 - **This implies that...** (这意味着...)
 #### C. 让步、转折与反向论证
-- **Admittedly,** (诚然/不可否认的是) - 用于引出对立观点。
+- **Admittedly,** (诚然/不可否认的是) —— 用于引出对立观点。
 - **However, / Despite this,** (然而/尽管如此)
 - **Conversely,** (相反地)
 - **That said,** (话虽如此)
