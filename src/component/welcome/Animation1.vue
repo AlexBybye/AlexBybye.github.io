@@ -3,9 +3,9 @@
     <canvas ref="canvas" class="confetti-canvas"></canvas>
 
     <div class="header-section">
-      <p class="eyebrow">ALLIANZ ARENA INTRO</p>
-      <h1 class="breathing-text">SHOT ON THE TARGET</h1>
-      <p class="sub-hint">KICK THE FOOTBALL BELOW</p>
+      <p class="eyebrow">Allianz Arena</p>
+      <h1 class="breathing-text">Take the shot</h1>
+      <p class="sub-hint">Click or tap the ball to kick off.</p>
     </div>
 
     <svg class="shot-trajectory" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
@@ -31,19 +31,19 @@
       type="button"
       class="football-click-area"
       :class="{ 'is-flying': isKicked }"
-      aria-label="Kick the football"
+      aria-label="Kick the ball to begin"
       @click="handleKick"
     >
       <span class="hover-glow"></span>
       <span class="football-ball" aria-hidden="true">
-        <img class="ball-img" src="/images/soccer.jpeg" alt="Football" draggable="false" />
+        <img class="ball-img" src="/images/soccer.jpeg" alt="" draggable="false" />
       </span>
     </button>
 
     <div class="goal-impact" aria-hidden="true">
       <span class="impact-ring"></span>
       <span class="impact-ring delay"></span>
-      <span class="goal-word">GOAL</span>
+      <span class="goal-word">Goal!</span>
     </div>
 
     <span class="handoff-ball-source" aria-hidden="true">
@@ -58,8 +58,10 @@
 <script setup>
 import { onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { createSiuAudioPlayer } from '@/utils/siuAudio'
 
 const router = useRouter()
+const siuAudio = createSiuAudioPlayer()
 const canvas = ref(null)
 const isKicked = ref(false)
 const hasScored = ref(false)
@@ -115,19 +117,29 @@ const enterShowcase = () => {
   navigate()
 }
 
+const scoreGoal = () => {
+  hasScored.value = true
+  void siuAudio.play()
+  void launchConfetti()
+}
+
 const handleKick = () => {
   if (isKicked.value) return
 
+  isKicked.value = true
+
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    enterShowcase()
+    scoreGoal()
+    routeTimer = window.setTimeout(enterShowcase, 2300)
     return
   }
 
-  isKicked.value = true
+  // Playback is delayed until the ball reaches the net. Prime the same media
+  // element now, while this click still carries a browser user activation.
+  void siuAudio.prime()
 
   goalTimer = window.setTimeout(() => {
-    hasScored.value = true
-    launchConfetti()
+    scoreGoal()
   }, 700)
 
   confettiStopTimer = window.setTimeout(() => {
@@ -141,6 +153,7 @@ const handleKick = () => {
 
 onUnmounted(() => {
   stopConfetti()
+  siuAudio.stop()
 
   if (goalTimer) window.clearTimeout(goalTimer)
   if (confettiStopTimer) window.clearTimeout(confettiStopTimer)
@@ -154,6 +167,19 @@ onUnmounted(() => {
 
 <style scoped>
 #app-background {
+  /*
+   * The source image is 1600x1167 and its goal centre is at y=764px.
+   * With background-size: cover, narrow screens map that point to 65.47dvh;
+   * wide screens crop vertically, where the same point is 50dvh + 11.28vw.
+   */
+  --goal-x: 50vw;
+  --goal-y: max(65.47dvh, calc(50dvh + 11.28vw));
+  --kick-x: 72vw;
+  --kick-bottom: 6dvh;
+  --kick-size: 132px;
+  --kick-radius: 66px;
+  --flight-x: calc(var(--goal-x) - var(--kick-x));
+  --flight-y: calc(var(--goal-y) - 100dvh + var(--kick-bottom) + var(--kick-radius));
   position: relative;
   width: 100vw;
   min-height: 100dvh;
@@ -270,11 +296,11 @@ onUnmounted(() => {
 
 .football-click-area {
   position: absolute;
-  left: 72%;
-  bottom: 6vh;
+  left: var(--kick-x);
+  bottom: var(--kick-bottom);
   z-index: 6;
-  width: 132px;
-  height: 132px;
+  width: var(--kick-size);
+  height: var(--kick-size);
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -343,7 +369,7 @@ onUnmounted(() => {
 
 .pitch-wake {
   position: absolute;
-  left: 72%;
+  left: var(--kick-x);
   bottom: 3.5vh;
   z-index: 3;
   width: 240px;
@@ -361,8 +387,8 @@ onUnmounted(() => {
 
 .goal-impact {
   position: absolute;
-  left: 50%;
-  top: 70vh;
+  left: var(--goal-x);
+  top: var(--goal-y);
   z-index: 7;
   width: 210px;
   height: 110px;
@@ -373,8 +399,8 @@ onUnmounted(() => {
 
 .handoff-ball-source {
   position: absolute;
-  top: 70vh;
-  left: 50%;
+  top: var(--goal-y);
+  left: var(--goal-x);
   z-index: 8;
   display: block;
   width: 30px;
@@ -521,7 +547,7 @@ onUnmounted(() => {
   }
 
   100% {
-    transform: translateX(-50%) translate3d(-22vw, calc(-24vh + 66px), 0) scale(0.14);
+    transform: translateX(-50%) translate3d(var(--flight-x), var(--flight-y), 0) scale(0.14);
   }
 }
 
@@ -583,6 +609,12 @@ onUnmounted(() => {
 }
 
 @media (max-width: 760px) {
+  #app-background {
+    --kick-bottom: 5dvh;
+    --kick-size: 110px;
+    --kick-radius: 55px;
+  }
+
   .header-section {
     top: 8%;
   }
@@ -597,13 +629,12 @@ onUnmounted(() => {
   }
 
   .football-click-area {
-    width: 110px;
-    height: 110px;
-    bottom: 5vh;
+    width: var(--kick-size);
+    height: var(--kick-size);
+    bottom: var(--kick-bottom);
   }
 
   .goal-impact {
-    top: 70vh;
     width: 160px;
   }
 
@@ -626,6 +657,11 @@ onUnmounted(() => {
 
   .header-section::after {
     animation: none;
+  }
+
+  .scored .goal-word {
+    opacity: 1;
+    transform: none;
   }
 }
 </style>

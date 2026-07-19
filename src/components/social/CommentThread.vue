@@ -3,7 +3,7 @@
     <div class="comment-header">
       <div>
         <h2 id="comments-title">评论</h2>
-        <p>评论由 GitHub Discussions 保存，作者身份来自 GitHub 授权。</p>
+        <p>评论保存在 GitHub Discussions。登录后，就能带着自己的头像加入讨论。</p>
       </div>
       <AuthButton />
     </div>

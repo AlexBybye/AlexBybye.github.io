@@ -90,20 +90,25 @@ watch(() => router.currentRoute.value.fullPath, () => { menuOpen.value = false }
 <style scoped lang="less">
 @import '../../styles/tokens.less';
 
-.site-layout { position: relative; min-height: 100dvh; overflow-x: clip; background: @surface; }
-/* 方案 A：熄灯球场 —— 顶部拜仁红反光 + 割草明暗条 + 底部暗角 */
+.site-layout { position: relative; min-height: 100dvh; overflow-x: clip; background: @surface; isolation: isolate; }
+/* 夜场灯光、草坪切纹与一道贯穿页面的拜仁红斜线，共用原有红黑令牌。 */
 .site-layout::before {
   content: ''; position: fixed; z-index: 0; inset: 0; pointer-events: none;
   background:
-    radial-gradient(120% 60% at 50% -12%, rgba(227, 6, 19, .10), transparent 55%),
-    radial-gradient(150% 100% at 50% 128%, rgba(0, 0, 0, .58), transparent 62%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, .016) 0 7vw, transparent 7vw 14vw),
-    @surface;
+    radial-gradient(ellipse 92% 58% at 5% -10%, rgba(227, 6, 19, .18), transparent 62%),
+    radial-gradient(ellipse 68% 54% at 104% 42%, rgba(244, 244, 245, .075), transparent 66%),
+    linear-gradient(116deg, transparent 0 39%, rgba(227, 6, 19, .052) 39.15% 39.55%, transparent 39.7% 100%),
+    repeating-linear-gradient(90deg, rgba(244, 244, 245, .022) 0 7vw, transparent 7vw 14vw),
+    linear-gradient(180deg, #111116 0%, @surface 52%, #0e0e12 100%);
 }
-/* 方案 C：胶片颗粒 —— 让暗部不死平，近乎无形 */
+/* 固定在视口的细线只提供景深，不随滚动容器重绘。 */
 .site-layout::after {
-  content: ''; position: fixed; z-index: 0; inset: 0; pointer-events: none; opacity: .045;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  content: ''; position: fixed; z-index: 0; inset: 0; pointer-events: none; opacity: .42;
+  background-image:
+    linear-gradient(rgba(244, 244, 245, .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 244, 245, .018) 1px, transparent 1px);
+  background-size: clamp(68px, 8vw, 124px) clamp(68px, 8vw, 124px);
+  mask-image: radial-gradient(ellipse 96% 78% at 50% 34%, #000 0 38%, transparent 86%);
 }
 .site-header { position: sticky; z-index: 20; top: 0; border-bottom: 1px solid rgba(63,63,70,.86); background: rgba(9,9,11,.92); backdrop-filter: blur(16px); }
 .legacy-marquee { height: 22px; overflow: hidden; border-bottom: 1px solid rgba(244,244,245,.12); background: @accent; }
@@ -169,6 +174,15 @@ watch(() => router.currentRoute.value.fullPath, () => { menuOpen.value = false }
 .player-controls :deep(.icon-button) { width: 38px; height: 38px; border-color: transparent; background: transparent; }
 
 @media (max-width: 767px) {
+  .site-layout::before {
+    background:
+      radial-gradient(ellipse 120% 46% at 0 -4%, rgba(227, 6, 19, .16), transparent 66%),
+      radial-gradient(ellipse 90% 38% at 110% 40%, rgba(244, 244, 245, .06), transparent 70%),
+      linear-gradient(108deg, transparent 0 49%, rgba(227, 6, 19, .045) 49.2% 49.8%, transparent 50% 100%),
+      repeating-linear-gradient(90deg, rgba(244, 244, 245, .018) 0 16vw, transparent 16vw 32vw),
+      linear-gradient(180deg, #111116 0%, @surface 52%, #0e0e12 100%);
+  }
+  .site-layout::after { opacity: .3; background-size: 72px 72px; }
   .site-nav { width: min(100% - 1.25rem, 1200px); }
   .menu-button { display: grid; }
   .nav-links { position: absolute; top: 86px; right: 0; left: 0; display: none; align-items: stretch; gap: 0; border-bottom: 1px solid @line; padding: .6rem; background: @surface; }

@@ -79,7 +79,7 @@ onMounted(() => { if (!musicStore.tracks.length) musicStore.loadTracks() })
 
 <style scoped lang="less">
 @import '../../styles/tokens.less';
-.playlist-page { min-height: 100dvh; background: @surface; color: @text; }
+.playlist-page { min-height: 100dvh; background: transparent; color: @text; }
 .playlist-header { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-block: 2.5rem 2rem; }
 .playlist-header h1 { margin: 0; font-size: clamp(2.8rem, 7vw, 5.8rem); letter-spacing: -.07em; line-height: .94; }
 .playlist-header p { margin: 1rem 0 0; color: @text-muted; font-size: 1.05rem; }

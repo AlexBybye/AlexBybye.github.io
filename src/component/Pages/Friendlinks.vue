@@ -19,7 +19,7 @@ function cleanUrl(url: string) { return url.replace(/^https?:\/\//, '').replace(
 
 <style scoped lang="less">
 @import '../../styles/tokens.less';
-.friends-page { min-height: 100dvh; background: @surface; color: @text; }
+.friends-page { min-height: 100dvh; background: transparent; color: @text; }
 header { max-width: 760px; padding-block: clamp(2.5rem, 7vw, 6rem); } header h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); letter-spacing: -.08em; line-height: .9; } header p { margin: 1.3rem 0 0; color: @text-muted; font-size: 1.08rem; }
 .friends-list { border-top: 1px solid @line; }.friends-list a { display: grid; grid-template-columns: 80px 1fr auto; gap: 1.25rem; align-items: center; border-bottom: 1px solid @line; padding-block: 1.5rem; color: @text; text-decoration: none; transition: color 160ms ease, padding 200ms ease; }.friends-list a:hover { padding-inline: 1rem; color: @accent-strong; }.friends-list img { width: 80px; height: 80px; border-radius: 16px; object-fit: cover; }.friends-list h2 { margin: 0; font-size: 1.5rem; }.friends-list p { margin: .35rem 0; color: @text-muted; }.friends-list span { color: @text-muted; font-size: .75rem; }
 @media (max-width: 767px) { .friends-list a { grid-template-columns: 60px 1fr; }.friends-list img { width: 60px; height: 60px; }.friends-list a > :last-child { display: none; } }

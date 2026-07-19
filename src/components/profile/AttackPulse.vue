@@ -3,7 +3,7 @@
     <header class="pulse-heading">
       <div class="football-mark" aria-hidden="true"><PhSoccerBall :size="32" weight="fill" /></div>
       <div>
-        <span class="mono">GITHUB PUBLIC EVENTS</span>
+        <span class="mono">GitHub activity</span>
         <h2 id="attack-pulse-title">进攻心率图</h2>
         <p>最近 42 天公开账号动作，按进攻强度聚合。</p>
       </div>
@@ -16,7 +16,7 @@
 
     <div v-else-if="error" class="pulse-fallback">
       <img :src="fallbackGraph" alt="AlexBybye 在线 GitHub 活动图" loading="lazy" decoding="async">
-      <div><strong>公共事件接口暂不可用</strong><p>{{ error }}，当前借用在线 Activity Graph 组件。</p></div>
+      <div><strong>公共事件接口暂不可用</strong><p>当前显示 GitHub 活动图备用视图。</p></div>
     </div>
 
     <template v-else-if="summary">
@@ -64,7 +64,7 @@
       <footer class="pulse-note">
         <PhPulse :size="20" weight="bold" aria-hidden="true" />
         <span>GitHub 公开动作全局快照，每 12 小时刷新一次。</span>
-        <span class="mono">{{ summary.stale ? 'STALE' : 'UPDATED' }} {{ formatLastAction(summary.fetchedAt) }}</span>
+        <span class="mono">{{ summary.stale ? '待更新' : '已更新' }} {{ formatLastAction(summary.fetchedAt) }}</span>
       </footer>
     </template>
   </section>

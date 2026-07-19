@@ -147,7 +147,7 @@ onMounted(() => { if (!articles.value.length && !currentArticleId.value) loadAll
 
 <style scoped lang="less">
 @import '../../styles/tokens.less';
-.article-page { min-height: 100dvh; background: @surface; color: @text; }
+.article-page { min-height: 100dvh; background: transparent; color: @text; }
 .article-index-header { max-width: 800px; padding-block: clamp(2.5rem, 7vw, 6rem) 2.5rem; }
 .article-index-header h1 { margin: 0; font-size: clamp(3.2rem, 10vw, 7.4rem); letter-spacing: -.08em; line-height: .9; }
 .article-index-header p { max-width: 52ch; margin: 1.3rem 0 0; color: @text-muted; font-size: 1.1rem; line-height: 1.65; }

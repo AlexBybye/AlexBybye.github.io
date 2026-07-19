@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
 <style scoped lang="less">
 @import '../../styles/tokens.less';
 
-.album-detail-page { min-height: 100dvh; background: @surface; color: @text; }
+.album-detail-page { min-height: 100dvh; background: transparent; color: @text; }
 .detail-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: 1.25rem; }
 .back-button,.view-switcher button { display: inline-flex; min-height: 44px; align-items: center; gap: .5rem; border: 1px solid @line; border-radius: 12px; padding: .65rem .85rem; background: @surface-raised; color: @text; font-weight: 650; white-space: nowrap; cursor: pointer; transition: border-color 180ms ease,transform 180ms ease,background 180ms ease; }
 .back-button:hover,.view-switcher button:hover { border-color: @accent; transform: translateY(-2px); }.back-button:active,.view-switcher button:active { transform: scale(.97); }

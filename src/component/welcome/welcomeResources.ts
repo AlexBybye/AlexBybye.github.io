@@ -5,54 +5,54 @@ export const welcomeResources = {
     // 专属 GIF：分配到各自的界面
     musiala: {
       src: resourceUrl('Musiala.gif'),
-      alt: 'Jamal Musiala dribbling animation',
+      alt: 'Jamal Musiala seated in a Bayern Munich kit',
     },
     kimmich: {
       src: resourceUrl('Kimmich.gif'),
-      alt: 'Joshua Kimmich in action animation',
+      alt: 'Joshua Kimmich posing in a Bayern Munich kit',
     },
     olise: {
       src: resourceUrl('Olise.gif'),
-      alt: 'Michael Olise celebration animation',
+      alt: 'Michael Olise posing in a Bayern Munich kit',
     },
     // 自由组合 GIF：随意分配到任意界面
     kane: {
       src: resourceUrl('Kane.gif'),
-      alt: 'Harry Kane Bayern Munich animation',
+      alt: 'Harry Kane walking forward in a Bayern Munich kit',
     },
     muller: {
       src: resourceUrl('Muller.gif'),
-      alt: 'Thomas Müller Bayern Munich animation',
+      alt: 'Thomas Müller seated in a Bayern Munich kit',
     },
     kompany: {
       src: resourceUrl('Kompany.gif'),
-      alt: 'Vincent Kompany Bayern Munich animation',
+      alt: 'Vincent Kompany gesturing in a Bayern Munich training top',
     },
     neuer: {
       src: resourceUrl('Neuer.gif'),
-      alt: 'Manuel Neuer Bayern Munich animation',
+      alt: 'Manuel Neuer winking in a Bayern Munich kit',
     },
   },
   photos: {
     teamUcl: {
       src: resourceUrl('bayern_team_UCL.webp'),
-      alt: 'Bayern Munich team lineup in Champions League',
+      alt: 'Bayern Munich starting eleven before a Champions League match',
     },
     musiala: {
       src: resourceUrl('Musiala.webp'),
-      alt: 'Jamal Musiala dribbling past a defender in Champions League',
+      alt: 'Jamal Musiala dribbling against Paris Saint-Germain',
     },
     kimmich: {
       src: resourceUrl('Kimmich.webp'),
-      alt: 'Joshua Kimmich commanding a set piece',
+      alt: 'Joshua Kimmich signaling before a set piece',
     },
     diaz: {
       src: resourceUrl('Diaz.webp'),
-      alt: 'Luis Diaz driving forward with the ball',
+      alt: 'Luis Díaz carrying the ball against Paris Saint-Germain',
     },
     olise: {
       src: resourceUrl('Olise.webp'),
-      alt: 'Michael Olise celebrating a goal',
+      alt: 'Michael Olise celebrating a goal for Bayern Munich',
     },
   },
 }

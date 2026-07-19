@@ -3,7 +3,7 @@
     <header class="showcase-heading">
       <div>
         <h2>Selected repositories</h2>
-        <p>Public GitHub metrics, presented as match cards.</p>
+        <p>Stars, forks, and open issues for selected projects, plus visit badges.</p>
       </div>
       <div class="style-switcher" role="group" aria-label="仓库名片风格">
         <button v-for="style in cardStyles" :key="style.value" type="button"
@@ -24,12 +24,12 @@
           :style="{ '--card-index': index }" @pointermove="tiltCard" @pointerleave="resetCard">
           <template v-if="item.status === 'error'">
             <img class="legacy-repository-card" :src="legacyCardUrl(item.repo.owner, item.repo.name)"
-              :alt="`${item.repo.owner}/${item.repo.name} 旧版 GitHub 仓库名片`" loading="lazy" decoding="async">
+              :alt="`${item.repo.owner}/${item.repo.name} GitHub 仓库备用名片`" loading="lazy" decoding="async">
             <div class="fallback-copy">
-              <span class="mono">LEGACY CARD</span>
-              <p>{{ item.error }}</p>
-              <img class="fallback-visitor-badge" :src="visitorBadgeUrl(item.repo.visitorPageId)"
-                :alt="`${item.repo.owner}/${item.repo.name} 网页访问次数`" loading="lazy" decoding="async">
+              <span class="mono">Fallback card</span>
+              <p>GitHub 仓库数据暂不可用，已显示备用名片。</p>
+              <img class="fallback-visitor-badge" :src="resolveVisitorBadgeUrl(item.repo)"
+                :alt="visitorBadgeAlt(item.repo)" loading="lazy" decoding="async">
               <a :href="item.repo.href" target="_blank" rel="noreferrer">
                 打开仓库 <PhArrowSquareOut :size="17" aria-hidden="true" />
               </a>
@@ -39,7 +39,7 @@
           <template v-else-if="item.metrics">
             <div class="card-topline">
               <span class="repository-origin" title="GitHub 公共数据，每 12 小时刷新">
-                <PhGithubLogo :size="23" weight="fill" aria-hidden="true" />GitHub / 12H
+                <PhGithubLogo :size="23" weight="fill" aria-hidden="true" />GitHub data, 12-hour refresh
               </span>
               <span class="language mono">{{ item.metrics.language }}</span>
             </div>
@@ -54,8 +54,8 @@
               <div><dt><PhStar :size="18" weight="fill" aria-hidden="true" />Stars</dt><dd class="mono">{{ item.metrics.stars }}</dd></div>
               <div><dt><PhGitFork :size="18" aria-hidden="true" />Forks</dt><dd class="mono">{{ item.metrics.forks }}</dd></div>
               <div><dt>Issues</dt><dd class="mono">{{ item.metrics.openIssues }}</dd></div>
-              <div><dt>Visits</dt><dd class="visit-count"><img :src="visitorBadgeUrl(item.repo.visitorPageId)"
-                :alt="`${item.repo.owner}/${item.repo.name} 网页访问次数`" loading="lazy" decoding="async"></dd></div>
+              <div><dt>{{ item.repo.visitorBadgeLabel || 'Visits' }}</dt><dd class="visit-count"><img :src="resolveVisitorBadgeUrl(item.repo)"
+                :alt="visitorBadgeAlt(item.repo)" loading="lazy" decoding="async"></dd></div>
             </dl>
 
             <div v-if="item.metrics.topics.length" class="repository-topics" aria-label="仓库主题">
@@ -119,7 +119,7 @@ function legacyCardUrl(owner: string, name: string) {
   return `https://github-readme-stats-fast.vercel.app/api/pin/?${query}`
 }
 
-function visitorBadgeUrl(pageId: string) {
+function generatedVisitorBadgeUrl(pageId: string) {
   const query = new URLSearchParams({
     page_id: pageId,
     left_text: 'views',
@@ -127,6 +127,14 @@ function visitorBadgeUrl(pageId: string) {
     right_color: '#e30613'
   })
   return `https://visitor-badge.laobi.icu/badge?${query}`
+}
+
+function resolveVisitorBadgeUrl(repo: FeaturedRepo) {
+  return repo.visitorBadgeUrl || generatedVisitorBadgeUrl(repo.visitorPageId)
+}
+
+function visitorBadgeAlt(repo: FeaturedRepo) {
+  return repo.visitorBadgeAlt || `${repo.owner}/${repo.name} 网页访问次数`
 }
 
 function tiltCard(event: PointerEvent) {

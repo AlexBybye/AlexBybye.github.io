@@ -84,8 +84,8 @@
       >
         <span class="button-fill" aria-hidden="true"></span>
         <span class="button-label">
-          <span>{{ isEntering ? '进入中' : '进入主页' }}</span>
-          <span class="button-hint">{{ remainingSeconds }}s 后自动进入</span>
+          <span>{{ isEntering ? '正在进入' : '进入主页' }}</span>
+          <span class="button-hint">{{ remainingSeconds }} 秒后自动进入</span>
         </span>
         <span class="button-arrow" aria-hidden="true">→</span>
       </button>

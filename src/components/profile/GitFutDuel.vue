@@ -2,9 +2,9 @@
   <section class="gitfut-duel" aria-labelledby="gitfut-duel-title">
     <header class="duel-heading">
       <div>
-        <span class="mono">GITFUT CLOUD MATCH</span>
+        <span class="mono">GitFut matchup</span>
         <h2 id="gitfut-duel-title">和我来一场 GitHub 对决</h2>
-        <p>输入你的 GitHub 用户名。球员卡、评分与赛果全部由 GitFut 在线生成。</p>
+        <p>输入你的 GitHub 用户名，前往 GitFut 在线对决。</p>
       </div>
       <PhTrophy :size="46" weight="duotone" aria-hidden="true" />
     </header>
@@ -28,8 +28,8 @@
           <span class="side-label mono">AWAY</span>
           <div class="rival-avatar"><PhGithubLogo :size="42" weight="fill" aria-hidden="true" /></div>
           <div>
-            <strong>{{ normalizedOpponent ? `@${normalizedOpponent}` : '@YOUR_NAME' }}</strong>
-            <span>{{ normalizedOpponent ? 'CHALLENGER READY' : 'WAITING FOR RIVAL' }}</span>
+            <strong>{{ normalizedOpponent ? `@${normalizedOpponent}` : '@opponent' }}</strong>
+            <span>{{ normalizedOpponent ? 'Ready to play' : 'Enter a username' }}</span>
           </div>
         </article>
       </div>
@@ -46,7 +46,7 @@
           </button>
         </div>
         <p v-if="error" class="duel-error" role="alert">{{ error }}</p>
-        <p v-else class="duel-note">比赛会在本站窗口载入 GitFut 云端页面，不使用本地模拟数据。</p>
+        <p v-else class="duel-note">提交后，对决将在本站窗口打开。</p>
       </div>
     </form>
 
@@ -56,7 +56,7 @@
           <section class="duel-window" role="dialog" aria-modal="true" aria-labelledby="duel-window-title">
             <header>
               <div>
-                <span class="mono">LIVE GITFUT DUEL</span>
+                <span class="mono">GitFut matchup</span>
                 <strong id="duel-window-title">AlexBybye vs {{ activeOpponent }}</strong>
               </div>
               <div class="window-actions">

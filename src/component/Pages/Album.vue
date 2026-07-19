@@ -56,7 +56,7 @@ onMounted(loadAlbums)
 
 <style scoped lang="less">
 @import '../../styles/tokens.less';
-.album-page { min-height: 100dvh; background: @surface; color: @text; }
+.album-page { min-height: 100dvh; background: transparent; color: @text; }
 .album-header { max-width: 800px; padding-block: clamp(2.5rem, 7vw, 6rem); }.album-header h1 { margin: 0; font-size: clamp(3.2rem, 10vw, 7.4rem); letter-spacing: -.08em; line-height: .9; }.album-header p { max-width: 54ch; margin: 1.4rem 0 0; color: @text-muted; font-size: 1.1rem; line-height: 1.65; }
 .album-list { display: grid; gap: 1rem; }
 .album-list :deep(.reveal) { min-width: 0; }

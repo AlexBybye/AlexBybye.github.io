@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
 
 <style scoped lang="less">
 @import '../../styles/tokens.less';
-.music-page { min-height: 100dvh; background: @surface; color: @text; }
+.music-page { min-height: 100dvh; background: transparent; color: @text; }
 .music-page > .page-shell { padding-block: 0; }
 .music-hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(2rem, 7vw, 6rem); min-height: calc(100dvh - 86px); align-items: center; padding-block: clamp(2.5rem, 6vw, 5rem); }
 .music-copy h1 { max-width: 11ch; margin: 0; font-size: clamp(3rem, 7vw, 6.3rem); font-weight: 700; letter-spacing: -.07em; line-height: .92; }
