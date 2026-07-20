@@ -57,7 +57,7 @@ import { useMusicStore } from '@/stores/musicStore'
 import CommentThread from '@/components/social/CommentThread.vue'
 import ReactionBar from '@/components/social/ReactionBar.vue'
 import IconButton from '@/components/ui/IconButton.vue'
-import TagCloud from './TagCloud.vue'
+import TagCloud from '@/components/ui/TagCloud.vue'
 
 const musicStore = useMusicStore()
 const audioManager = useAudioManager()

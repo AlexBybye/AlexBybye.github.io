@@ -1,3 +1,13 @@
+---
+title: Text-to-SQL 全流程 IO 拆解：生成与守护 Agent
+date: 2026-06-15
+category: AI
+tags:
+  - AI
+  - Text-to-SQL
+  - 项目
+description: 生成 Agent 12 子阶段与守护 Agent 4 子阶段的端到端执行追踪
+---
 ## Detailed Analysis of Generation Agent Sub-Stages
 
 ### Generation Agent.1: Analysis of Collective Logical Intent

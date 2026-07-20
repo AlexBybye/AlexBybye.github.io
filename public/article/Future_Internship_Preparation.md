@@ -1,3 +1,12 @@
+---
+title: 未来实习规划 FIP：AI Agent 与数据工程方向
+date: 2026-04-01
+category: 求职
+tags:
+  - 求职
+  - AI
+description: 面向 AI Agent 与数据工程的长期实习方向规划
+---
 ## 首先明确三点
 
 - 第一，未来方向应该是AI agent方向or数据工程方向 专利和论文可以派上用场

@@ -3,7 +3,7 @@ title: 前端经验分享
 date: 2026-03-27
 category: 前端
 tags:
-  - 前端开发
+  - 前端
   - Vue
   - 经验
 description: 卡了电竞y少如何评价前端之旅？

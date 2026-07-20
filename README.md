@@ -38,13 +38,12 @@ npm run preview
 
 ```text
 src/
-  component/welcome/    射门入口(Animation1) 与红黑斜切过场(Animation2)
-  component/Main/       主布局外壳(Animation3) 与球星卡抽卡页(PackReveal)
-  component/Pages/      页面：About / Article / Music / MusicPlaylist / Album / AlbumDetail / TagCloud / Friendlinks
-  components/ui/        原子 UI 组件(Section / Card / Tag / IconButton / RevealOnScroll)
+  views/landing/        路由入口：KickoffView（射门开场）与 ShowcaseView（红黑斜切过场）
+  views/blog/           BlogLayout 及 About / Article / Music / Album 等路由页面
+  components/ui/       可复用 UI 组件（Section / Card / Tag / TagCloud / IconButton / RevealOnScroll）
   components/profile/   AttackPulse 进攻心率图、GitFutDuel 球星对战、RepositoryShowcase
   components/social/    AuthButton 登录、ReactionBar 点赞、CommentThread 评论
-  content/              内容配置：profile / timeline / repos / friends（改数组即改内容，不碰组件）
+  content/              内容配置：profile / timeline / repos / friends / welcome（改数组即改内容，不碰组件）
   design/               tokens.ts 设计 token(JS 侧) 与 icons.ts 图标统一出口
   service/auth/         GitHub OAuth(githubOAuth / workerClient)
   service/discussions/  GitHub GraphQL 数据层(githubGraphql / commentsRepo / reactionsRepo)
@@ -79,7 +78,7 @@ npm run optimize-images
 
 音乐文件放在 `public/music/`，清单为 `public/music/musiccontext.json`（可用 `scripts/generate-songs-json.ts` 生成）。
 
-欢迎页 showcase 内容与切换时序位于 `public/resources/welcomeShowcase.json`，资源映射集中在 `src/component/welcome/welcomeResources.ts`。
+欢迎页 showcase 内容与切换时序位于 `public/resources/welcomeShowcase.json`，资源映射集中在 `src/content/welcome.ts`。
 
 `npm run optimize-images` 会为 JPG、PNG 生成最大边长 1600px 的 WebP 衍生文件，不覆盖原图，可安全重复运行。
 

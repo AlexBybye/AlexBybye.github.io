@@ -3,8 +3,8 @@ title: 雅思经验分享
 date: 2026-03-23
 category: 雅思英语
 tags:
-  - 备考技巧
   - 雅思
+  - 备考
   - 经验
 description: 卡了电竞y少如何评价雅思之旅？
 ---

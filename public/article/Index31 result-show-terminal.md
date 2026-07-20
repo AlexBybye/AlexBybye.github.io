@@ -1,3 +1,13 @@
+---
+title: Text-to-SQL 级联流水线各阶段结果展示
+date: 2026-06-14
+category: AI
+tags:
+  - AI
+  - Text-to-SQL
+  - 项目
+description: Spider concert_singer 样例的四阶段流水线原始输出产物
+---
 # dataset
 ```
 {

@@ -3,9 +3,8 @@ title: 雅思写作备考
 date: 2026-01-21
 category: 雅思英语
 tags:
-  - 备考技巧
   - 雅思
-  - 写作
+  - 备考
 description: 卡了电竞y少如何能够书写奇迹？
 ---
 

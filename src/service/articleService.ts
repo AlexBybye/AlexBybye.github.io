@@ -80,6 +80,19 @@ const parseMarkdownWithFrontMatter = (content: string): { metadata: ArticleMetad
 // 定义基础路径
 const BASE_PATH = import.meta.env.BASE_URL || '/';
 
+// 将 Obsidian 的图片嵌入语法 ![[文件名.png|宽度]] 转换为标准 <img> 标签
+// marked 无法识别 ![[...]] 语法，直接渲染会变成纯文本，导致图片不显示
+const resolveObsidianEmbeds = (markdown: string): string => {
+  return markdown.replace(/!\[\[([^\]|]+?)(?:\|([^\]]*))?\]\]/g, (_match, rawName, sizeHint) => {
+    const name = String(rawName).trim();
+    const src = `${BASE_PATH}article/${encodeURIComponent(name)}`.replace('//', '/');
+    const size = typeof sizeHint === 'string' ? sizeHint.trim() : '';
+    const width = /^\d+$/.test(size) ? ` width="${size}"` : '';
+    const alt = name.replace(/"/g, '');
+    return `<img src="${src}" alt="${alt}"${width} loading="lazy" />`;
+  });
+};
+
 // 加载文章列表
 export const loadArticles = async (): Promise<Article[]> => {
   try {
@@ -146,8 +159,11 @@ export const getArticleById = async (id: string): Promise<Article | null> => {
     const content = await response.text();
     const { metadata, body } = parseMarkdownWithFrontMatter(content);
 
+    // 先将 Obsidian 图片嵌入语法转换为标准 <img>，再交给 marked 渲染
+    const normalizedBody = resolveObsidianEmbeds(body);
+
     // 使用marked将Markdown转换为HTML
-    const htmlContent = marked.parse(body) as string;
+    const htmlContent = marked.parse(normalizedBody) as string;
 
     // 创建文章对象
     const article: Article = {

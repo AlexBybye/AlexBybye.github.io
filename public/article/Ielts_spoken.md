@@ -3,9 +3,8 @@ title: IELTS口语备考
 date: 2026-01-21
 category: 雅思英语
 tags:
-  - 备考技巧
-  - 口语
   - 雅思
+  - 备考
 description: 卡了电竞y少如何能够脱离卡死？
 ---
 

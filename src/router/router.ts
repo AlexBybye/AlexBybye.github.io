@@ -1,76 +1,76 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-const Animation1 = () => import('@/component/welcome/Animation1.vue')
-const Animation2 = () => import('@/component/welcome/Animation2.vue')
-const Animation3 = () => import('@/component/Main/Animation3.vue')
-const PackReveal = () => import('@/component/Main/PackReveal.vue')
-const About = () => import('@/component/Pages/About.vue')
-const Album = () => import('@/component/Pages/Album.vue')
-const AlbumDetail = () => import('@/component/Pages/AlbumDetail.vue')
-const Article = () => import('@/component/Pages/Article.vue')
-const Music = () => import('@/component/Pages/Music.vue')
-const MusicPlaylist = () => import('@/component/Pages/MusicPlaylist.vue')
-const TagCloud = () => import('@/component/Pages/TagCloud.vue')
-const FriendLinks = () => import('@/component/Pages/Friendlinks.vue')
+const KickoffView = () => import('@/views/landing/KickoffView.vue')
+const ShowcaseView = () => import('@/views/landing/ShowcaseView.vue')
+const BlogLayout = () => import('@/views/blog/BlogLayout.vue')
+const BlogHomeView = () => import('@/views/blog/BlogHomeView.vue')
+const AboutView = () => import('@/views/blog/AboutView.vue')
+const AlbumView = () => import('@/views/blog/AlbumView.vue')
+const AlbumDetailView = () => import('@/views/blog/AlbumDetailView.vue')
+const ArticleView = () => import('@/views/blog/ArticleView.vue')
+const MusicView = () => import('@/views/blog/MusicView.vue')
+const MusicPlaylistView = () => import('@/views/blog/MusicPlaylistView.vue')
+const TagCloud = () => import('@/components/ui/TagCloud.vue')
+const FriendLinksView = () => import('@/views/blog/FriendLinksView.vue')
 
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Animation1
+    component: KickoffView
   },
   {
     path: '/Animation2',
     name: 'Animation2',
-    component: Animation2
+    component: ShowcaseView
   },
   {
     path: '/Animation3',
     name: 'Animation3',
-    component: Animation3,
+    component: BlogLayout,
     redirect: { name: 'Animation3Index' },
     children: [
       {
         path: '',
         name: 'Animation3Index',
-        component: PackReveal
+        component: BlogHomeView
       },
       {
         path: 'about',
         name: 'About',
-        component: About
+        component: AboutView
       },
       {
         path: 'article',
         name: 'Article',
-        component: Article
+        component: ArticleView
       },
       {
         path: 'article/detail/:id',
         name: 'ArticleDetail',
-        component: Article, 
+        component: ArticleView,
         props: true
       },
       {
         path: 'music',
         name: 'Music',
-        component: Music
+        component: MusicView
       },
       {
         path: 'album',
         name: 'Album',
-        component: Album
+        component: AlbumView
       },
       {
         path: 'album/detail/:id',
         name: 'AlbumDetail',
-        component: AlbumDetail,
+        component: AlbumDetailView,
         props: true
       },
       {
         path: 'music/playlist',
         name: 'MusicPlaylist',
-        component: MusicPlaylist
+        component: MusicPlaylistView
       },
       {
         path: 'tagcloud',
@@ -80,7 +80,7 @@ const routes = [
       {
         path: 'friends',
         name: 'FriendLinks',
-        component: FriendLinks
+        component: FriendLinksView
       }
     ]
   },

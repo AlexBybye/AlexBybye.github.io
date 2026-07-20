@@ -1,3 +1,12 @@
+---
+title: 用 OpenGame 复刻植物大战僵尸的 Agentic 实验
+date: 2026-05-08
+category: AI
+tags:
+  - AI
+  - 项目
+description: 借助 OpenGame 框架撰写 Agentic 工作流与长 Prompt 工程实验报告
+---
 这是一个非常棒的研究方向！如果你的核心目标**不是**得到一个完美无缺的《植物大战僵尸》（PvZ），而是**撰写一份关于 Agentic 工作流、超长 Prompt 工程以及 AI 自动生成复杂游戏链路的实验报告与心得体会**，那么使用 `leigest519/OpenGame` 绝对是最对口的工具。
 
 为了把这个实验做透，并且顺利产出一篇高质量的技术验证报告，你可以按照以下四个核心步骤来规划你的复现路径。

@@ -1,3 +1,13 @@
+---
+title: Go 冲刺五日计划：面向 AI 后端
+date: 2026-05-20
+category: 算法
+tags:
+  - Go
+  - 算法
+  - 面试
+description: 以 AI 后端工具为主题的 5 天 Go 速成与面试重点
+---
 ### Day 1: 命令行 AI 提示词翻译器 (语法基础)
 
 - **目标**：掌握 `var`, `func`, `struct`, `if/else`, `import`。

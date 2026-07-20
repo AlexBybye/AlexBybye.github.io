@@ -70,7 +70,7 @@ import { getArticleById, loadArticles } from '@/service/articleService'
 import CommentThread from '@/components/social/CommentThread.vue'
 import ReactionBar from '@/components/social/ReactionBar.vue'
 import Tag from '@/components/ui/Tag.vue'
-import TagCloud from './TagCloud.vue'
+import TagCloud from '@/components/ui/TagCloud.vue'
 
 interface ArticleItem {
   id: string
@@ -169,7 +169,7 @@ select { padding: 0 .85rem; }.search-input { display: grid; grid-template-column
 .article-detail-shell { max-width: 980px; }.back-button { display: inline-flex; min-height: 44px; align-items: center; gap: .5rem; border: 1px solid @line; border-radius: 12px; padding: .65rem .85rem; background: @surface-raised; color: @text; cursor: pointer; }
 .article-header { padding-block: clamp(2.5rem, 7vw, 6rem); border-bottom: 1px solid @line; }.article-heading h1 { max-width: 16ch; margin: 0; font-size: clamp(2.8rem, 8vw, 6.5rem); letter-spacing: -.075em; line-height: .94; }.article-heading p { max-width: 56ch; margin: 1.5rem 0 0; color: @text-muted; font-size: 1.08rem; line-height: 1.65; }.article-meta { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; margin-top: 2rem; color: @text-muted; font-size: .82rem; }.article-header > .tags { margin-block: 1.25rem; }
 .markdown-content { padding-block: clamp(3rem, 7vw, 5.5rem); color: #d4d4d8; font-size: 1.04rem; line-height: 1.82; }
-.markdown-content :deep(h1), .markdown-content :deep(h2), .markdown-content :deep(h3) { color: @text; letter-spacing: -.035em; line-height: 1.12; }.markdown-content :deep(h2) { margin-top: 2.5em; font-size: clamp(1.7rem, 4vw, 2.7rem); }.markdown-content :deep(a) { color: @accent-strong; }.markdown-content :deep(code) { border-radius: 6px; padding: .12em .35em; background: @surface-soft; font-family: 'Geist Mono Variable', monospace; }.markdown-content :deep(pre) { overflow-x: auto; border: 1px solid @line; border-radius: 16px; padding: 1rem; background: @surface-raised; }.markdown-content :deep(pre code) { padding: 0; background: transparent; }.markdown-content :deep(img) { height: auto; border-radius: 16px; }
+.markdown-content :deep(h1), .markdown-content :deep(h2), .markdown-content :deep(h3) { color: @text; letter-spacing: -.035em; line-height: 1.12; }.markdown-content :deep(h2) { margin-top: 2.5em; font-size: clamp(1.7rem, 4vw, 2.7rem); }.markdown-content :deep(a) { color: @accent-strong; }.markdown-content :deep(code) { border-radius: 6px; padding: .12em .35em; background: @surface-soft; font-family: 'Geist Mono Variable', monospace; }.markdown-content :deep(pre) { overflow-x: auto; border: 1px solid @line; border-radius: 16px; padding: 1rem; background: @surface-raised; }.markdown-content :deep(pre code) { padding: 0; background: transparent; }.markdown-content :deep(img) { display: block; max-width: 100%; height: auto; margin: 1.5rem auto; border-radius: 16px; }
 .article-loading { display: grid; gap: 1rem; padding-block: 4rem; }.article-loading span { height: 28px; border-radius: 10px; background: @surface-raised; animation: pulse 1.2s ease-in-out infinite alternate; }.article-loading span:first-child { width: 80%; height: 76px; }.article-loading span:last-child { width: 62%; }
 @media (max-width: 767px) {
   .filters, .article-grid { grid-template-columns: 1fr; }.article-card.featured { grid-row: auto; min-height: 380px; }.article-card { min-height: 300px; }

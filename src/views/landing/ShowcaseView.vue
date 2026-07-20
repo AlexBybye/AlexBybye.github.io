@@ -96,7 +96,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { loadShowcaseConfig } from './welcomeResources'
+import { loadShowcaseConfig } from '@/content/welcome'
 
 const router = useRouter()
 
