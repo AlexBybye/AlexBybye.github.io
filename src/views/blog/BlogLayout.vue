@@ -141,7 +141,7 @@ watch(() => router.currentRoute.value.fullPath, () => { menuOpen.value = false }
 .menu-button { display: none; width: 44px; height: 44px; place-items: center; border: 1px solid @line; border-radius: 12px; background: @surface-raised; color: @text; }
 .reading-progress { position: fixed; z-index: 30; top: 0; right: 0; left: 0; height: 3px; pointer-events: none; }
 .reading-progress span { position: absolute; width: 100%; height: 100%; background: @accent; transform: scaleX(0); transform-origin: left; animation: reading-progress linear both; animation-timeline: scroll(root); }
-.reading-progress :deep(svg) { position: absolute; top: -7px; left: 0; color: @text; animation: reading-ball linear both; animation-timeline: scroll(root); filter: drop-shadow(0 3px 7px rgba(227,6,19,.4)); }
+.reading-progress :deep(svg) { position: absolute; top: -7px; left: 0; color: black; animation: reading-ball linear both; animation-timeline: scroll(root); filter: drop-shadow(0 3px 7px rgba(227,6,19,.4)); }
 @keyframes reading-progress { to { transform: scaleX(1); } }
 @keyframes reading-ball { to { transform: translate3d(calc(100vw - 17px), 0, 0) rotate(720deg); } }
 .site-content { position: relative; z-index: 1; min-height: calc(100dvh - 86px); padding-bottom: 4rem; }

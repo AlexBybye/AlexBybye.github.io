@@ -20,6 +20,11 @@ public/album/**/*.jpg
 public/album/**/*.jpeg
 public/album/**/*.png
 
+# Music source files do the same
+public/music/img/*.jpg
+public/music/img/*.jpeg
+public/music/img/*.png
+
 /cypress/videos/
 /cypress/screenshots/
 

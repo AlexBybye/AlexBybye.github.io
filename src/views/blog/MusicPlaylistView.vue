@@ -32,8 +32,9 @@
       </div>
       <div v-else-if="!filteredTracks.length" class="empty-state"><PhMusicNote :size="30" /><p>这个筛选条件下没有歌曲。</p></div>
       <section v-else class="track-grid" aria-label="歌曲列表">
-        <article v-for="(track, index) in filteredTracks" :key="track.filename" v-memo="[track.filename, isTrackActive(track)]"
-          class="track-card" :class="{ active: isTrackActive(track) }" role="button" tabindex="0"
+        <article v-for="(track, index) in filteredTracks" :key="track.filename" v-reveal
+          class="track-card enter" :class="{ active: isTrackActive(track) }" role="button" tabindex="0"
+          :style="{ '--enter-delay': `${Math.min(index % 8, 7) * 30}ms` }"
           @click="selectTrack(track)" @keydown.enter="selectTrack(track)" @keydown.space.prevent="selectTrack(track)">
           <img :src="coverFor(track.coverImage)" :alt="track.title" loading="lazy" decoding="async" @error="onImageError">
           <div class="track-info"><span class="mono">{{ String(index + 1).padStart(2, '0') }}</span><h3>{{ track.title }}</h3><p>{{ track.artist }}</p><small>{{ track.type }}</small></div>
@@ -50,10 +51,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onBeforeUnmount, onMounted, type Directive } from 'vue'
 import { PhMusicNote, PhPause, PhPlay, PhSkipBack, PhSkipForward } from '@/design/icons'
 import { useAudioManager } from '@/stores/audioManager'
 import { useMusicStore } from '@/stores/musicStore'
+import { ScrollObserver } from '@/utils/ScrollObserver'
 import CommentThread from '@/components/social/CommentThread.vue'
 import ReactionBar from '@/components/social/ReactionBar.vue'
 import IconButton from '@/components/ui/IconButton.vue'
@@ -64,6 +66,21 @@ const audioManager = useAudioManager()
 const musicTypes = computed(() => musicStore.getMusicTypes())
 const filteredTracks = computed(() => musicStore.getFilteredTracks())
 const progressPercent = computed(() => musicStore.totalTime ? musicStore.currentTime / musicStore.totalTime * 100 : 0)
+
+let revealObserver: ScrollObserver | null = null
+function getObserver() {
+  if (!revealObserver) {
+    revealObserver = new ScrollObserver((entries) => {
+      for (const entry of entries) entry.target.classList.toggle('is-visible', entry.isIntersecting)
+    }, { threshold: 0.1, rootMargin: 80 })
+  }
+  return revealObserver
+}
+const vReveal: Directive<HTMLElement> = {
+  mounted(el) { getObserver()?.observe(el) },
+  beforeUnmount(el) { revealObserver?.unobserve(el) },
+}
+onBeforeUnmount(() => { revealObserver?.disconnect(); revealObserver = null })
 
 type Track = NonNullable<typeof musicStore.currentTrack>
 function isTrackActive(track: Track) { return musicStore.currentTrack?.filename === track.filename }
@@ -95,6 +112,9 @@ onMounted(() => { if (!musicStore.tracks.length) musicStore.loadTracks() })
 .track-card { display: grid; grid-template-columns: 108px 1fr; gap: 1rem; min-width: 0; overflow: hidden; border: 1px solid @line; border-radius: 16px; padding: .75rem; background: @surface-raised; cursor: pointer; transition: border-color 160ms ease, transform 160ms ease; }
 .track-card:nth-child(5n + 1) { grid-column: span 2; grid-template-columns: 160px 1fr auto; }
 .track-card:hover, .track-card.active { border-color: @accent; }.track-card:hover { transform: translateY(-2px); }
+.track-card.enter { opacity: 0; transform: translateY(18px) scale(.98); }
+.track-card.enter.is-visible { animation: track-in 460ms cubic-bezier(.22, .61, .36, 1) forwards; animation-delay: var(--enter-delay, 0ms); }
+@keyframes track-in { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .track-card > img { width: 108px; height: 108px; border-radius: 12px; object-fit: cover; }.track-card:nth-child(5n + 1) > img { width: 160px; height: 160px; }
 .track-info { min-width: 0; align-self: center; }.track-info > span { color: @accent-strong; font-size: .7rem; }.track-info h3 { overflow: hidden; margin: .55rem 0 .3rem; font-size: 1.05rem; text-overflow: ellipsis; white-space: nowrap; }.track-info p { overflow: hidden; margin: 0; color: @text-muted; font-size: .86rem; text-overflow: ellipsis; white-space: nowrap; }.track-info small { display: inline-block; margin-top: .65rem; color: #d4d4d8; font-size: .72rem; }
 .track-reaction { grid-column: 1 / -1; }.track-card:nth-child(5n + 1) .track-reaction { grid-column: 3; grid-row: 1; align-self: end; }
@@ -106,5 +126,5 @@ onMounted(() => { if (!musicStore.tracks.length) musicStore.loadTracks() })
   .filter-row { grid-template-columns: 1fr; }.volume-control { grid-template-columns: auto 1fr 42px; }
   .track-grid, .track-skeletons { grid-template-columns: 1fr; }.track-card, .track-card:nth-child(5n + 1) { grid-column: auto; grid-template-columns: 88px 1fr; }.track-card > img, .track-card:nth-child(5n + 1) > img { width: 88px; height: 88px; }.track-card:nth-child(5n + 1) .track-reaction { grid-column: 1 / -1; grid-row: auto; }
 }
-@media (prefers-reduced-motion: reduce) { .track-card { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .track-card { transition: none; } .track-card.enter { opacity: 1; transform: none; animation: none; } }
 </style>
