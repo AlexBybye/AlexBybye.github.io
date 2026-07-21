@@ -85,7 +85,7 @@ const ATTACK_DAY_COUNT = 42
 const GITHUB_USERNAME = 'AlexBybye'
 const GITHUB_REPOSITORIES = [
   { owner: 'AlexBybye', name: 'Make_Video_Great_Again' },
-  { owner: 'scutcsweaver', name: 'SCUT_CS' }
+  { owner: 'AlexBybye', name: 'SCUT_CS' }
 ]
 
 let activeRefresh: Promise<GithubPublicSnapshot> | null = null
