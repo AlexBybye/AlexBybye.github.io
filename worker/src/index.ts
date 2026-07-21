@@ -79,6 +79,24 @@ interface GithubPublicSnapshot {
   expiresAt: string
 }
 
+interface PublicDiscussionComment {
+  id: string
+  author: string
+  avatarUrl: string
+  authorUrl: string
+  body: string
+  createdAt: string
+  reactionCount: number
+}
+
+interface PublicDiscussion {
+  id: string
+  number: number
+  slug: string
+  reactionCount: number
+  comments: PublicDiscussionComment[]
+}
+
 const SNAPSHOT_KEY = 'github-public-snapshot:v1'
 const SNAPSHOT_TTL_MS = 12 * 60 * 60 * 1000
 const ATTACK_DAY_COUNT = 42
@@ -97,10 +115,6 @@ function corsHeaders(origin: string, allowedOrigin: string) {
     'access-control-allow-headers': 'content-type',
     vary: 'origin'
   }
-}
-
-function repositoryKey(owner: string, name: string) {
-  return `${owner}/${name}`.toLowerCase()
 }
 
 function githubHeaders(env: Env) {
@@ -266,6 +280,41 @@ async function publicSnapshot(env: Env, headers: Record<string, string>) {
   }
 }
 
+async function publicDiscussions(env: Env, headers: Record<string, string>) {
+  const query = `query PublicSiteDiscussions($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+      discussions(first: 100, orderBy: { field: UPDATED_AT, direction: DESC }) {
+        nodes {
+          id number title
+          reactionGroups { content users { totalCount } }
+          comments(first: 100) { nodes { id body createdAt author { login avatarUrl url } reactionGroups { content users { totalCount } } } }
+        }
+      }
+    }
+  }`
+  const data = await githubGraphqlPublic<{
+    repository: { discussions: { nodes: Array<{ id: string; number: number; title: string; reactionGroups: Array<{ content: string; users: { totalCount: number } }>; comments: { nodes: Array<{ id: string; body: string; createdAt: string; author: { login: string; avatarUrl: string; url: string } | null; reactionGroups: Array<{ content: string; users: { totalCount: number } }> }> } }> } }
+  }>(query, env, { owner: 'AlexBybye', name: 'AlexBybye.github.io' })
+  const discussions: Record<string, PublicDiscussion> = {}
+  for (const node of data.repository.discussions.nodes) {
+    if (!node.title.startsWith('[site:') || !node.title.endsWith(']')) continue
+    const slug = node.title.slice(6, -1)
+    const thumbs = (groups: Array<{ content: string; users: { totalCount: number } }>) => groups.find((group) => group.content === 'THUMBS_UP')?.users.totalCount || 0
+    discussions[slug] = {
+      id: node.id, number: node.number, slug, reactionCount: thumbs(node.reactionGroups),
+      comments: node.comments.nodes.map((comment) => ({ id: comment.id, author: comment.author?.login || 'ghost', avatarUrl: comment.author?.avatarUrl || '/images/avatar.jpg', authorUrl: comment.author?.url || 'https://github.com', body: comment.body, createdAt: comment.createdAt, reactionCount: thumbs(comment.reactionGroups) }))
+    }
+  }
+  return Response.json({ version: 1, discussions, fetchedAt: new Date().toISOString() }, { headers: { ...headers, 'cache-control': 'public, max-age=300, stale-while-revalidate=43200' } })
+}
+
+async function githubGraphqlPublic<T>(query: string, env: Env, variables: Record<string, string>): Promise<T> {
+  const response = await fetch('https://api.github.com/graphql', { method: 'POST', headers: { ...githubHeaders(env), 'content-type': 'application/json' }, body: JSON.stringify({ query, variables }) })
+  const payload = await response.json() as { data?: T; errors?: Array<{ message: string }> }
+  if (!response.ok || payload.errors?.length || !payload.data) throw new Error(payload.errors?.[0]?.message || `GitHub request failed (${response.status})`)
+  return payload.data
+}
+
 async function exchangeToken(request: Request, env: Env, headers: Record<string, string>) {
   const payload = await request.json() as { code?: string; redirect_uri?: string }
   if (!payload.code || !payload.redirect_uri) {
@@ -298,7 +347,7 @@ async function exchangeToken(request: Request, env: Env, headers: Record<string,
 }
 
 export default {
-  async fetch(request: Request, env: Env, _context: WorkerContext): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
     const origin = request.headers.get('origin') || env.ALLOWED_ORIGIN
     const headers = corsHeaders(origin, env.ALLOWED_ORIGIN)
@@ -312,6 +361,9 @@ export default {
     }
     if (url.pathname === '/github/public-snapshot' && request.method === 'GET') {
       return publicSnapshot(env, headers)
+    }
+    if (url.pathname === '/github/discussions' && request.method === 'GET') {
+      try { return await publicDiscussions(env, headers) } catch (error) { return Response.json({ error: error instanceof Error ? error.message : 'Discussion snapshot failed' }, { status: 503, headers }) }
     }
     if (url.pathname === '/oauth/token' && request.method === 'POST') {
       return exchangeToken(request, env, headers)

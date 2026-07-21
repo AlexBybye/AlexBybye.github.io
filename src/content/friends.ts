@@ -1,15 +1,7 @@
-export interface FriendLink {
-  name: string
-  url: string
-  description: string
-  avatar: string
+import { loadPublicJson } from './publicConfig'
+export interface FriendLink { name: string; url: string; description: string; avatar: string }
+export const friendLinks: FriendLink[] = []
+export async function loadFriendsConfig() {
+  const data = await loadPublicJson<{ friends: FriendLink[] }>('friends.json')
+  friendLinks.splice(0, friendLinks.length, ...data.friends)
 }
-
-export const friendLinks: FriendLink[] = [
-  {
-    name: '肖恩',
-    url: 'https://devilsean.github.io/',
-    description: '肖恩的个人博客',
-    avatar: 'https://avatars.githubusercontent.com/u/170224409?v=4'
-  }
-]

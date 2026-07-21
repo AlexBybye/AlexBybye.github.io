@@ -1,6 +1,7 @@
 import { getGithubToken } from '../auth/githubOAuth'
 import { ensureDiscussion } from './commentsRepo'
 import { githubGraphql } from './githubGraphql'
+import { loadPublicDiscussion } from './publicSnapshot'
 
 export interface ReactionState {
   count: number
@@ -12,7 +13,12 @@ const cache = new Map<string, ReactionState>()
 
 export async function getReactionState(targetId: string, subjectId?: string): Promise<ReactionState> {
   const key = subjectId || targetId
-  if (!getGithubToken()) return cache.get(key) || { count: 0, viewerHasReacted: false, offline: true }
+  if (!getGithubToken()) {
+    const publicThread = await loadPublicDiscussion(targetId)
+    return publicThread
+      ? { count: subjectId ? (publicThread.comments.find((comment) => comment.id === subjectId)?.reactionCount || 0) : publicThread.reactionCount, viewerHasReacted: false, offline: false }
+      : cache.get(key) || { count: 0, viewerHasReacted: false, offline: true }
+  }
   const id = subjectId || (await ensureDiscussion(targetId)).id
   const data = await githubGraphql<{
     node: { reactionGroups: Array<{ content: string; viewerHasReacted: boolean; users: { totalCount: number } }> }

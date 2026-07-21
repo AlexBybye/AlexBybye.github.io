@@ -15,6 +15,11 @@ coverage
 
 dist
 
+# Album source files stay local; generated WebP files remain versioned.
+public/album/**/*.jpg
+public/album/**/*.jpeg
+public/album/**/*.png
+
 /cypress/videos/
 /cypress/screenshots/
 

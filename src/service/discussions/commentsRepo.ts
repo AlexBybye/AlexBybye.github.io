@@ -1,5 +1,6 @@
 import { getGithubToken } from '../auth/githubOAuth'
 import { getGithubRepositoryConfig, githubGraphql } from './githubGraphql'
+import { loadPublicDiscussion } from './publicSnapshot'
 
 export interface SocialComment {
   id: string
@@ -103,7 +104,11 @@ export async function ensureDiscussion(slug: string) {
 }
 
 export async function loadComments(slug: string): Promise<{ thread: DiscussionThread | null; offline: boolean }> {
-  if (!getGithubToken()) return { thread: readOffline(slug), offline: true }
+  if (!getGithubToken()) {
+    const publicThread = await loadPublicDiscussion(slug)
+    if (publicThread) return { thread: { ...publicThread, comments: publicThread.comments.map((comment) => ({ ...comment, viewerDidAuthor: false, viewerHasReacted: false })) }, offline: false }
+    return { thread: readOffline(slug), offline: true }
+  }
   try {
     const meta = await findDiscussion(slug)
     if (!meta) return { thread: { id: '', number: 0, slug, comments: [] }, offline: false }

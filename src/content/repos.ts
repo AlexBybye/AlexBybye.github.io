@@ -1,33 +1,7 @@
-export interface FeaturedRepo {
-  owner: string
-  name: string
-  visitorPageId: string
-  description: string
-  language: string
-  href: string
-  visitorBadgeUrl?: string
-  visitorBadgeLabel?: string
-  visitorBadgeAlt?: string
+import { loadPublicJson } from './publicConfig'
+export interface FeaturedRepo { owner: string; name: string; visitorPageId: string; description: string; language: string; href: string; visitorBadgeUrl?: string; visitorBadgeLabel?: string; visitorBadgeAlt?: string }
+export const featuredRepos: FeaturedRepo[] = []
+export async function loadRepoConfig() {
+  const data = await loadPublicJson<{ repositories: FeaturedRepo[] }>('repos.json')
+  featuredRepos.splice(0, featuredRepos.length, ...data.repositories)
 }
-
-export const featuredRepos: FeaturedRepo[] = [
-  {
-    owner: 'AlexBybye',
-    name: 'Make_Video_Great_Again',
-    visitorPageId: '/AlexBybye/Make_Video_Great_Again',
-    description: 'Video processing tools and workflow experiments.',
-    language: 'Python',
-    href: 'https://github.com/AlexBybye/Make_Video_Great_Again'
-  },
-  {
-    owner: 'AlexBybye',
-    name: 'SCUT_CS',
-    visitorPageId: '/AlexBybye/SCUT_CS',
-    description: 'A shared learning resource for SCUT computer science students.',
-    language: 'Community',
-    href: 'https://github.com/AlexBybye/SCUT_CS',
-    visitorBadgeUrl: 'https://camo.githubusercontent.com/2794d41606c2da043b1ce0b3e1684cfb0498d5a0eafbc3dbf6f9677824425980/68747470733a2f2f76697369746f722d62616467652e6c616f62692e6963752f62616467653f706167655f69643d2f5343555443535765617665722f534355545f4353',
-    visitorBadgeLabel: 'Visit badge',
-    visitorBadgeAlt: 'SCUTCSWeaver/SCUT_CS 访问计数徽章'
-  }
-]

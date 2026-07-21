@@ -1,18 +1,11 @@
-export const profile = {
-  name: 'Lin_eclipse',
-  handle: 'AlexBybye',
-  title: 'Computer Science undergraduate at SCUT',
-  location: 'Guangzhou',
-  qqId: '244417287',
-  avatar: '/images/avatar.webp',
-  bio: 'I build software and study multimodal learning. I also follow football, listen to music, and take photos when I travel.',
-  github: 'https://github.com/AlexBybye',
-  university: 'https://baike.baidu.com/item/%E5%8D%8E%E5%8D%97%E7%90%86%E5%B7%A5%E5%A4%A7%E5%AD%A6/134597'
-} as const
+import { loadPublicJson } from './publicConfig'
 
-export const interests = [
-  { title: 'FC Bayern Munich', detail: 'Mia san mia', kind: 'football' },
-  { title: 'Photography', detail: 'Street scenes and travel photos', kind: 'camera' },
-  { title: 'Running and tennis', detail: 'Regular runs and the occasional tennis match', kind: 'sport' },
-  { title: 'Post-punk and house', detail: 'Records, mixes, and playlists', kind: 'music' }
-] as const
+export interface Profile { name: string; handle: string; title: string; location: string; qqId: string; avatar: string; bio: string; github: string; university: string }
+export interface Interest { title: string; detail: string; kind: string }
+export const profile: Profile = { name: '', handle: '', title: '', location: '', qqId: '', avatar: '', bio: '', github: '', university: '' }
+export const interests: Interest[] = []
+export async function loadProfileConfig() {
+  const data = await loadPublicJson<{ profile: Profile; interests: Interest[] }>('profile.json')
+  Object.assign(profile, data.profile)
+  interests.splice(0, interests.length, ...data.interests)
+}

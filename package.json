@@ -14,8 +14,13 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
+    "prepare": "tsx scripts/install-git-hooks.ts",
+    "precommit:content": "tsx scripts/precommit-content.ts",
     "generate-articles": "tsx scripts/generate-articles-json.ts",
     "generate-albums": "tsx scripts/generate-albums-json.ts",
+    "process-albums": "tsx scripts/process-albums.ts",
+    "normalize-album-images": "tsx scripts/normalize-album-images.ts",
+    "generate-songs": "tsx scripts/generate-songs-json.ts",
     "optimize-images": "tsx scripts/optimize-images.ts"
   },
   "dependencies": {

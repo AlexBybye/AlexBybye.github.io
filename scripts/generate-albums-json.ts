@@ -147,10 +147,12 @@ const generateAlbumsJson = async () => {
   }
 
   const existingPreviewsById = new Map<string, number[]>();
+  const existingMetadataById = new Map<string, Partial<AlbumInfo>>();
   if (fs.existsSync(outputFilePath)) {
     try {
       const existingAlbums = JSON.parse(fs.readFileSync(outputFilePath, 'utf-8')) as Partial<AlbumInfo>[];
       existingAlbums.forEach(album => {
+        if (typeof album.id === 'string') existingMetadataById.set(album.id, album);
         if (typeof album.id === 'string' && Array.isArray(album.previews) && album.previews.length > 0) {
           existingPreviewsById.set(album.id, album.previews);
         }
@@ -168,7 +170,9 @@ const generateAlbumsJson = async () => {
   console.log(`📁 找到 ${folders.length} 个相册文件夹:`, folders);
   
   const albums: AlbumInfo[] = [];
-  const prompt = stdin.isTTY && stdout.isTTY ? createInterface({ input: stdin, output: stdout }) : null;
+  const prompt = !process.argv.includes('--no-prompt') && stdin.isTTY && stdout.isTTY
+    ? createInterface({ input: stdin, output: stdout })
+    : null;
   if (!prompt) console.log('ℹ️  非交互环境：缺失的 previews 将使用原有首张/中间/末张逻辑。');
   
   for (const folderName of folders) {
@@ -189,8 +193,9 @@ const generateAlbumsJson = async () => {
       
       // 尝试读取相册配置文件（如果存在）
       let title = folderName; // 默认使用文件夹名作为标题
-      let date = new Date().toISOString().split('T')[0]; // 默认使用今天日期
-      let description = '';
+      const existingMetadata = existingMetadataById.get(albumId);
+      let date = existingMetadata?.date || new Date().toISOString().split('T')[0]; // 默认使用今天日期
+      let description = existingMetadata?.description || '';
       
       const configFilePath = path.join(folderPath, 'album_config.md');
       if (fs.existsSync(configFilePath)) {

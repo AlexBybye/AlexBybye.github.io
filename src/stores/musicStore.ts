@@ -46,36 +46,8 @@ export const useMusicStore = defineStore('music', () => {
             }
         } catch (error) {
             console.error('Failed to load music context:', error);
-            // 使用默认数据作为后备
-            tracks.value = [
-                {
-                    title: "Sample Song 1",
-                    artist: "Artist 1",
-                    type: "Pop",
-                    filename: "sample1.mp3",
-                    coverImage: "img/sample1.jpg",
-                    duration: 240
-                },
-                {
-                    title: "Sample Song 2",
-                    artist: "Artist 2",
-                    type: "Rock",
-                    filename: "sample2.mp3",
-                    coverImage: "img/sample2.jpg",
-                    duration: 180
-                },
-                {
-                    title: "Sample Song 3",
-                    artist: "Artist 3",
-                    type: "Jazz",
-                    filename: "sample3.mp3",
-                    coverImage: "img/sample3.jpg",
-                    duration: 300
-                }
-            ];
-            if (tracks.value.length > 0) {
-                currentTrackIndex.value = 0;
-            }
+            tracks.value = [];
+            currentTrackIndex.value = 0;
         }
     };
 
