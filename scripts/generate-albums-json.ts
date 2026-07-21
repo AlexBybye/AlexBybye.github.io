@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { stdin, stdout } from 'node:process';
+import { createInterface } from 'node:readline/promises';
 
 interface AlbumInfo {
   id: string;
@@ -7,7 +9,41 @@ interface AlbumInfo {
   date: string;
   count: number;
   description?: string;
+  previews: number[];
 }
+
+const defaultPreviewNumbers = (count: number): number[] => {
+  if (count <= 0) return [];
+  return [1, Math.max(2, Math.ceil(count / 2)), count];
+};
+
+const parsePreviewNumbers = (value: string, count: number): number[] | null => {
+  const parts = value.split('/').map(part => part.trim());
+  if (parts.length === 0 || parts.some(part => !/^\d+$/.test(part))) return null;
+
+  const numbers = parts.map(Number);
+  return numbers.every(number => number >= 1 && number <= count) ? numbers : null;
+};
+
+const askForPreviewNumbers = async (
+  title: string,
+  count: number,
+  prompt: ReturnType<typeof createInterface> | null
+): Promise<number[]> => {
+  const defaults = defaultPreviewNumbers(count);
+  if (!prompt || count <= 0) return defaults;
+
+  while (true) {
+    const answer = (await prompt.question(
+      `🖼️  ${title} 的预览图编号（用 / 分隔，回车使用 ${defaults.join('/')}）: `
+    )).trim();
+    if (!answer) return defaults;
+
+    const previews = parsePreviewNumbers(answer, count);
+    if (previews) return previews;
+    console.warn(`⚠️  请输入 1 到 ${count} 之间的数字，多个编号使用 / 分隔。`);
+  }
+};
 
 // 更健壮的YAML解析器用于解析相册描述信息
 const parseYAML = (yamlStr: string): any => {
@@ -99,7 +135,7 @@ const getAlbumId = (folderName: string): string => {
 };
 
 // 扫描目录并生成albumcontext.json
-const generateAlbumsJson = () => {
+const generateAlbumsJson = async () => {
   const albumsDir = path.join(process.cwd(), 'public', 'album');
   const outputFilePath = path.join(process.cwd(), 'public', 'album', 'albumcontext.json');
   
@@ -108,6 +144,20 @@ const generateAlbumsJson = () => {
   if (!fs.existsSync(albumsDir)) {
     console.error(`❌ 目录不存在: ${albumsDir}`);
     return;
+  }
+
+  const existingPreviewsById = new Map<string, number[]>();
+  if (fs.existsSync(outputFilePath)) {
+    try {
+      const existingAlbums = JSON.parse(fs.readFileSync(outputFilePath, 'utf-8')) as Partial<AlbumInfo>[];
+      existingAlbums.forEach(album => {
+        if (typeof album.id === 'string' && Array.isArray(album.previews) && album.previews.length > 0) {
+          existingPreviewsById.set(album.id, album.previews);
+        }
+      });
+    } catch (error) {
+      console.warn('⚠️  无法读取已有 previews，将为相册重新选择:', error);
+    }
   }
   
   // 读取目录中的所有子目录（相册文件夹）
@@ -118,6 +168,8 @@ const generateAlbumsJson = () => {
   console.log(`📁 找到 ${folders.length} 个相册文件夹:`, folders);
   
   const albums: AlbumInfo[] = [];
+  const prompt = stdin.isTTY && stdout.isTTY ? createInterface({ input: stdin, output: stdout }) : null;
+  if (!prompt) console.log('ℹ️  非交互环境：缺失的 previews 将使用原有首张/中间/末张逻辑。');
   
   for (const folderName of folders) {
     const folderPath = path.join(albumsDir, folderName);
@@ -152,6 +204,12 @@ const generateAlbumsJson = () => {
         // 如果没有配置文件，尝试从文件夹名生成标题（转为中文提示）
         title = folderName.replace(/[_-]/g, ' ');
       }
+
+      const previews = existingPreviewsById.get(albumId)
+        ?? await askForPreviewNumbers(title, logicalPhotoCount, prompt);
+      if (existingPreviewsById.has(albumId)) {
+        console.log(`🖼️  沿用已有 previews: ${previews.join('/')}`);
+      }
       
       console.log(`📊 相册信息: ID=${albumId}, 标题="${title}", 图片数量=${logicalPhotoCount}`);
       
@@ -160,7 +218,8 @@ const generateAlbumsJson = () => {
         title: title,
         date: date,
         count: logicalPhotoCount,
-        description: description
+        description: description,
+        previews: previews
       });
     } catch (error) {
       console.error(`❌ 处理相册文件夹 ${folderName} 时出错:`, error);
@@ -171,17 +230,12 @@ const generateAlbumsJson = () => {
         title: `Error processing ${folderName}`,
         date: '',
         count: 0,
-        description: `Error: ${(error as Error).message}`
+        description: `Error: ${(error as Error).message}`,
+        previews: []
       });
     }
   }
-  
-  // 按日期排序（最新的在前）
-  albums.sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
-    return isNaN(dateB) ? (isNaN(dateA) ? 0 : -1) : (isNaN(dateA) ? 1 : dateB - dateA);
-  });
+  prompt?.close();
   
   // 写入JSON文件
   fs.writeFileSync(outputFilePath, JSON.stringify(albums, null, 2));
@@ -195,7 +249,7 @@ const generateAlbumsJson = () => {
 
 // 执行生成
 try {
-  generateAlbumsJson();
+  await generateAlbumsJson();
 } catch (error) {
   console.error('❌ 脚本执行失败:', error);
 }

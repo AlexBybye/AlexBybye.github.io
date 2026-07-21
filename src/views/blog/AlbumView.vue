@@ -13,7 +13,7 @@
               <p>{{ album.description }}</p>
               <span class="album-link">打开相册<PhSoccerBall class="album-ball" :size="18" weight="fill" /><PhArrowRight :size="19" weight="bold" /></span>
             </div>
-            <div class="album-preview">
+            <div class="album-preview" :class="previewLayoutClass(album)">
               <img v-for="photo in previewPhotos(album)" :key="photo" :src="photo" :alt="`${album.title} 预览照片`"
                 :loading="index === 0 ? 'eager' : 'lazy'" decoding="async" @error="handleImageError($event, album.id)">
             </div>
@@ -29,7 +29,7 @@ import { onMounted, ref } from 'vue'
 import { PhArrowRight, PhSoccerBall, PhWarningCircle } from '@/design/icons'
 import RevealOnScroll from '@/components/ui/RevealOnScroll.vue'
 
-interface AlbumItem { id: string; title: string; date: string; count: number; description: string }
+interface AlbumItem { id: string; title: string; date: string; count: number; description: string; previews?: number[] }
 const albums = ref<AlbumItem[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -44,7 +44,18 @@ async function loadAlbums() {
   } catch (cause) { error.value = cause instanceof Error ? cause.message : '相册加载失败' }
   finally { loading.value = false }
 }
-function previewPhotos(album: AlbumItem) { return [1, Math.max(2, Math.ceil(album.count / 2)), album.count].map((n) => `/album/${album.id}/photo_${n}.webp`) }
+function previewNumbers(album: AlbumItem) {
+  return Array.isArray(album.previews)
+    ? album.previews
+    : [1, Math.max(2, Math.ceil(album.count / 2)), album.count]
+}
+function previewPhotos(album: AlbumItem) {
+  return previewNumbers(album).map(number => `/album/${album.id}/photo_${number}.webp`)
+}
+function previewLayoutClass(album: AlbumItem) {
+  const count = previewNumbers(album).length
+  return { single: count === 1, pair: count === 2, many: count >= 4 }
+}
 function handleImageError(event: Event, albumId: string) {
   const image = event.target as HTMLImageElement
   if (image.dataset.fallback) return
@@ -64,6 +75,8 @@ onMounted(loadAlbums)
 .album-row.reverse { grid-template-columns: 1.1fr .9fr; }.album-row.reverse .album-copy { order: 2; }.album-row.reverse .album-preview { order: 1; }
 .album-copy { display: flex; flex-direction: column; justify-content: center; padding: clamp(1.5rem, 5vw, 4rem); }.album-copy > span:first-child { color: @accent-strong; font-size: .72rem; }.album-copy h2 { max-width: 10ch; margin: 1.1rem 0 .8rem; font-size: clamp(2.2rem, 5vw, 4.8rem); letter-spacing: -.06em; line-height: .95; }.album-copy p { max-width: 42ch; margin: 0; color: @text-muted; line-height: 1.65; }.album-link { display: inline-flex; width: fit-content; min-height: 44px; align-items: center; gap: .5rem; margin-top: 1.8rem; color: @text; font-weight: 680; }
 .album-preview { display: grid; grid-template-columns: 1.4fr .6fr; grid-template-rows: repeat(2, 1fr); gap: 4px; min-width: 0; background: @surface; }.album-preview img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.72); transition: transform 700ms cubic-bezier(.16,1,.3,1), filter 300ms ease; }.album-preview img:first-child { grid-row: 1 / -1; }.album-row:hover .album-preview img { filter: saturate(.95); transform: scale(1.018); }
+.album-preview.single { grid-template-columns: 1fr; grid-template-rows: 1fr; }.album-preview.pair { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: 1fr; }.album-preview.many { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: minmax(0, 1fr); }
+.album-preview.single img:first-child,.album-preview.pair img:first-child,.album-preview.many img:first-child { grid-row: auto; }
 .album-row:hover .album-preview img:nth-child(2) { transform: scale(1.035) translateY(-5px); }.album-row:hover .album-preview img:nth-child(3) { transform: scale(1.035) translateY(5px); }.album-copy h2,.album-link :deep(svg) { transition: transform 360ms cubic-bezier(.16,1,.3,1),letter-spacing 360ms ease; }.album-row:hover .album-copy h2 { letter-spacing: -.035em; transform: translateX(8px); }.album-row:hover .album-link > :deep(svg:last-child) { transform: translateX(5px); }.album-row:hover .album-ball { transform: translateX(4px) rotate(180deg); }
 .skeleton { min-height: 430px; cursor: default; animation: pulse 1.2s ease-in-out infinite alternate; } @keyframes pulse { to { opacity: .48; } }
 .state-box { display: flex; align-items: center; gap: 1rem; border: 1px dashed @line; border-radius: 16px; padding: 2rem; color: @text-muted; }.state-box p { margin: 0; }.state-box button { min-height: 44px; margin-left: auto; border: 0; border-radius: 12px; padding: .7rem 1rem; background: @accent; color: @text; cursor: pointer; }

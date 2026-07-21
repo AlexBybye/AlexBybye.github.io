@@ -76,6 +76,8 @@ npm run generate-albums
 npm run optimize-images
 ```
 
+生成相册索引时，仅缺少 `previews` 的相册会询问预览图编号；输入数量不限，多个数字用 `/` 分隔（如 `3/11/29/31`）。已有编号会直接沿用，输出顺序按相册目录扫描顺序，不再按日期排序。
+
 音乐文件放在 `public/music/`，清单为 `public/music/musiccontext.json`（可用 `scripts/generate-songs-json.ts` 生成）。
 
 欢迎页 showcase 内容与切换时序位于 `public/resources/welcomeShowcase.json`，资源映射集中在 `src/content/welcome.ts`。
