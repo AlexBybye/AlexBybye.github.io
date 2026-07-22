@@ -24,7 +24,7 @@
         </div>
 
         <div class="card-face card-front">
-          <img src="/images/starcard.jpg" alt="Lin_eclipse 的 GitFut 球员卡" decoding="async" draggable="false" />
+          <img src="/images/starcard.webp" alt="Lin_eclipse 的 GitFut 球员卡" decoding="async" draggable="false" />
           <span class="holo" aria-hidden="true"></span>
           <span class="holo-glare" aria-hidden="true"></span>
         </div>

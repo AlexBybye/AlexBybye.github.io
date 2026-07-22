@@ -36,7 +36,7 @@
     >
       <span class="hover-glow"></span>
       <span class="football-ball" aria-hidden="true">
-        <img class="ball-img" src="/images/soccer.jpeg" alt="" draggable="false" />
+        <img class="ball-img" src="/images/soccer.webp" alt="" draggable="false" />
       </span>
     </button>
 
@@ -47,7 +47,7 @@
     </div>
 
     <span class="handoff-ball-source" aria-hidden="true">
-      <img src="/images/soccer.jpeg" alt="" draggable="false">
+      <img src="/images/soccer.webp" alt="" draggable="false">
     </span>
 
     <div class="pitch-wake" aria-hidden="true"></div>

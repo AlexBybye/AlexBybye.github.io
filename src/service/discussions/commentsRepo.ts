@@ -146,7 +146,7 @@ export async function loadComments(slug: string): Promise<{ thread: DiscussionTh
         return {
           id: node.id,
           author: node.author?.login || 'ghost',
-          avatarUrl: node.author?.avatarUrl || '/images/avatar.jpg',
+          avatarUrl: node.author?.avatarUrl || '/images/avatar.webp',
           authorUrl: node.author?.url || 'https://github.com',
           body: node.body,
           createdAt: node.createdAt,

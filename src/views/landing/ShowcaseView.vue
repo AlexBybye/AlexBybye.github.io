@@ -1,7 +1,7 @@
 <template>
   <section class="showcase-stage">
     <span class="handoff-ball-target" aria-hidden="true">
-      <img src="/images/soccer.jpeg" alt="" draggable="false">
+      <img src="/images/soccer.webp" alt="" draggable="false">
     </span>
 
     <div class="backdrop-stack" aria-hidden="true">
