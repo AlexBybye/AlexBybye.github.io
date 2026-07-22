@@ -2,36 +2,36 @@
   <div class="playlist-page">
     <div class="page-shell">
       <header class="playlist-header">
-        <div><h1>Music Playlist</h1><p>Filter the collection, play a track, and open its discussion.</p></div>
-        <div class="library-count mono">{{ filteredTracks.length }} tracks</div>
+        <div><h1>{{ t('playlist.title') }}</h1><p>{{ t('playlist.description') }}</p></div>
+        <div class="library-count mono">{{ t('playlist.tracks', { count: filteredTracks.length }) }}</div>
       </header>
 
-      <section v-if="musicStore.currentTrack" class="player-panel" aria-label="当前播放">
+      <section v-if="musicStore.currentTrack" class="player-panel" :aria-label="t('playlist.nowPlaying')">
         <img :src="coverFor(musicStore.currentTrack.coverImage)" :alt="musicStore.currentTrack.title" @error="onImageError">
-        <div class="current-details"><span class="mono">NOW PLAYING</span><h2>{{ musicStore.currentTrack.title }}</h2><p>{{ musicStore.currentTrack.artist }}</p></div>
+        <div class="current-details"><span class="mono">{{ t('playlist.nowPlaying') }}</span><h2>{{ musicStore.currentTrack.title }}</h2><p>{{ musicStore.currentTrack.artist }}</p></div>
         <div class="main-controls">
-          <IconButton label="上一首" @click="musicStore.playPrevious"><PhSkipBack :size="20" weight="fill" /></IconButton>
-          <button class="primary-play" type="button" :aria-label="musicStore.isPlaying ? '暂停' : '播放'" @click="musicStore.togglePlay">
+          <IconButton :label="t('nav.previous')" @click="musicStore.playPrevious"><PhSkipBack :size="20" weight="fill" /></IconButton>
+          <button class="primary-play" type="button" :aria-label="musicStore.isPlaying ? t('nav.pause') : t('nav.play')" @click="musicStore.togglePlay">
             <PhPause v-if="musicStore.isPlaying" :size="24" weight="fill" /><PhPlay v-else :size="24" weight="fill" />
           </button>
-          <IconButton label="下一首" @click="musicStore.playNext"><PhSkipForward :size="20" weight="fill" /></IconButton>
+          <IconButton :label="t('nav.next')" @click="musicStore.playNext"><PhSkipForward :size="20" weight="fill" /></IconButton>
         </div>
         <div class="progress-area">
-          <button class="progress-bar" type="button" aria-label="调整播放进度" @click="seekMusic"><span :style="{ width: `${progressPercent}%` }" /></button>
+          <button class="progress-bar" type="button" :aria-label="t('playlist.progress')" @click="seekMusic"><span :style="{ width: `${progressPercent}%` }" /></button>
           <div class="time-row mono"><span>{{ formatTime(musicStore.currentTime) }}</span><span>{{ formatTime(musicStore.totalTime) }}</span></div>
         </div>
       </section>
 
       <div class="filter-row">
         <TagCloud :tags="musicTypes" :model-value="musicStore.selectedType" @tag-click="filterByType" />
-        <label class="volume-control"><span>音量</span><input v-model.number="musicStore.volume" type="range" min="0" max="100"><b class="mono">{{ musicStore.volume }}%</b></label>
+        <label class="volume-control"><span>{{ t('playlist.volume') }}</span><input v-model.number="musicStore.volume" type="range" min="0" max="100"><b class="mono">{{ musicStore.volume }}%</b></label>
       </div>
 
-      <div v-if="!musicStore.tracks.length" class="track-skeletons" aria-label="正在加载歌曲">
+      <div v-if="!musicStore.tracks.length" class="track-skeletons" :aria-label="t('playlist.loading')">
         <div v-for="n in 4" :key="n" />
       </div>
-      <div v-else-if="!filteredTracks.length" class="empty-state"><PhMusicNote :size="30" /><p>这个筛选条件下没有歌曲。</p></div>
-      <section v-else class="track-grid" aria-label="歌曲列表">
+      <div v-else-if="!filteredTracks.length" class="empty-state"><PhMusicNote :size="30" /><p>{{ t('playlist.empty') }}</p></div>
+      <section v-else class="track-grid" :aria-label="t('playlist.listLabel')">
         <article v-for="(track, index) in filteredTracks" :key="track.filename" v-reveal
           class="track-card enter" :class="{ active: isTrackActive(track) }" role="button" tabindex="0"
           :style="{ '--enter-delay': `${Math.min(index % 8, 7) * 30}ms` }"
@@ -43,7 +43,7 @@
       </section>
 
       <section v-if="musicStore.currentTrack" class="active-discussion">
-        <h2>Discuss {{ musicStore.currentTrack.title }}</h2>
+        <h2>{{ t('playlist.discuss', { title: musicStore.currentTrack.title }) }}</h2>
         <CommentThread :slug="`song:${slugFor(musicStore.currentTrack.filename)}`" />
       </section>
     </div>
@@ -52,6 +52,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, type Directive } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhMusicNote, PhPause, PhPlay, PhSkipBack, PhSkipForward } from '@/design/icons'
 import { useAudioManager } from '@/stores/audioManager'
 import { useMusicStore } from '@/stores/musicStore'
@@ -63,6 +64,7 @@ import TagCloud from '@/components/ui/TagCloud.vue'
 
 const musicStore = useMusicStore()
 const audioManager = useAudioManager()
+const { t } = useI18n()
 const musicTypes = computed(() => musicStore.getMusicTypes())
 const filteredTracks = computed(() => musicStore.getFilteredTracks())
 const progressPercent = computed(() => musicStore.totalTime ? musicStore.currentTime / musicStore.totalTime * 100 : 0)

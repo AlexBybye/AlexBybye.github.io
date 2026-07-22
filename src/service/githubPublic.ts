@@ -1,3 +1,5 @@
+import { i18n } from '@/i18n'
+
 const CACHE_KEY = 'lin_eclipse.github_public.snapshot.v1'
 const CACHE_TTL = 12 * 60 * 60 * 1000
 const STALE_RETRY_TTL = 60 * 60 * 1000
@@ -94,12 +96,12 @@ async function fetchSnapshot(): Promise<GithubPublicSnapshot> {
     headers: { accept: 'application/json' }
   })
   if (!response.ok) {
-    const payload = await response.json().catch(() => null) as { error?: string } | null
-    throw new Error(payload?.error || `GitHub 快照加载失败 (${response.status})`)
+    await response.json().catch(() => null)
+    throw new Error(i18n.global.t('errors.githubSnapshotLoadFailed', { status: response.status }))
   }
   const snapshot = await response.json() as GithubPublicSnapshot
   if (snapshot.version !== 1 || !snapshot.repositories || !snapshot.attackSummary) {
-    throw new Error('GitHub 快照格式不兼容')
+    throw new Error(i18n.global.t('errors.snapshotIncompatible'))
   }
   writeCache(snapshot)
   return snapshot
@@ -126,14 +128,14 @@ async function loadSnapshot() {
 export async function loadPublicRepository(owner: string, name: string): Promise<PublicRepoMetrics> {
   const snapshot = await loadSnapshot()
   const repository = snapshot.repositories[repositoryKey(owner, name)]
-  if (!repository) throw new Error(`GitHub 快照中没有 ${owner}/${name}`)
+  if (!repository) throw new Error(i18n.global.t('errors.repositoryMissing', { name: `${owner}/${name}` }))
   return repository
 }
 
 export async function loadAttackSummary(username: string, dayCount = 42): Promise<AttackSummary> {
   const snapshot = await loadSnapshot()
   if (snapshot.username.toLowerCase() !== username.toLowerCase()) {
-    throw new Error(`GitHub 快照中没有用户 ${username}`)
+    throw new Error(i18n.global.t('errors.userMissing', { name: username }))
   }
   const days = snapshot.attackSummary.days.slice(-dayCount)
   return {

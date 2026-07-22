@@ -12,17 +12,20 @@ import { loadProfileConfig } from '@/content/profile'
 import { loadRepoConfig } from '@/content/repos'
 import { loadTacticsConfig } from '@/content/tactics'
 import { loadTimelineConfig } from '@/content/timeline'
+import { initializeLocale, i18n } from '@/i18n'
 
 import App from './App.vue'
 import router from './router/router'
 
 if (isGithubOAuthCallback()) {
-  createApp(GithubOAuthCallback).mount('#app')
+  initializeLocale()
+  createApp(GithubOAuthCallback).use(i18n).mount('#app')
 } else {
   void bootstrap()
 }
 
 async function bootstrap() {
+  initializeLocale()
   await Promise.all([
       loadFriendsConfig(),
       loadProfileConfig(),
@@ -33,6 +36,7 @@ async function bootstrap() {
     const app = createApp(App)
 
     app.use(createPinia()) // 使用Pinia
+    app.use(i18n)
     app.use(router)
 
   // 在应用挂载前加载音乐数据

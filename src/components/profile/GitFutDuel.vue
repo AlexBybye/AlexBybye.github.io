@@ -2,9 +2,9 @@
   <section class="gitfut-duel" aria-labelledby="gitfut-duel-title">
     <header class="duel-heading">
       <div>
-        <span class="mono">GitFut matchup</span>
-        <h2 id="gitfut-duel-title">和我来一场 GitHub 对决</h2>
-        <p>输入你的 GitHub 用户名，前往 GitFut 在线对决。</p>
+        <span class="mono">{{ t('profile.gitfutMatchup') }}</span>
+        <h2 id="gitfut-duel-title">{{ t('profile.duelTitle') }}</h2>
+        <p>{{ t('profile.duelDescription') }}</p>
       </div>
       <PhTrophy :size="46" weight="duotone" aria-hidden="true" />
     </header>
@@ -12,41 +12,41 @@
     <form class="duel-console" @submit.prevent="kickOff">
       <div class="duel-board" :class="{ ready: normalizedOpponent, launching: isLaunching }">
         <article class="duel-side home-side">
-          <span class="side-label mono">HOME</span>
-          <img src="/images/avatar.webp" alt="AlexBybye 的头像" loading="lazy" decoding="async">
-          <div><strong>@AlexBybye</strong><span>LIN_ECLIPSE XI</span></div>
+          <span class="side-label mono">{{ t('profile.home') }}</span>
+          <img src="/images/avatar.webp" :alt="t('profile.avatarAlt')" loading="lazy" decoding="async">
+          <div><strong>@AlexBybye</strong><span>{{ t('profile.teamName') }}</span></div>
         </article>
 
         <div class="kickoff-zone" aria-hidden="true">
           <span class="center-line" />
           <span class="center-circle" />
           <span class="kickoff-ball"><PhSoccerBall :size="34" weight="fill" /></span>
-          <strong>VS</strong>
+          <strong>{{ t('profile.vs') }}</strong>
         </div>
 
         <article class="duel-side rival-side">
-          <span class="side-label mono">AWAY</span>
+          <span class="side-label mono">{{ t('profile.away') }}</span>
           <div class="rival-avatar"><PhGithubLogo :size="42" weight="fill" aria-hidden="true" /></div>
           <div>
             <strong>{{ normalizedOpponent ? `@${normalizedOpponent}` : '@opponent' }}</strong>
-            <span>{{ normalizedOpponent ? 'Ready to play' : 'Enter a username' }}</span>
+            <span>{{ normalizedOpponent ? t('profile.readyToPlay') : t('profile.enterUsername') }}</span>
           </div>
         </article>
       </div>
 
       <div class="duel-controls">
-        <label for="gitfut-opponent">你的 GitHub 用户名</label>
+        <label for="gitfut-opponent">{{ t('profile.username') }}</label>
         <div class="duel-input-row">
           <span aria-hidden="true">@</span>
           <input id="gitfut-opponent" v-model="opponent" type="text" inputmode="text" autocomplete="off"
-            maxlength="39" placeholder="your-github-name" :aria-invalid="Boolean(error)" @input="error = ''">
+            maxlength="39" :placeholder="t('profile.usernamePlaceholder')" :aria-invalid="Boolean(error)" @input="error = ''">
           <button type="submit" :disabled="!normalizedOpponent || isLaunching">
             <PhSoccerBall :size="19" weight="fill" aria-hidden="true" />
-            {{ isLaunching ? '开球中' : '开始对决' }}
+            {{ isLaunching ? t('profile.launch') : t('profile.startDuel') }}
           </button>
         </div>
         <p v-if="error" class="duel-error" role="alert">{{ error }}</p>
-        <p v-else class="duel-note">提交后，对决将在本站窗口打开。</p>
+        <p v-else class="duel-note">{{ t('profile.duelNote') }}</p>
       </div>
     </form>
 
@@ -56,19 +56,19 @@
           <section class="duel-window" role="dialog" aria-modal="true" aria-labelledby="duel-window-title">
             <header>
               <div>
-                <span class="mono">GitFut matchup</span>
-                <strong id="duel-window-title">AlexBybye vs {{ activeOpponent }}</strong>
+                <span class="mono">{{ t('profile.gitfutMatchup') }}</span>
+                <strong id="duel-window-title">{{ t('profile.duelTitleWithOpponent', { opponent: activeOpponent }) }}</strong>
               </div>
               <div class="window-actions">
                 <a :href="duelUrl" target="_blank" rel="noreferrer">
-                  新标签打开 <PhArrowSquareOut :size="17" aria-hidden="true" />
+                  {{ t('profile.openNewTab') }} <PhArrowSquareOut :size="17" aria-hidden="true" />
                 </a>
-                <button type="button" aria-label="关闭 GitFut 对决窗口" @click="closeDuel">
+                <button type="button" :aria-label="t('profile.closeDuel')" @click="closeDuel">
                   <PhX :size="21" weight="bold" aria-hidden="true" />
                 </button>
               </div>
             </header>
-            <iframe :src="duelUrl" :title="`AlexBybye 与 ${activeOpponent} 的 GitFut 对决`" loading="eager" />
+            <iframe :src="duelUrl" :title="t('profile.duelTitleWithOpponent', { opponent: activeOpponent })" loading="eager" />
           </section>
         </div>
       </Transition>
@@ -78,9 +78,11 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhArrowSquareOut, PhGithubLogo, PhSoccerBall, PhTrophy, PhX } from '@/design/icons'
 
 const opponent = ref('')
+const { t } = useI18n()
 const activeOpponent = ref('')
 const duelUrl = ref('')
 const error = ref('')
@@ -97,7 +99,7 @@ function validGithubName(value: string) {
 function kickOff() {
   const rival = normalizedOpponent.value
   if (!validGithubName(rival)) {
-    error.value = '请输入有效的 GitHub 用户名，最多 39 个字符，且不能以连字符开头或结尾。'
+    error.value = t('profile.invalidUsername')
     return
   }
 

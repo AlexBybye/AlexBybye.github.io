@@ -4,10 +4,10 @@
       <section class="about-hero" aria-labelledby="about-title">
         <div class="hero-story">
           <div class="hero-copy">
-            <span class="hero-hello mono">Hello.</span>
+            <span class="hero-hello mono">{{ t('about.hello') }}</span>
             <h1 id="about-title"><span>LIN_</span><span>ECLIPSE</span></h1>
           </div>
-          <p>{{ profile.bio }}</p>
+          <p>{{ t('about.profileBio') }}</p>
           <div class="push-rail" aria-hidden="true"><span /></div>
         </div>
 
@@ -15,26 +15,26 @@
           <article ref="portrait" class="legacy-profile-card">
             <div class="legacy-profile-heading">
               <div class="avatar-frame">
-                <img :src="profile.avatar" :alt="`${profile.name} 的头像`" fetchpriority="high" decoding="async">
+                <img :src="profile.avatar" :alt="t('about.avatarAlt', { name: profile.name })" fetchpriority="high" decoding="async">
               </div>
               <div>
-                <span class="profile-question mono">A quick introduction</span>
+                <span class="profile-question mono">{{ t('about.quickIntro') }}</span>
                 <h2>L i n _ e c l i p s e</h2>
-                <p>{{ profile.title }}</p>
+                <p>{{ t('about.profileTitle') }}</p>
               </div>
             </div>
 
             <dl class="legacy-identity-list">
               <div>
-                <dt><PhGraduationCap :size="19" aria-hidden="true" />Education</dt>
-                <dd><a class="university-link" :href="profile.university" target="_blank" rel="noreferrer">SCUT</a><span>Computer Science</span></dd>
+                <dt><PhGraduationCap :size="19" aria-hidden="true" />{{ t('about.education') }}</dt>
+                <dd><a class="university-link" :href="profile.university" target="_blank" rel="noreferrer">SCUT</a><span>{{ t('about.computerScience') }}</span></dd>
               </div>
               <div>
-                <dt><PhMapPin :size="19" aria-hidden="true" />Location</dt>
-                <dd>{{ profile.location }}</dd>
+                <dt><PhMapPin :size="19" aria-hidden="true" />{{ t('about.location') }}</dt>
+                <dd>{{ t('about.profileLocation') }}</dd>
               </div>
               <div>
-                <dt><PhCode :size="19" aria-hidden="true" />QQ ID</dt>
+                <dt><PhCode :size="19" aria-hidden="true" />{{ t('about.qqId') }}</dt>
                 <dd class="mono">{{ profile.qqId }}</dd>
               </div>
             </dl>
@@ -49,13 +49,13 @@
         </div>
       </section>
 
-      <Section title="My stack in a 4-3-3" description="Drag technologies between the starting eleven and the bench, or open a card for details.">
+      <Section :title="t('about.stackTitle')" :description="t('about.stackDescription')">
         <RevealOnScroll>
           <TacticalFormation />
         </RevealOnScroll>
       </Section>
 
-      <Section title="Milestones" description="Step through highlights from 2023 to 2025.">
+      <Section :title="t('about.milestonesTitle')" :description="t('about.milestonesDescription')">
         <RevealOnScroll>
           <div class="timeline-stage">
             <div class="timeline-pitch">
@@ -65,29 +65,29 @@
               </div>
               <article class="milestone-card" aria-live="polite">
                 <span class="milestone-year mono">{{ activeMilestone.year }}</span>
-                <h3>{{ activeMilestone.title }}</h3>
-                <p>{{ activeMilestone.description }}</p>
+                <h3>{{ milestoneCopy('title') }}</h3>
+                <p>{{ milestoneCopy('description') }}</p>
               </article>
               <div class="timeline-controls">
                 <span class="mono">{{ activeMilestoneIndex + 1 }} / {{ milestones.length }}</span>
                 <button type="button" @click="advanceMilestone">
-                  {{ activeMilestoneIndex === milestones.length - 1 ? '重新开球' : '下一步' }}
+                  {{ activeMilestoneIndex === milestones.length - 1 ? t('about.restart') : t('about.next') }}
                   <PhArrowRight :size="19" weight="bold" aria-hidden="true" />
                 </button>
               </div>
               <div v-if="activeMilestoneIndex === milestones.length - 1" class="worldie-finish">
                 <div>
-                  <span class="mono">路线图终点</span>
+                  <span class="mono">{{ t('about.roadmapEnd') }}</span>
                   <p aria-live="polite" aria-atomic="true">
                     {{ hasCheered
-                      ? `世界波！助威次数：${supportCount}`
-                      : `助威次数：${supportCount}` }}
+                      ? t('about.worldie', { count: supportCount })
+                      : t('about.cheers', { count: supportCount }) }}
                   </p>
                   <small id="worldie-counter-note">{{ supportCounterNote }}</small>
                 </div>
                 <button type="button" class="worldie-button" aria-describedby="worldie-counter-note" @click="celebrateWorldie">
                   <PhSoccerBall :size="19" weight="fill" aria-hidden="true" />
-                  {{ worldieSupport.buttonLabel }}
+                  {{ t('about.supportButton') }}
                 </button>
               </div>
             </div>
@@ -95,20 +95,20 @@
         </RevealOnScroll>
       </Section>
 
-      <Section title="Other interests">
+      <Section :title="t('about.interestsTitle')">
         <div class="interest-layout">
           <RevealOnScroll class="interest-photo">
-            <img src="/resources/bayern_team_UCL.webp" alt="拜仁慕尼黑球队合影" loading="lazy" decoding="async">
+            <img src="/resources/bayern_team_UCL.webp" :alt="t('about.interestPhotoAlt')" loading="lazy" decoding="async">
           </RevealOnScroll>
           <div class="interest-list">
-            <RevealOnScroll v-for="(interest, index) in interests" :key="interest.title" :delay="index * 55">
+            <RevealOnScroll v-for="(interest, index) in interests" :key="interest.kind" :delay="index * 55">
               <article :class="{ 'football-interest': interest.kind === 'football' }">
                 <component :is="interestIcon(interest.kind)" :size="24" weight="bold" aria-hidden="true" />
                 <div>
-                  <h3>{{ interest.title }}</h3>
-                  <p>{{ interest.detail }}</p>
+                  <h3>{{ interestCopy(interest.kind, 'title', interest.title) }}</h3>
+                  <p>{{ interestCopy(interest.kind, 'detail', interest.detail) }}</p>
                   <button v-if="interest.kind === 'football'" class="mia-badge" :class="{ playing: isMiaSanMiaPlaying }"
-                    type="button" :aria-label="isMiaSanMiaPlaying ? '暂停 Mia san mia' : '播放 Mia san mia'"
+                    type="button" :aria-label="isMiaSanMiaPlaying ? t('about.miaPause') : t('about.miaPlay')"
                     :aria-pressed="isMiaSanMiaPlaying" @click="playSong">
                     <PhPause v-if="isMiaSanMiaPlaying" :size="17" weight="fill" aria-hidden="true" />
                     <PhMusicNote v-else :size="17" weight="bold" aria-hidden="true" />
@@ -137,6 +137,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   PhArrowRight,
   PhCamera,
@@ -162,6 +163,7 @@ import RevealOnScroll from '@/components/ui/RevealOnScroll.vue'
 import Section from '@/components/ui/Section.vue'
 
 const musicStore = useMusicStore()
+const { t } = useI18n()
 const siuAudio = createSiuAudioPlayer()
 const portrait = ref<HTMLElement | null>(null)
 const activeMilestoneIndex = ref(0)
@@ -177,8 +179,23 @@ const isMiaSanMiaPlaying = computed(() => musicStore.currentTrack?.filename === 
 const activeMilestone = computed(() => milestones[activeMilestoneIndex.value])
 const timelineProgress = computed(() => milestones.length === 1 ? 100 : (activeMilestoneIndex.value / (milestones.length - 1)) * 100)
 const supportCounterNote = computed(() => supportPersistence.value === 'local'
-  ? worldieSupport.persistedNote
-  : worldieSupport.sessionNote)
+  ? t('about.supportPersistedNote')
+  : t('about.supportSessionNote'))
+
+const milestoneKeys = ['neccs', 'community', 'competitions', 'mcm', 'research'] as const
+
+function milestoneCopy(field: 'title' | 'description') {
+  const milestone = activeMilestone.value
+  const key = `about.milestoneItems.${milestoneKeys[activeMilestoneIndex.value]}.${field}`
+  const translated = t(key)
+  return translated === key ? milestone?.[field] || '' : translated
+}
+
+function interestCopy(kind: string, field: 'title' | 'detail', fallback: string) {
+  const key = `about.interestItems.${kind}.${field}`
+  const translated = t(key)
+  return translated === key ? fallback : translated
+}
 
 function interestIcon(kind: string) {
   if (kind === 'football') return PhSoccerBall

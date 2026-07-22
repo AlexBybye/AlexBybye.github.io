@@ -3,28 +3,28 @@
     <header class="pulse-heading">
       <div class="football-mark" aria-hidden="true"><PhSoccerBall :size="32" weight="fill" /></div>
       <div>
-        <span class="mono">GitHub activity</span>
-        <h2 id="attack-pulse-title">进攻心率图</h2>
-        <p>最近 42 天公开账号动作，按进攻强度聚合。</p>
+        <span class="mono">{{ t('profile.activityLabel') }}</span>
+        <h2 id="attack-pulse-title">{{ t('profile.attackTitle') }}</h2>
+        <p>{{ t('profile.attackDescription') }}</p>
       </div>
-      <button v-if="summary" type="button" aria-label="重播进攻心率图" @click="replayChart">
-        <PhArrowsClockwise :size="19" weight="bold" aria-hidden="true" />重播进攻
+      <button v-if="summary" type="button" :aria-label="t('profile.replayAttack')" @click="replayChart">
+        <PhArrowsClockwise :size="19" weight="bold" aria-hidden="true" />{{ t('profile.replay') }}
       </button>
     </header>
 
-    <div v-if="loading" class="pulse-loading" aria-label="正在读取 GitHub 公开动作"><span /><span /><span /></div>
+    <div v-if="loading" class="pulse-loading" :aria-label="t('profile.loadingActions')"><span /><span /><span /></div>
 
     <div v-else-if="error" class="pulse-fallback">
-      <img :src="fallbackGraph" alt="AlexBybye 在线 GitHub 活动图" loading="lazy" decoding="async">
-      <div><strong>公共事件接口暂不可用</strong><p>当前显示 GitHub 活动图备用视图。</p></div>
+      <img :src="fallbackGraph" :alt="t('profile.fallbackGraphAlt')" loading="lazy" decoding="async">
+      <div><strong>{{ t('profile.fallbackTitle') }}</strong><p>{{ t('profile.fallbackDescription') }}</p></div>
     </div>
 
     <template v-else-if="summary">
       <dl class="attack-scoreboard">
-        <div><dt>进攻动作</dt><dd class="mono">{{ summary.totalActions }}</dd></div>
-        <div><dt>活跃比赛日</dt><dd class="mono">{{ summary.activeDays }}</dd></div>
-        <div><dt>涉及仓库</dt><dd class="mono">{{ summary.repositories }}</dd></div>
-        <div><dt>主要打法</dt><dd>{{ summary.topEvent }}</dd></div>
+        <div><dt>{{ t('profile.actions') }}</dt><dd class="mono">{{ summary.totalActions }}</dd></div>
+        <div><dt>{{ t('profile.activeDays') }}</dt><dd class="mono">{{ summary.activeDays }}</dd></div>
+        <div><dt>{{ t('profile.repositories') }}</dt><dd class="mono">{{ summary.repositories }}</dd></div>
+        <div><dt>{{ t('profile.playStyle') }}</dt><dd>{{ eventLabel(summary.topEvent) }}</dd></div>
       </dl>
 
       <div class="pulse-chart">
@@ -52,8 +52,8 @@
           </g>
           <g class="attack-points">
             <circle v-for="point in activePoints" :key="point.date" :cx="point.x" :cy="point.y" r="5" tabindex="0"
-              :aria-label="`${point.label}，${point.actions} 次进攻动作`">
-              <title>{{ point.label }}: {{ point.actions }} 次进攻动作</title>
+              :aria-label="`${point.label}, ${point.actions} ${t('profile.actions')}`">
+              <title>{{ point.label }}: {{ point.actions }} {{ t('profile.actions') }}</title>
             </circle>
           </g>
         </svg>
@@ -63,8 +63,8 @@
 
       <footer class="pulse-note">
         <PhPulse :size="20" weight="bold" aria-hidden="true" />
-        <span>GitHub 公开动作全局快照，每 12 小时刷新一次。</span>
-        <span class="mono">{{ summary.stale ? '待更新' : '已更新' }} {{ formatLastAction(summary.fetchedAt) }}</span>
+        <span>{{ t('profile.snapshot') }}</span>
+        <span class="mono">{{ summary.stale ? t('profile.stale') : t('profile.updated') }} {{ formatLastAction(summary.fetchedAt) }}</span>
       </footer>
     </template>
   </section>
@@ -72,11 +72,13 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhArrowsClockwise, PhPulse, PhSoccerBall } from '@/design/icons'
 import { loadAttackSummary } from '@/service/githubPublic'
 import type { AttackSummary } from '@/service/githubPublic'
 
 const props = defineProps<{ username: string }>()
+const { t, locale } = useI18n()
 const summary = ref<AttackSummary | null>(null)
 const loading = ref(true)
 const error = ref('')
@@ -107,7 +109,7 @@ const peakPoint = computed(() => {
   if (!chartPoints.value.length) return null
   return chartPoints.value.reduce((peak, point) => (point.actions > peak.actions ? point : peak))
 })
-const chartDescription = computed(() => summary.value ? `AlexBybye 最近 42 天共有 ${summary.value.totalActions} 次加权公开动作，${summary.value.activeDays} 个活跃日。` : '')
+const chartDescription = computed(() => summary.value ? `${summary.value.totalActions} ${t('profile.actions')}, ${summary.value.activeDays} ${t('profile.activeDays')}` : '')
 
 async function firePeakConfetti() {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -131,11 +133,16 @@ function replayChart() {
   peakTimer = window.setTimeout(firePeakConfetti, progress * REVEAL_MS)
 }
 function formatLastAction(value: string) {
-  return new Intl.DateTimeFormat('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale.value, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
+}
+function eventLabel(value: string) {
+  const key = `profile.githubEvents.${value}`
+  const translated = t(key)
+  return translated === key ? value : translated
 }
 onMounted(async () => {
   try { summary.value = await loadAttackSummary(props.username) }
-  catch (cause) { error.value = cause instanceof Error ? cause.message : 'GitHub 数据读取失败' }
+  catch (cause) { error.value = cause instanceof Error ? cause.message : t('errors.githubDataLoadFailed') }
   finally { loading.value = false }
 })
 

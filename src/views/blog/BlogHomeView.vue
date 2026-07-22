@@ -1,9 +1,9 @@
 <template>
   <section class="pack-page" aria-labelledby="pack-title">
     <div class="pack-copy">
-      <span class="pack-eyebrow mono">PACK OPENING</span>
-      <h1 id="pack-title">{{ flipped ? 'HERE I AM' : 'WHO AM I?' }}</h1>
-      <p>{{ flipped ? '这就是我的球员卡。移动鼠标或倾斜手机，让全息卡面流光。' : '点击卡牌翻面，抽出我的球员卡。' }}</p>
+      <span class="pack-eyebrow mono">{{ t('home.packOpening') }}</span>
+      <h1 id="pack-title">{{ flipped ? t('home.hereIAm') : t('home.whoAmI') }}</h1>
+      <p>{{ flipped ? t('home.flippedDescription') : t('home.prompt') }}</p>
     </div>
 
     <div class="pack-stage">
@@ -13,18 +13,18 @@
         class="card"
         :class="{ flipped }"
         :aria-pressed="flipped"
-        :aria-label="flipped ? '翻回卡背' : '翻开球员卡'"
+        :aria-label="flipped ? t('home.flipBack') : t('home.flipOpen')"
         @click="flip"
       >
         <div class="card-face card-back" aria-hidden="true">
           <div class="pixel-grid"></div>
           <span class="pixel-mark">?</span>
-          <span class="back-word mono">WHO AM I?</span>
+          <span class="back-word mono">{{ t('home.whoAmI') }}</span>
           <span class="back-le mono">LE</span>
         </div>
 
         <div class="card-face card-front">
-          <img src="/images/starcard.webp" alt="Lin_eclipse 的 GitFut 球员卡" decoding="async" draggable="false" />
+          <img src="/images/starcard.webp" :alt="t('home.cardAlt')" decoding="async" draggable="false" />
           <span class="holo" aria-hidden="true"></span>
           <span class="holo-glare" aria-hidden="true"></span>
         </div>
@@ -33,12 +33,12 @@
 
     <div class="pack-actions" :class="{ visible: flipped }">
       <button type="button" class="enter-btn" @click="enterSite">
-        <span>进入主页</span>
+        <span>{{ t('home.enter') }}</span>
         <PhArrowRight :size="19" weight="bold" aria-hidden="true" />
       </button>
       <button v-if="needsTilt" type="button" class="tilt-btn" @click="enableTilt">
         <PhDeviceMobile :size="18" weight="bold" aria-hidden="true" />
-        <span>开启体感闪卡</span>
+        <span>{{ t('home.tilt') }}</span>
       </button>
     </div>
   </section>
@@ -47,9 +47,11 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { PhArrowRight, PhDeviceMobile } from '@/design/icons'
 
 const router = useRouter()
+const { t } = useI18n()
 const card = ref<HTMLElement | null>(null)
 const flipped = ref(false)
 const needsTilt = ref(false)
@@ -291,4 +293,3 @@ onBeforeUnmount(() => {
   .card { width: clamp(220px, 74vw, 300px); }
 }
 </style>
-

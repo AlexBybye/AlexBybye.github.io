@@ -2,11 +2,11 @@
   <div class="tactical-board" :class="{ reacting: isReacting }">
     <header class="tactical-toolbar">
       <p id="tactical-instructions">
-        拖拽技术卡完成换位。触摸屏或键盘用户可依次选择两张卡片的“调整”按钮。
+        {{ t('profile.tacticalDescription') }}
       </p>
       <button type="button" :disabled="isInitialLineup" @click="resetLineup">
         <PhArrowsClockwise :size="17" weight="bold" aria-hidden="true" />
-        恢复首发
+        {{ t('profile.resetStarting') }}
       </button>
     </header>
 
@@ -14,7 +14,7 @@
       <div
         class="formation"
         role="group"
-        aria-label="技能栈 4-3-3 首发阵型"
+        :aria-label="t('profile.startingFormation')"
         aria-describedby="tactical-instructions"
       >
         <article
@@ -31,16 +31,16 @@
           @dragleave="leaveDropTarget($event, card.slot.id)"
           @drop.prevent="dropOn($event, card.slot.id)"
         >
-          <span class="drag-grip mono" aria-hidden="true">Drag</span>
+          <span class="drag-grip mono" aria-hidden="true">{{ t('profile.drag') }}</span>
           <button
             type="button"
             class="skill-profile-trigger"
-            :aria-label="`打开 ${card.skill.name} 的球星卡`"
+            :aria-label="t('profile.openSkillCard', { skill: card.skill.name })"
             aria-haspopup="dialog"
             @click="openCard(card.skill, $event)"
           >
             <span>{{ card.skill.name }}</span>
-            <small>{{ card.slot.label }}</small>
+            <small>{{ slotLabel(card.slot) }}</small>
           </button>
           <button
             type="button"
@@ -49,9 +49,9 @@
             :aria-pressed="armedSlotId === card.slot.id"
             @click="armSwap(card.slot.id)"
           >
-            {{ armedSlotId === card.slot.id ? '已选' : '调整' }}
+            {{ armedSlotId === card.slot.id ? t('profile.selected') : t('profile.adjust') }}
           </button>
-          <span class="skill-note" aria-hidden="true">{{ card.skill.note }}</span>
+          <span class="skill-note" aria-hidden="true">{{ skillNote(card.skill) }}</span>
         </article>
 
         <div class="center-circle" aria-hidden="true" />
@@ -63,8 +63,8 @@
       <aside class="substitutes" aria-labelledby="substitutes-title">
         <div class="substitutes-heading">
           <div>
-            <span class="mono">Tactical swap</span>
-            <h3 id="substitutes-title">替补席</h3>
+            <span class="mono">{{ t('profile.tacticalSwap') }}</span>
+            <h3 id="substitutes-title">{{ t('profile.substitutes') }}</h3>
           </div>
           <strong class="mono">{{ benchCards.length }}</strong>
         </div>
@@ -83,16 +83,16 @@
             @dragleave="leaveDropTarget($event, card.slot.id)"
             @drop.prevent="dropOn($event, card.slot.id)"
           >
-            <span class="drag-grip mono" aria-hidden="true">Drag</span>
+            <span class="drag-grip mono" aria-hidden="true">{{ t('profile.drag') }}</span>
             <button
               type="button"
               class="skill-profile-trigger"
-              :aria-label="`打开 ${card.skill.name} 的球星卡`"
+              :aria-label="t('profile.openSkillCard', { skill: card.skill.name })"
               aria-haspopup="dialog"
               @click="openCard(card.skill, $event)"
             >
               <span>{{ card.skill.name }}</span>
-              <small>{{ card.skill.note }}</small>
+              <small>{{ skillNote(card.skill) }}</small>
             </button>
             <button
               type="button"
@@ -101,7 +101,7 @@
               :aria-pressed="armedSlotId === card.slot.id"
               @click="armSwap(card.slot.id)"
             >
-              {{ armedSlotId === card.slot.id ? '已选' : '调整' }}
+              {{ armedSlotId === card.slot.id ? t('profile.selected') : t('profile.adjust') }}
             </button>
           </article>
         </div>
@@ -129,15 +129,15 @@
           >
             <header>
               <div>
-                <span class="mono">Player card</span>
-                <h3 id="skill-dialog-title">{{ activeSkill.name }} 球星卡</h3>
+                <span class="mono">{{ t('profile.playerCard') }}</span>
+                <h3 id="skill-dialog-title">{{ t('profile.skillCard', { skill: activeSkill.name }) }}</h3>
               </div>
-              <button ref="closeButtonRef" type="button" aria-label="关闭球星卡" @click="closeCard">
+              <button ref="closeButtonRef" type="button" :aria-label="t('profile.closeSkillCard')" @click="closeCard">
                 <PhX :size="20" weight="bold" aria-hidden="true" />
               </button>
             </header>
             <p id="skill-dialog-description" class="dialog-description">
-              {{ activeSkill.note }}.
+              {{ skillNote(activeSkill) }}
             </p>
 
             <div class="fifa-card-stage">
@@ -145,32 +145,32 @@
                 <div class="fifa-card-face fifa-card-front" :aria-hidden="isCardFlipped">
                   <span class="card-position mono">{{ roleLabel(activeSkill.preferredRole) }}</span>
                   <strong>{{ activeSkill.name }}</strong>
-                  <p>{{ activeSkill.note }}</p>
-                  <span class="front-hint">卡片将自动翻面，展示技术属性。</span>
+                  <p>{{ skillNote(activeSkill) }}</p>
+                  <span class="front-hint">{{ t('profile.flipHint') }}</span>
                 </div>
 
                 <div class="fifa-card-face fifa-card-back" :aria-hidden="!isCardFlipped">
                   <div class="card-back-heading">
-                    <span class="mono">Skill ratings</span>
+                    <span class="mono">{{ t('profile.skillRatings') }}</span>
                     <strong>{{ activeSkill.name }}</strong>
                   </div>
                   <dl class="skill-stats">
                     <div>
-                      <dt>PAC <span>熟练度</span></dt>
+                      <dt>PAC <span>{{ t('profile.proficiency') }}</span></dt>
                       <dd class="mono">{{ activeSkill.stats.pac }}</dd>
                     </div>
                     <div>
-                      <dt>PAS <span>工程架构</span></dt>
+                      <dt>PAS <span>{{ t('profile.architecture') }}</span></dt>
                       <dd class="mono">{{ activeSkill.stats.pas }}</dd>
                     </div>
                     <div>
-                      <dt>DRI <span>实战填坑</span></dt>
+                      <dt>DRI <span>{{ t('profile.practical') }}</span></dt>
                       <dd class="mono">{{ activeSkill.stats.dri }}</dd>
                     </div>
                   </dl>
                   <blockquote>
-                    <span>教练评语</span>
-                    <p>“{{ activeSkill.coachNote }}”</p>
+                    <span>{{ t('profile.coachComment') }}</span>
+                  <p>“{{ coachNote(activeSkill) }}”</p>
                   </blockquote>
                 </div>
               </div>
@@ -178,9 +178,9 @@
 
             <footer>
               <button type="button" class="flip-again" @click="isCardFlipped = !isCardFlipped">
-                {{ isCardFlipped ? '查看正面' : '查看属性' }}
+                {{ isCardFlipped ? t('profile.viewFront') : t('profile.viewStats') }}
               </button>
-              <button type="button" class="dialog-close" @click="closeCard">关闭</button>
+              <button type="button" class="dialog-close" @click="closeCard">{{ t('profile.close') }}</button>
             </footer>
           </section>
         </div>
@@ -191,12 +191,12 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhArrowsClockwise, PhX } from '@/design/icons'
 import {
   initialTacticalAssignments,
   tacticalSkills,
   tacticalSlots,
-  tacticalSwapCopy,
 } from '@/content/tactics'
 import type { TacticalAssignment, TacticalSkill, TacticalSlot } from '@/content/tactics'
 
@@ -205,13 +205,18 @@ interface SlotCard {
   skill: TacticalSkill
 }
 
+const { t } = useI18n()
+
 const assignments = ref<TacticalAssignment[]>(
   initialTacticalAssignments.map((assignment) => ({ ...assignment })),
 )
 const armedSlotId = ref('')
 const draggingSlotId = ref('')
 const dropTargetSlotId = ref('')
-const feedback = ref<string>(tacticalSwapCopy.ready)
+const feedbackState = ref<{ key: string; params?: Record<string, string> }>({
+  key: 'profile.tacticalFeedback.ready',
+})
+const feedback = computed(() => t(feedbackState.value.key, feedbackState.value.params || {}))
 const isReacting = ref(false)
 const activeSkill = ref<TacticalSkill | null>(null)
 const isCardFlipped = ref(false)
@@ -246,6 +251,24 @@ function cardForSlot(slot: TacticalSlot): SlotCard {
   return { slot, skill }
 }
 
+function slotLabel(slot: TacticalSlot) {
+  const key = `profile.slotLabels.${slot.id}`
+  const translated = t(key)
+  return translated === key ? slot.label : translated
+}
+
+function coachNote(skill: TacticalSkill) {
+  const key = `profile.coachNotes.${skill.id}`
+  const translated = t(key)
+  return translated === key ? skill.coachNote : translated
+}
+
+function skillNote(skill: TacticalSkill) {
+  const key = `profile.skillNotes.${skill.id}`
+  const translated = t(key)
+  return translated === key ? skill.note : translated
+}
+
 function cardClasses(slotId: string) {
   return {
     'is-armed': armedSlotId.value === slotId,
@@ -255,22 +278,22 @@ function cardClasses(slotId: string) {
 }
 
 function swapButtonLabel(card: SlotCard) {
-  if (armedSlotId.value === card.slot.id) return `取消选择 ${card.skill.name}`
-  if (armedSlotId.value) return `将 ${card.skill.name} 与已选择的技术交换`
-  return `选择 ${card.skill.name} 进行战术调整`
+  if (armedSlotId.value === card.slot.id) return t('profile.cancelSelection', { skill: card.skill.name })
+  if (armedSlotId.value) return t('profile.swapWithSelected', { skill: card.skill.name })
+  return t('profile.chooseForTactics', { skill: card.skill.name })
 }
 
 function armSwap(slotId: string) {
   if (!armedSlotId.value) {
     armedSlotId.value = slotId
     const skill = cardForSlot(slotById.get(slotId) as TacticalSlot).skill
-    feedback.value = `${skill.name} 已进入调整状态。请选择另一张技术卡完成换位。`
+    feedbackState.value = { key: 'profile.skillArmed', params: { skill: skill.name } }
     return
   }
 
   if (armedSlotId.value === slotId) {
     armedSlotId.value = ''
-    feedback.value = tacticalSwapCopy.ready
+    feedbackState.value = { key: 'profile.tacticalFeedback.ready' }
     return
   }
 
@@ -324,13 +347,19 @@ function swapAssignments(firstSlotId: string, secondSlotId: string) {
 
   const pair = new Set([firstSkill.id, secondSkill.id])
   if (pair.has('vue') && pair.has('react')) {
-    feedback.value = tacticalSwapCopy.vueReact
+    feedbackState.value = { key: 'profile.tacticalFeedback.vueReact' }
   } else if (firstSlot.squad !== secondSlot.squad) {
     const incoming = firstSlot.squad === 'bench' ? firstSkill : secondSkill
     const outgoing = firstSlot.squad === 'starting' ? firstSkill : secondSkill
-    feedback.value = tacticalSwapCopy.benchPromotion(incoming.name, outgoing.name)
+    feedbackState.value = {
+      key: 'profile.tacticalFeedback.benchPromotion',
+      params: { incoming: incoming.name, outgoing: outgoing.name },
+    }
   } else {
-    feedback.value = tacticalSwapCopy.standard(firstSkill.name, secondSkill.name)
+    feedbackState.value = {
+      key: 'profile.tacticalFeedback.standard',
+      params: { first: firstSkill.name, second: secondSkill.name },
+    }
   }
 
   armedSlotId.value = ''
@@ -351,7 +380,7 @@ function triggerReaction() {
 function resetLineup() {
   assignments.value = initialTacticalAssignments.map((assignment) => ({ ...assignment }))
   armedSlotId.value = ''
-  feedback.value = tacticalSwapCopy.reset
+  feedbackState.value = { key: 'profile.tacticalFeedback.reset' }
   triggerReaction()
 }
 

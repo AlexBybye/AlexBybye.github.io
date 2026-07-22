@@ -1,6 +1,6 @@
 <template>
   <div ref="container" class="tag-cloud-container" :class="{ 'static-mode': staticMode }">
-    <div ref="cloud" class="tag-cloud" role="group" aria-label="标签筛选">
+    <div ref="cloud" class="tag-cloud" role="group" :aria-label="t('tagCloud.filter')">
       <button v-for="(tag, index) in tags" :key="tag.name" :ref="(element) => setTagElement(element, index)"
         class="tag-item" type="button" :aria-pressed="modelValue === tag.name"
         :style="tagStyle(index, tag.count)" @click="select(tag.name)"
@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { CSSProperties } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface TagItem {
   name: string
@@ -39,6 +40,7 @@ const props = withDefaults(defineProps<{
   tags: TagItem[]
   modelValue?: string | null
 }>(), { tags: () => [], modelValue: null })
+const { t } = useI18n()
 
 const emit = defineEmits<{
   'tag-click': [name: string]

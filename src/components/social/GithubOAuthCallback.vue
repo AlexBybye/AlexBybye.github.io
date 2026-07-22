@@ -7,7 +7,7 @@
         <PhWarningCircle v-else :size="36" weight="fill" />
       </div>
 
-      <p class="eyebrow">GITHUB AUTHORIZATION</p>
+      <p class="eyebrow">{{ t('social.authEyebrow') }}</p>
       <h1>{{ title }}</h1>
       <p class="status-copy">{{ message }}</p>
 
@@ -18,23 +18,23 @@
         target="_blank"
         rel="noopener noreferrer"
       >
-        <img :src="githubUser.avatarUrl" :alt="`${githubUser.login} 的 GitHub 头像`">
+        <img :src="githubUser.avatarUrl" :alt="t('social.avatarAlt', { author: githubUser.login })">
         <span>
-          <small>AUTHENTICATED AS</small>
+          <small>{{ t('social.authenticatedAs') }}</small>
           <strong>@{{ githubUser.login }}</strong>
         </span>
       </a>
 
       <button v-if="status !== 'loading'" class="close-button" type="button" @click="closeWindow">
         <PhX :size="18" weight="bold" aria-hidden="true" />
-        关闭认证页
+        {{ t('social.closeAuth') }}
       </button>
 
       <p v-if="status === 'success'" class="footnote">
-        此页面会尝试自动关闭。如果浏览器没有关闭它，请手动关闭并刷新登录前的页面。
+        {{ t('social.authCloseHint') }}
       </p>
       <p v-else-if="status === 'error'" class="footnote">
-        登录前的页面没有被改动；你可以安全地关闭本页后重试。
+        {{ t('social.authUnchanged') }}
       </p>
     </section>
   </main>
@@ -42,22 +42,24 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhGithubLogo, PhSpinnerGap, PhWarningCircle, PhX } from '@/design/icons'
 import { completeGithubOAuth, githubAuthError, githubUser } from '@/service/auth/githubOAuth'
 
 const status = ref<'loading' | 'success' | 'error'>('loading')
+const { t } = useI18n()
 let closeTimer: number | undefined
 
 const title = computed(() => {
-  if (status.value === 'success') return 'GitHub 登录成功'
-  if (status.value === 'error') return 'GitHub 授权未完成'
-  return '正在完成 GitHub 登录'
+  if (status.value === 'success') return t('social.loginSuccess')
+  if (status.value === 'error') return t('social.authIncomplete')
+  return t('social.completingAuth')
 })
 
 const message = computed(() => {
-  if (status.value === 'success') return '登录凭证已保存到此浏览器。回到原页面手动刷新后即可使用评论与互动功能。'
-  if (status.value === 'error') return githubAuthError.value || '登录失败，请关闭此页后重试。'
-  return '正在校验授权请求并读取你的 GitHub 身份，请稍候。'
+  if (status.value === 'success') return t('social.credentialSaved')
+  if (status.value === 'error') return githubAuthError.value || t('social.authError')
+  return t('social.checkingAuth')
 })
 
 function closeWindow() {

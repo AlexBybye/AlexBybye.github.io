@@ -3,21 +3,21 @@
     <div class="page-shell">
       <section class="music-hero" aria-labelledby="music-title">
         <RevealOnScroll class="music-copy">
-          <h1 id="music-title">Late nights. Match days.</h1>
-          <p>Browse the collection, play a track, and leave a reaction through GitHub.</p>
+          <h1 id="music-title">{{ t('music.heroTitle') }}</h1>
+          <p>{{ t('music.heroDescription') }}</p>
           <RouterLink to="/Animation3/music/playlist">
-            打开播放列表 <PhArrowRight :size="19" weight="bold" aria-hidden="true" />
+            {{ t('music.openPlaylist') }} <PhArrowRight :size="19" weight="bold" aria-hidden="true" />
           </RouterLink>
         </RevealOnScroll>
 
         <RevealOnScroll :delay="80" class="now-playing">
-          <img :src="cover" :alt="currentTrack ? currentTrack.title : '音乐封面'" fetchpriority="high" decoding="async">
+          <img :src="cover" :alt="currentTrack ? currentTrack.title : t('music.coverAlt')" fetchpriority="high" decoding="async">
           <div class="track-copy">
-            <span class="mono">{{ musicStore.isPlaying ? 'PLAYING' : 'PAUSED' }}</span>
-            <h2>{{ currentTrack?.title || 'Loading library' }}</h2>
-            <p>{{ currentTrack?.artist || 'Please wait' }}</p>
+            <span class="mono">{{ musicStore.isPlaying ? t('music.playing') : t('music.paused') }}</span>
+            <h2>{{ currentTrack?.title || t('music.loadingLibrary') }}</h2>
+            <p>{{ currentTrack?.artist || t('music.pleaseWait') }}</p>
           </div>
-          <button class="play-button" type="button" :aria-label="musicStore.isPlaying ? '暂停' : '播放'" @click="musicStore.togglePlay">
+          <button class="play-button" type="button" :aria-label="musicStore.isPlaying ? t('nav.pause') : t('nav.play')" @click="musicStore.togglePlay">
             <PhPause v-if="musicStore.isPlaying" :size="24" weight="fill" aria-hidden="true" />
             <PhPlay v-else :size="24" weight="fill" aria-hidden="true" />
           </button>
@@ -27,11 +27,11 @@
       <section class="genre-section" aria-labelledby="genre-title">
         <div class="genre-heading">
           <div>
-            <h2 id="genre-title">Find a frequency</h2>
-            <p>Choose a moving tag to open that part of the library.</p>
+            <h2 id="genre-title">{{ t('music.genreTitle') }}</h2>
+            <p>{{ t('music.genreDescription') }}</p>
           </div>
           <RouterLink to="/Animation3/music/playlist">
-            全部歌曲 <PhArrowRight :size="18" weight="bold" aria-hidden="true" />
+            {{ t('music.playList') }} <PhArrowRight :size="18" weight="bold" aria-hidden="true" />
           </RouterLink>
         </div>
         <TagCloud :tags="musicTypes" :model-value="musicStore.selectedType" @tag-click="openGenre" />
@@ -39,11 +39,11 @@
 
       <section class="wave-section" aria-labelledby="wave-title">
         <div class="wave-heading">
-          <h2 id="wave-title">Live waveform</h2>
+          <h2 id="wave-title">{{ t('music.waveformTitle') }}</h2>
           <dl>
-            <div><dt>Position</dt><dd class="mono">{{ formatTime(musicStore.currentTime) }}</dd></div>
-            <div><dt>Duration</dt><dd class="mono">{{ formatTime(musicStore.totalTime || Number(currentTrack?.duration)) }}</dd></div>
-            <div><dt>Tracks</dt><dd class="mono">{{ musicStore.tracks.length }}</dd></div>
+            <div><dt>{{ t('music.position') }}</dt><dd class="mono">{{ formatTime(musicStore.currentTime) }}</dd></div>
+            <div><dt>{{ t('music.duration') }}</dt><dd class="mono">{{ formatTime(musicStore.totalTime || Number(currentTrack?.duration)) }}</dd></div>
+            <div><dt>{{ t('music.tracks') }}</dt><dd class="mono">{{ musicStore.tracks.length }}</dd></div>
           </dl>
         </div>
         <div class="waveform" :class="{ active: musicStore.isPlaying }" aria-hidden="true">
@@ -53,7 +53,7 @@
 
       <section v-if="currentTrack" class="track-social" aria-labelledby="track-social-title">
         <div class="social-heading">
-          <div><h2 id="track-social-title">React to this track</h2><p>{{ currentTrack.title }} by {{ currentTrack.artist }}</p></div>
+          <div><h2 id="track-social-title">{{ t('music.reactTitle') }}</h2><p>{{ currentTrack.title }} {{ t('music.by') }} {{ currentTrack.artist }}</p></div>
           <ReactionBar target-type="song" :target-id="trackSlug" />
         </div>
         <CommentThread :slug="`song:${trackSlug}`" />
@@ -65,6 +65,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { PhArrowRight, PhPause, PhPlay } from '@/design/icons'
 import { useAudioManager } from '@/stores/audioManager'
 import { useMusicStore } from '@/stores/musicStore'
@@ -76,6 +77,7 @@ import TagCloud from '@/components/ui/TagCloud.vue'
 const musicStore = useMusicStore()
 const audioManager = useAudioManager()
 const router = useRouter()
+const { t } = useI18n()
 const bars: HTMLElement[] = []
 let animationFrame = 0
 let reducedMotionQuery: MediaQueryList | null = null

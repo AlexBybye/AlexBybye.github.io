@@ -3,7 +3,7 @@
     <div class="reading-progress" aria-hidden="true"><span /><PhSoccerBall :size="17" weight="fill" /></div>
 
     <header class="site-header">
-      <div class="legacy-marquee" role="img" aria-label="Lin_eclipse 滚动视觉横幅">
+      <div class="legacy-marquee" role="img" :aria-label="t('nav.marquee')">
         <div class="marquee-track">
           <div v-for="group in 2" :key="group" class="marquee-group" :aria-hidden="group === 2">
             <img v-for="image in 8" :key="image" src="/images/rolling.webp" alt="" decoding="async">
@@ -11,16 +11,13 @@
         </div>
       </div>
 
-      <nav class="site-nav" aria-label="主导航">
-        <RouterLink to="/Animation3/about" class="site-mark" aria-label="Lin_eclipse 首页">
-          <span>LE</span>
-          <strong>Lin_eclipse</strong>
-        </RouterLink>
+      <nav class="site-nav" :aria-label="t('nav.main')">
+        <LocaleSwitcher theme="blog" />
 
         <button class="menu-button" type="button" :aria-expanded="menuOpen" aria-controls="primary-links" @click="menuOpen = !menuOpen">
           <PhX v-if="menuOpen" :size="23" weight="bold" aria-hidden="true" />
           <PhList v-else :size="23" weight="bold" aria-hidden="true" />
-          <span class="sr-only">{{ menuOpen ? '关闭导航' : '打开导航' }}</span>
+          <span class="sr-only">{{ menuOpen ? t('nav.close') : t('nav.open') }}</span>
         </button>
 
         <div id="primary-links" class="nav-links" :class="{ open: menuOpen }">
@@ -29,25 +26,25 @@
               <span>{{ link.label }}</span>
             </RouterLink>
           </div>
-          <RouterLink class="friends-link" to="/Animation3/friends" aria-label="友链" @click="menuOpen = false">
-            <PhUsers :size="20" aria-hidden="true" /><span>友链</span>
+          <RouterLink class="friends-link" to="/Animation3/friends" :aria-label="t('nav.friends')" @click="menuOpen = false">
+            <PhUsers :size="20" aria-hidden="true" /><span>{{ t('nav.friends') }}</span>
           </RouterLink>
         </div>
       </nav>
     </header>
 
-    <aside class="floating-player" aria-label="音乐播放器">
+    <aside class="floating-player" :aria-label="t('nav.player')">
       <button class="track-link" type="button" @click="goToMusicPlaylist">
-        <img :src="currentTrackCover" :alt="currentTrack ? currentTrack.title : '暂无播放封面'" decoding="async">
-        <span><strong>{{ currentTrack?.title || '选择一首歌' }}</strong><small>{{ currentTrack?.artist || '音乐播放器' }}</small></span>
+        <img :src="currentTrackCover" :alt="currentTrack ? currentTrack.title : t('nav.noCover')" decoding="async">
+        <span><strong>{{ currentTrack?.title || t('nav.chooseTrack') }}</strong><small>{{ currentTrack?.artist || t('nav.player') }}</small></span>
       </button>
       <div class="player-controls">
-        <IconButton label="上一首" @click="musicStore.playPrevious"><PhSkipBack :size="18" weight="fill" /></IconButton>
-        <IconButton :label="musicStore.isPlaying ? '暂停' : '播放'" @click="musicStore.togglePlay">
+        <IconButton :label="t('nav.previous')" @click="musicStore.playPrevious"><PhSkipBack :size="18" weight="fill" /></IconButton>
+        <IconButton :label="musicStore.isPlaying ? t('nav.pause') : t('nav.play')" @click="musicStore.togglePlay">
           <PhPause v-if="musicStore.isPlaying" :size="19" weight="fill" />
           <PhPlay v-else :size="19" weight="fill" />
         </IconButton>
-        <IconButton label="下一首" @click="musicStore.playNext"><PhSkipForward :size="18" weight="fill" /></IconButton>
+        <IconButton :label="t('nav.next')" @click="musicStore.playNext"><PhSkipForward :size="18" weight="fill" /></IconButton>
       </div>
     </aside>
 
@@ -66,20 +63,23 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { PhList, PhPause, PhPlay, PhSkipBack, PhSkipForward, PhSoccerBall, PhUsers, PhX } from '@/design/icons'
 import { useMusicStore } from '@/stores/musicStore'
 import IconButton from '@/components/ui/IconButton.vue'
+import LocaleSwitcher from '@/components/ui/LocaleSwitcher.vue'
 
 const router = useRouter()
 const musicStore = useMusicStore()
 const menuOpen = ref(false)
+const { t } = useI18n()
 
-const navLinks = [
-  { label: 'About', to: '/Animation3/about' },
-  { label: 'Article', to: '/Animation3/article' },
-  { label: 'Music', to: '/Animation3/music' },
-  { label: 'Album', to: '/Animation3/album' }
-]
+const navLinks = computed(() => [
+  { label: t('nav.about'), to: '/Animation3/about' },
+  { label: t('nav.article'), to: '/Animation3/article' },
+  { label: t('nav.music'), to: '/Animation3/music' },
+  { label: t('nav.album'), to: '/Animation3/album' }
+])
 
 const currentTrack = computed(() => musicStore.currentTrack)
 const currentTrackCover = computed(() => currentTrack.value?.coverImage ? `/music/${currentTrack.value.coverImage.replace(/\.(jpe?g|png)$/i, '.webp')}` : '/music/img/soccer.webp')
@@ -122,7 +122,7 @@ watch(() => router.currentRoute.value.fullPath, () => { menuOpen.value = false }
 .site-mark { display: inline-flex; align-items: center; gap: .75rem; color: @text; text-decoration: none; white-space: nowrap; }
 .site-mark > span { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; background: @accent; color: @text; font-family: 'Geist Mono Variable', monospace; font-size: .8rem; font-weight: 750; }
 .site-mark strong { font-size: .95rem; }
-.nav-links { display: flex; align-items: center; gap: 1rem; }
+.nav-links { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
 .page-links { display: flex; width: clamp(420px, 48vw, 610px); height: 44px; align-items: stretch; }
 .page-links a {
   position: relative; display: grid; min-width: 0; flex: 1; place-items: center; overflow: hidden; color: @text-muted;
@@ -183,9 +183,9 @@ watch(() => router.currentRoute.value.fullPath, () => { menuOpen.value = false }
       linear-gradient(180deg, #111116 0%, @surface 52%, #0e0e12 100%);
   }
   .site-layout::after { opacity: .3; background-size: 72px 72px; }
-  .site-nav { width: min(100% - 1.25rem, 1200px); }
+  .site-nav { width: min(100% - 1.25rem, 1200px); gap: .5rem; }
   .menu-button { display: grid; }
-  .nav-links { position: absolute; top: 86px; right: 0; left: 0; display: none; align-items: stretch; gap: 0; border-bottom: 1px solid @line; padding: .6rem; background: @surface; }
+  .nav-links { position: absolute; top: 86px; right: 0; left: 0; display: none; align-items: stretch; gap: 0; margin-left: 0; border-bottom: 1px solid @line; padding: .6rem; background: @surface; }
   .nav-links.open { display: grid; }
   .page-links { display: grid; width: 100%; height: auto; }
   .page-links:hover a, .page-links:hover a:hover { flex: none; opacity: 1; }

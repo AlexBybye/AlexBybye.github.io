@@ -2,55 +2,56 @@
   <section class="comment-thread" aria-labelledby="comments-title">
     <div class="comment-header">
       <div>
-        <h2 id="comments-title">评论</h2>
-        <p>评论保存在 GitHub Discussions。登录后，就能带着自己的头像加入讨论。</p>
+        <h2 id="comments-title">{{ t('social.comments') }}</h2>
+        <p>{{ t('social.commentsDescription') }}</p>
       </div>
       <AuthButton />
     </div>
 
     <form v-if="githubUser" class="comment-form" @submit.prevent="submitComment">
-      <label for="comment-body">写下评论</label>
+      <label for="comment-body">{{ t('social.writeComment') }}</label>
       <textarea id="comment-body" v-model="draft" rows="4" minlength="2" maxlength="2000" required
-        placeholder="支持 Markdown，最多 2000 字。" />
-      <p class="helper">以 {{ githubUser.login }} 的身份发布。</p>
+        :placeholder="t('social.commentPlaceholder')" />
+      <p class="helper">{{ t('social.publishAs', { login: githubUser.login }) }}</p>
       <p v-if="submitError" class="form-error">{{ submitError }}</p>
       <button class="submit-button" type="submit" :disabled="submitting || draft.trim().length < 2">
-        {{ submitting ? '正在发布' : '发布评论' }}
+        {{ submitting ? t('social.publishing') : t('social.publish') }}
       </button>
     </form>
 
-    <div v-if="loading" class="comment-list" aria-label="正在加载评论">
+    <div v-if="loading" class="comment-list" :aria-label="t('social.loadingComments')">
       <div v-for="n in 2" :key="n" class="comment-skeleton"><span /><div><b /><i /></div></div>
     </div>
     <div v-else-if="loadError && comments.length === 0" class="state-box error-state">
       <PhWarningCircle :size="24" aria-hidden="true" />
       <p>{{ loadError }}</p>
-      <button type="button" @click="load">重新加载</button>
+      <button type="button" @click="load">{{ t('common.retry') }}</button>
     </div>
     <div v-else-if="comments.length === 0" class="state-box">
       <PhChatCircle :size="26" aria-hidden="true" />
-      <p>{{ offline ? '当前没有可用的缓存评论。登录后可以创建讨论。' : '还没有评论，欢迎留下第一条。' }}</p>
+      <p>{{ offline ? t('social.cachedCommentsEmpty') : t('social.commentsEmpty') }}</p>
     </div>
     <div v-else class="comment-list">
       <article v-for="comment in comments" :key="comment.id" class="comment-item">
         <a :href="comment.authorUrl" target="_blank" rel="noreferrer" class="comment-author">
-          <img :src="comment.avatarUrl" :alt="`${comment.author} 的 GitHub 头像`" loading="lazy" decoding="async">
+          <img :src="comment.avatarUrl" :alt="t('social.avatarAlt', { author: comment.author })" loading="lazy" decoding="async">
           <span>{{ comment.author }}</span>
         </a>
         <p class="comment-date mono">{{ formatDate(comment.createdAt) }}</p>
         <p class="comment-body">{{ comment.body }}</p>
         <div class="comment-actions">
           <ReactionBar target-type="comment" :target-id="comment.id" :subject-id="comment.id" compact />
-          <button v-if="comment.viewerDidAuthor" type="button" class="delete-button" @click="remove(comment.id)">删除</button>
+          <button v-if="comment.viewerDidAuthor" type="button" class="delete-button" @click="remove(comment.id)">{{ t('social.delete') }}</button>
         </div>
       </article>
     </div>
-    <p v-if="offline && comments.length" class="offline-note">正在展示本机缓存，连接恢复后可刷新最新评论。</p>
+    <p v-if="offline && comments.length" class="offline-note">{{ t('social.offlineNote') }}</p>
   </section>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhChatCircle, PhWarningCircle } from '@/design/icons'
 import { githubUser } from '@/service/auth/githubOAuth'
 import { addComment, deleteComment, loadComments, type SocialComment } from '@/service/discussions/commentsRepo'
@@ -58,6 +59,7 @@ import AuthButton from './AuthButton.vue'
 import ReactionBar from './ReactionBar.vue'
 
 const props = defineProps<{ slug: string }>()
+const { t, locale } = useI18n()
 const emit = defineEmits<{ countChange: [count: number] }>()
 
 const comments = ref<SocialComment[]>([])
@@ -77,7 +79,7 @@ async function load() {
     offline.value = result.offline
     emit('countChange', comments.value.length)
   } catch (error) {
-    loadError.value = error instanceof Error ? error.message : '评论加载失败'
+    loadError.value = error instanceof Error ? error.message : t('social.commentsLoadFailed')
   } finally { loading.value = false }
 }
 
@@ -89,18 +91,18 @@ async function submitComment() {
     draft.value = ''
     await load()
   } catch (error) {
-    submitError.value = error instanceof Error ? error.message : '评论发布失败'
+    submitError.value = error instanceof Error ? error.message : t('social.commentsPublishFailed')
   } finally { submitting.value = false }
 }
 
 async function remove(id: string) {
-  if (!window.confirm('确认删除这条评论吗？')) return
+  if (!window.confirm(t('social.confirmDelete'))) return
   try { await deleteComment(id); await load() }
-  catch (error) { loadError.value = error instanceof Error ? error.message : '评论删除失败' }
+  catch (error) { loadError.value = error instanceof Error ? error.message : t('social.commentsDeleteFailed') }
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 }
 
 onMounted(load)

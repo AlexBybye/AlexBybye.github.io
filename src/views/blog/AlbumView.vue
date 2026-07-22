@@ -1,20 +1,20 @@
 <template>
   <div class="album-page">
     <div class="page-shell">
-      <header class="album-header"><h1>Albums</h1><p>Photographs from ordinary years, long journeys, and places that became familiar.</p></header>
+      <header class="album-header"><h1>{{ t('album.title') }}</h1><p>{{ t('album.description') }}</p></header>
       <div v-if="loading" class="album-list"><div v-for="n in 3" :key="n" class="album-row skeleton" /></div>
-      <div v-else-if="error" class="state-box"><PhWarningCircle :size="25" /><p>{{ error }}</p><button type="button" @click="loadAlbums">重新加载</button></div>
-      <div v-else class="album-list">
+      <div v-else-if="error" class="state-box"><PhWarningCircle :size="25" /><p>{{ error }}</p><button type="button" @click="loadAlbums">{{ t('common.retry') }}</button></div>
+      <div v-else class="album-list" :aria-label="t('album.listLabel')">
         <RevealOnScroll v-for="(album, index) in albums" :key="album.id" :delay="Math.min(index * 70, 280)">
           <RouterLink class="album-row" :class="{ reverse: index % 2 === 1 }" :to="`/Animation3/album/detail/${album.id}`">
             <div class="album-copy">
-              <span class="mono">{{ String(index + 1).padStart(2, '0') }} / {{ album.count }} photos</span>
+              <span class="mono">{{ String(index + 1).padStart(2, '0') }} / {{ t('album.photos', { count: album.count }) }}</span>
               <h2>{{ album.title }}</h2>
               <p>{{ album.description }}</p>
-              <span class="album-link">打开相册<PhSoccerBall class="album-ball" :size="18" weight="fill" /><PhArrowRight :size="19" weight="bold" /></span>
+              <span class="album-link">{{ t('album.open') }}<PhSoccerBall class="album-ball" :size="18" weight="fill" /><PhArrowRight :size="19" weight="bold" /></span>
             </div>
             <div class="album-preview" :class="previewLayoutClass(album)">
-              <img v-for="photo in previewPhotos(album)" :key="photo" :src="photo" :alt="`${album.title} 预览照片`"
+              <img v-for="photo in previewPhotos(album)" :key="photo" :src="photo" :alt="t('album.previewAlt', { title: album.title })"
                 :loading="index === 0 ? 'eager' : 'lazy'" decoding="async" @error="handleImageError($event, album.id)">
             </div>
           </RouterLink>
@@ -26,11 +26,13 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhArrowRight, PhSoccerBall, PhWarningCircle } from '@/design/icons'
 import RevealOnScroll from '@/components/ui/RevealOnScroll.vue'
 
 interface AlbumItem { id: string; title: string; date: string; count: number; description: string; previews?: number[] }
 const albums = ref<AlbumItem[]>([])
+const { t } = useI18n()
 const loading = ref(true)
 const error = ref('')
 
@@ -39,9 +41,9 @@ async function loadAlbums() {
   error.value = ''
   try {
     const response = await fetch('/album/albumcontext.json')
-    if (!response.ok) throw new Error(`相册索引加载失败 (${response.status})`)
+    if (!response.ok) throw new Error(t('album.indexLoadFailed', { status: response.status }))
     albums.value = await response.json()
-  } catch (cause) { error.value = cause instanceof Error ? cause.message : '相册加载失败' }
+  } catch (cause) { error.value = cause instanceof Error ? cause.message : t('album.loadFailed') }
   finally { loading.value = false }
 }
 function previewNumbers(album: AlbumItem) {

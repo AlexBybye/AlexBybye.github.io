@@ -38,12 +38,12 @@
           </div>
           <div class="copy-content">
             <div class="copy-strike">
-              <p class="panel-kicker">{{ panel.kicker }}</p>
+              <p class="panel-kicker">{{ t(`landing.panelKicker.${panel.id}`) }}</p>
               <h1>{{ panel.title }}</h1>
             </div>
             <div class="copy-readable">
-              <p>{{ panel.body }}</p>
-              <span>{{ panel.stat }}</span>
+              <p>{{ t(`landing.panelBody.${panel.id}`) }}</p>
+              <span>{{ t(`landing.panelStat.${panel.id}`) }}</span>
             </div>
           </div>
         </div>
@@ -84,8 +84,8 @@
       >
         <span class="button-fill" aria-hidden="true"></span>
         <span class="button-label">
-          <span>{{ isEntering ? '正在进入' : '进入主页' }}</span>
-          <span class="button-hint">{{ remainingSeconds }} 秒后自动进入</span>
+          <span>{{ isEntering ? t('landing.entering') : t('landing.enterHome') }}</span>
+          <span class="button-hint">{{ t('landing.autoEnter', { seconds: remainingSeconds }) }}</span>
         </span>
         <span class="button-arrow" aria-hidden="true">→</span>
       </button>
@@ -96,9 +96,11 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { loadShowcaseConfig } from '@/content/welcome'
 
 const router = useRouter()
+const { t } = useI18n()
 
 // 内容与时序全部来自 resources/welcomeShowcase.json，此处仅保存解析后的运行时数据
 const panels = ref([])

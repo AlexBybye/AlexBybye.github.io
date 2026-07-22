@@ -1,4 +1,5 @@
 import { readonly, ref } from 'vue'
+import { i18n } from '@/i18n'
 import { exchangeOAuthCode } from './workerClient'
 
 export interface GithubUser {
@@ -60,7 +61,7 @@ function storeToken(token: string) {
   try {
     localStorage.setItem(TOKEN_KEY, token)
   } catch {
-    throw new Error('浏览器无法保存 GitHub 登录状态，请允许本站使用本地存储后重试。')
+    throw new Error(i18n.global.t('errors.browserStorage'))
   }
 
   try {
@@ -91,7 +92,7 @@ function storeOAuthAttempt(state: string, attempt: GithubOAuthAttempt) {
     pruneExpiredAttempts()
     localStorage.setItem(getAttemptKey(state), JSON.stringify(attempt))
   } catch {
-    throw new Error('浏览器无法保存 GitHub 授权请求，请允许本站使用本地存储后重试。')
+    throw new Error(i18n.global.t('errors.oauthStorage'))
   }
 }
 
@@ -252,7 +253,7 @@ export function beginGithubOAuth(): GithubOAuthPopupSession {
   )
 
   if (!popup) {
-    throw new Error('GitHub 登录窗口被浏览器拦截。请允许本站打开弹出式窗口后重试。')
+    throw new Error(i18n.global.t('errors.popupBlocked'))
   }
 
   try {
@@ -297,14 +298,14 @@ export async function completeGithubOAuth() {
     if (hasError) {
       const attempt = returnedState ? getOAuthAttempt(returnedState) : null
       if (!returnedError || !returnedState || !attempt) {
-        throw new Error('GitHub 授权校验失败或请求已过期，请从原页面重新登录。')
+        throw new Error(i18n.global.t('errors.oauthExpired'))
       }
 
       removeOAuthAttempt(returnedState)
       const description = params.get('error_description')
       throw new Error(
         returnedError === 'access_denied'
-          ? '你已取消 GitHub 授权，本站没有读取或保存任何新凭证。'
+          ? i18n.global.t('errors.oauthCancelled')
           : description || `GitHub authorization failed: ${returnedError}`
       )
     }
@@ -312,7 +313,7 @@ export async function completeGithubOAuth() {
     if (hasCode) {
       const attempt = returnedState ? getOAuthAttempt(returnedState) : null
       if (!code || !returnedState || !attempt) {
-        throw new Error('GitHub 授权校验失败或请求已过期，请从原页面重新登录。')
+        throw new Error(i18n.global.t('errors.oauthExpired'))
       }
 
       removeOAuthAttempt(returnedState)

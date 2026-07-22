@@ -1,9 +1,9 @@
 <template>
   <div class="friends-page"><div class="page-shell">
-    <header><h1>友情链接</h1><p>认识的人，以及我愿意继续访问的个人空间。</p></header>
-    <section class="friends-list" aria-label="友链列表">
+    <header><h1>{{ t('friends.title') }}</h1><p>{{ t('friends.description') }}</p></header>
+    <section class="friends-list" :aria-label="t('friends.listLabel')">
       <a v-for="friend in friendLinks" :key="friend.url" :href="friend.url" target="_blank" rel="noreferrer">
-        <img :src="friend.avatar" :alt="`${friend.name} 的头像`" loading="lazy" decoding="async">
+        <img :src="friend.avatar" :alt="t('friends.avatarAlt', { name: friend.name })" loading="lazy" decoding="async">
         <div><h2>{{ friend.name }}</h2><p>{{ friend.description }}</p><span class="mono">{{ cleanUrl(friend.url) }}</span></div>
         <PhArrowRight :size="23" weight="bold" aria-hidden="true" />
       </a>
@@ -13,7 +13,9 @@
 
 <script setup lang="ts">
 import { PhArrowRight } from '@/design/icons'
+import { useI18n } from 'vue-i18n'
 import { friendLinks } from '@/content/friends'
+const { t } = useI18n()
 function cleanUrl(url: string) { return url.replace(/^https?:\/\//, '').replace(/\/$/, '') }
 </script>
 

@@ -4,14 +4,14 @@
       v-if="githubUser"
       class="auth-button signed-in"
       type="button"
-      :aria-label="`退出 GitHub 登录，当前用户 ${githubUser.login}`"
+      :aria-label="t('social.logout', { login: githubUser.login })"
       @click="logoutGithub"
     >
       <span class="kickoff-ball" aria-hidden="true">
         <PhSoccerBall :size="19" weight="fill" />
       </span>
-      <img :src="githubUser.avatarUrl" :alt="`${githubUser.login} 的 GitHub 头像`">
-      <span class="player-label"><small>已入场</small><strong>@{{ githubUser.login }}</strong></span>
+      <img :src="githubUser.avatarUrl" :alt="t('social.avatarAlt', { author: githubUser.login })">
+      <span class="player-label"><small>{{ t('social.signedIn') }}</small><strong>@{{ githubUser.login }}</strong></span>
       <PhSignOut :size="18" weight="bold" aria-hidden="true" />
     </button>
     <button
@@ -30,19 +30,20 @@
     </button>
     <p v-if="errorMessage || githubAuthError" class="auth-error">{{ errorMessage || githubAuthError }}</p>
     <p v-else-if="popupStatus === 'opened'" class="auth-note" role="status">
-      GitHub 登录页已显示在新窗口中。完成后回到这里刷新即可。
+      {{ t('social.loginPageOpened') }}
     </p>
     <p v-else-if="popupStatus === 'closed'" class="auth-note" role="status">
-      新窗口已关闭。若已完成授权，请刷新本页；否则可以重新登录。
+      {{ t('social.popupClosed') }}
     </p>
     <p v-else-if="popupStatus === 'timeout'" class="auth-error" role="alert">
-      登录已超时，请重试。
+      {{ t('social.loginTimeout') }}
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhGithubLogo, PhSignOut, PhSoccerBall, PhSpinnerGap } from '@/design/icons'
 import {
   beginGithubOAuth,
@@ -54,15 +55,16 @@ import {
 } from '@/service/auth/githubOAuth'
 
 const configured = isGithubConfigured()
+const { t } = useI18n()
 const errorMessage = ref('')
 const popupActive = ref(false)
 const popupStatus = ref<'idle' | 'opened' | 'closed' | 'timeout'>('idle')
 
 const buttonLabel = computed(() => {
-  if (!configured) return 'GitHub 登录暂不可用'
-  if (githubAuthLoading.value) return '正在确认 GitHub 身份'
-  if (popupActive.value) return '等待 GitHub 确认'
-  return '带上 GitHub 头像入场'
+  if (!configured) return t('social.loginUnavailable')
+  if (githubAuthLoading.value) return t('social.checkingIdentity')
+  if (popupActive.value) return t('social.waitingConfirmation')
+  return t('social.login')
 })
 
 async function login() {
@@ -76,7 +78,7 @@ async function login() {
     popupStatus.value = 'opened'
     popupStatus.value = await session.result
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : '登录失败，请稍后再试。'
+    errorMessage.value = error instanceof Error ? error.message : t('social.loginFailed')
   } finally {
     popupActive.value = false
   }

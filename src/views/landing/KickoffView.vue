@@ -3,9 +3,9 @@
     <canvas ref="canvas" class="confetti-canvas"></canvas>
 
     <div class="header-section">
-      <p class="eyebrow">Allianz Arena</p>
-      <h1 class="breathing-text">Take the shot</h1>
-      <p class="sub-hint">Click or tap the ball to kick off.</p>
+      <p class="eyebrow">{{ t('kickoff.eyebrow') }}</p>
+      <h1 class="breathing-text">{{ t('kickoff.title') }}</h1>
+      <p class="sub-hint">{{ t('kickoff.hint') }}</p>
     </div>
 
     <svg class="shot-trajectory" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
@@ -31,7 +31,7 @@
       type="button"
       class="football-click-area"
       :class="{ 'is-flying': isKicked }"
-      aria-label="Kick the ball to begin"
+      :aria-label="t('kickoff.kick')"
       @click="handleKick"
     >
       <span class="hover-glow"></span>
@@ -43,7 +43,7 @@
     <div class="goal-impact" aria-hidden="true">
       <span class="impact-ring"></span>
       <span class="impact-ring delay"></span>
-      <span class="goal-word">Goal!</span>
+      <span class="goal-word">{{ t('kickoff.goal') }}</span>
     </div>
 
     <span class="handoff-ball-source" aria-hidden="true">
@@ -58,9 +58,11 @@
 <script setup>
 import { onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { createSiuAudioPlayer } from '@/utils/siuAudio'
 
 const router = useRouter()
+const { t } = useI18n()
 const siuAudio = createSiuAudioPlayer()
 const canvas = ref(null)
 const isKicked = ref(false)

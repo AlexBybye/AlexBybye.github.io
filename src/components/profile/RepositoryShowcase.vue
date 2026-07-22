@@ -2,10 +2,10 @@
   <div class="repository-showcase" :data-style="cardStyle">
     <header class="showcase-heading">
       <div>
-        <h2>Selected repositories</h2>
-        <p>Stars, forks, and open issues for selected projects, plus visit badges.</p>
+        <h2>{{ t('profile.selectedRepositories') }}</h2>
+        <p>{{ t('profile.repositoryDescription') }}</p>
       </div>
-      <div class="style-switcher" role="group" aria-label="仓库名片风格">
+      <div class="style-switcher" role="group" :aria-label="t('profile.repositoryStyle')">
         <button v-for="style in cardStyles" :key="style.value" type="button"
           :aria-pressed="cardStyle === style.value" @click="cardStyle = style.value">
           <component :is="style.icon" :size="17" aria-hidden="true" />
@@ -14,7 +14,7 @@
       </div>
     </header>
 
-    <div v-if="loading" class="repository-grid" aria-label="正在加载仓库数据">
+    <div v-if="loading" class="repository-grid" :aria-label="t('profile.loadingRepositories')">
       <div v-for="index in repositories.length" :key="index" class="repository-card skeleton" />
     </div>
 
@@ -24,22 +24,22 @@
           :style="{ '--card-index': index }" @pointermove="tiltCard" @pointerleave="resetCard">
           <template v-if="item.status === 'error'">
             <img class="legacy-repository-card" :src="legacyCardUrl(item.repo.owner, item.repo.name)"
-              :alt="`${item.repo.owner}/${item.repo.name} GitHub 仓库备用名片`" loading="lazy" decoding="async">
+              :alt="t('profile.fallbackRepositoryAlt', { name: `${item.repo.owner}/${item.repo.name}` })" loading="lazy" decoding="async">
             <div class="fallback-copy">
-              <span class="mono">Fallback card</span>
-              <p>GitHub 仓库数据暂不可用，已显示备用名片。</p>
+              <span class="mono">{{ t('profile.fallbackCard') }}</span>
+              <p>{{ t('profile.repositoryUnavailable') }}</p>
               <img class="fallback-visitor-badge" :src="resolveVisitorBadgeUrl(item.repo)"
                 :alt="visitorBadgeAlt(item.repo)" loading="lazy" decoding="async">
               <a :href="item.repo.href" target="_blank" rel="noreferrer">
-                打开仓库 <PhArrowSquareOut :size="17" aria-hidden="true" />
+                {{ t('profile.openRepository') }} <PhArrowSquareOut :size="17" aria-hidden="true" />
               </a>
             </div>
           </template>
 
           <template v-else-if="item.metrics">
             <div class="card-topline">
-              <span class="repository-origin" title="GitHub 公共数据，每 12 小时刷新">
-                <PhGithubLogo :size="23" weight="fill" aria-hidden="true" />GitHub data, 12-hour refresh
+              <span class="repository-origin" :title="t('profile.publicData')">
+                <PhGithubLogo :size="23" weight="fill" aria-hidden="true" />{{ t('profile.githubData') }}
               </span>
               <span class="language mono">{{ item.metrics.language }}</span>
             </div>
@@ -47,25 +47,25 @@
             <div class="repository-copy">
               <span class="owner mono">{{ item.repo.owner }}</span>
               <h3>{{ item.metrics.name }}</h3>
-              <p>{{ item.metrics.description || item.repo.description }}</p>
+              <p>{{ repositoryDescription(item) }}</p>
             </div>
 
             <dl class="repository-scoreboard">
-              <div><dt><PhStar :size="18" weight="fill" aria-hidden="true" />Stars</dt><dd class="mono">{{ item.metrics.stars }}</dd></div>
-              <div><dt><PhGitFork :size="18" aria-hidden="true" />Forks</dt><dd class="mono">{{ item.metrics.forks }}</dd></div>
-              <div><dt>Issues</dt><dd class="mono">{{ item.metrics.openIssues }}</dd></div>
-              <div><dt>{{ item.repo.visitorBadgeLabel || 'Visits' }}</dt><dd class="visit-count"><img :src="resolveVisitorBadgeUrl(item.repo)"
+              <div><dt><PhStar :size="18" weight="fill" aria-hidden="true" />{{ t('profile.stars') }}</dt><dd class="mono">{{ item.metrics.stars }}</dd></div>
+              <div><dt><PhGitFork :size="18" aria-hidden="true" />{{ t('profile.forks') }}</dt><dd class="mono">{{ item.metrics.forks }}</dd></div>
+              <div><dt>{{ t('profile.issues') }}</dt><dd class="mono">{{ item.metrics.openIssues }}</dd></div>
+              <div><dt>{{ t('profile.visits') }}</dt><dd class="visit-count"><img :src="resolveVisitorBadgeUrl(item.repo)"
                 :alt="visitorBadgeAlt(item.repo)" loading="lazy" decoding="async"></dd></div>
             </dl>
 
-            <div v-if="item.metrics.topics.length" class="repository-topics" aria-label="仓库主题">
+            <div v-if="item.metrics.topics.length" class="repository-topics" :aria-label="t('profile.repositoryTopics')">
               <span v-for="topic in item.metrics.topics" :key="topic">{{ topic }}</span>
             </div>
 
             <footer>
               <span><PhCalendarBlank :size="17" aria-hidden="true" />{{ formatUpdatedAt(item.metrics.updatedAt) }}</span>
               <span class="license mono">{{ item.metrics.license }}</span>
-              <a :href="item.metrics.href" target="_blank" rel="noreferrer" :aria-label="`打开 ${item.metrics.fullName}`">
+              <a :href="item.metrics.href" target="_blank" rel="noreferrer" :aria-label="t('profile.openRepository') + ' ' + item.metrics.fullName">
                 <PhArrowSquareOut :size="20" weight="bold" aria-hidden="true" />
               </a>
             </footer>
@@ -77,7 +77,8 @@
 </template>
 
 <script setup lang="ts">
-import { markRaw, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, markRaw, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   PhArrowSquareOut,
   PhCalendarBlank,
@@ -92,6 +93,7 @@ import { loadPublicRepository } from '@/service/githubPublic'
 import type { PublicRepoMetrics } from '@/service/githubPublic'
 
 const props = defineProps<{ repositories: FeaturedRepo[] }>()
+const { t, locale } = useI18n()
 
 type CardStyle = 'matchday' | 'tactics'
 interface RepositoryState {
@@ -104,14 +106,14 @@ interface RepositoryState {
 const cardStyle = ref<CardStyle>('matchday')
 const loading = ref(true)
 const repositoryStates = ref<RepositoryState[]>([])
-const cardStyles = [
-  { value: 'matchday' as const, label: '比赛日', icon: markRaw(PhChartLineUp) },
-  { value: 'tactics' as const, label: '战术板', icon: markRaw(PhStrategy) }
-]
+const cardStyles = computed(() => [
+  { value: 'matchday' as const, label: t('profile.matchday'), icon: markRaw(PhChartLineUp) },
+  { value: 'tactics' as const, label: t('profile.tactics'), icon: markRaw(PhStrategy) }
+])
 let tiltFrame = 0
 
 function formatUpdatedAt(value: string) {
-  return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale.value, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value))
 }
 
 function legacyCardUrl(owner: string, name: string) {
@@ -134,7 +136,13 @@ function resolveVisitorBadgeUrl(repo: FeaturedRepo) {
 }
 
 function visitorBadgeAlt(repo: FeaturedRepo) {
-  return repo.visitorBadgeAlt || `${repo.owner}/${repo.name} 网页访问次数`
+  return t('profile.repositoryVisits', { name: `${repo.owner}/${repo.name}` })
+}
+
+function repositoryDescription(item: RepositoryState) {
+  const key = `profile.repositoryCopy.${item.repo.name}`
+  const translated = t(key)
+  return translated === key ? item.metrics?.description || item.repo.description : translated
 }
 
 function tiltCard(event: PointerEvent) {
@@ -162,7 +170,7 @@ onMounted(async () => {
     try {
       return { repo, status: 'loaded', metrics: await loadPublicRepository(repo.owner, repo.name), error: '' }
     } catch (cause) {
-      return { repo, status: 'error', metrics: null, error: cause instanceof Error ? cause.message : 'GitHub 数据暂不可用' }
+      return { repo, status: 'error', metrics: null, error: cause instanceof Error ? cause.message : t('errors.githubDataUnavailable') }
     }
   }))
   repositoryStates.value = results

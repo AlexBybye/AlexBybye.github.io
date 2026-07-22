@@ -3,15 +3,16 @@
     <button type="button" :disabled="loading || !githubUser" :aria-pressed="state.viewerHasReacted" @click="toggle">
       <PhHeart :size="20" :weight="state.viewerHasReacted ? 'fill' : 'regular'" aria-hidden="true" />
       <span>{{ state.count }}</span>
-      <span class="label">{{ state.viewerHasReacted ? '已点赞' : '点赞' }}</span>
+      <span class="label">{{ state.viewerHasReacted ? t('social.liked') : t('social.like') }}</span>
     </button>
-    <span v-if="state.offline" class="offline">{{ githubUser ? '离线缓存' : '登录后可点赞' }}</span>
+    <span v-if="state.offline" class="offline">{{ githubUser ? t('social.offlineCache') : t('social.loginToLike') }}</span>
     <span v-if="error" class="error">{{ error }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhHeart } from '@/design/icons'
 import { githubUser } from '@/service/auth/githubOAuth'
 import { getReactionState, toggleReaction, type ReactionState } from '@/service/discussions/reactionsRepo'
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<{
   subjectId?: string
   compact?: boolean
 }>(), { subjectId: '', compact: false })
+const { t } = useI18n()
 
 const state = reactive<ReactionState>({ count: 0, viewerHasReacted: false, offline: true })
 const loading = ref(false)
@@ -32,7 +34,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try { Object.assign(state, await getReactionState(`${props.targetType}:${props.targetId}`, props.subjectId || undefined)) }
-  catch (cause) { error.value = cause instanceof Error ? cause.message : '点赞状态加载失败' }
+  catch (cause) { error.value = cause instanceof Error ? cause.message : t('social.reactionLoadFailed') }
   finally { loading.value = false }
 }
 
@@ -48,7 +50,7 @@ async function toggle() {
     Object.assign(state, await toggleReaction(`${props.targetType}:${props.targetId}`, previous, props.subjectId || undefined))
   } catch (cause) {
     Object.assign(state, previous)
-    error.value = cause instanceof Error ? cause.message : '点赞失败'
+    error.value = cause instanceof Error ? cause.message : t('social.reactionFailed')
   } finally { loading.value = false }
 }
 

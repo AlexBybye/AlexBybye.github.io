@@ -3,22 +3,22 @@
     <div class="page-shell">
       <div class="detail-toolbar">
         <button class="back-button" type="button" @click="$router.push('/Animation3/album')">
-          <PhArrowLeft :size="18" weight="bold" />返回相册
+          <PhArrowLeft :size="18" weight="bold" />{{ t('albumDetail.back') }}
         </button>
-        <div class="view-switcher" role="group" aria-label="照片排列方式">
+        <div class="view-switcher" role="group" :aria-label="t('albumDetail.layoutLabel')">
           <button type="button" :aria-pressed="viewMode === 'free'" @click="viewMode = 'free'">
-            <PhGridFour :size="18" aria-hidden="true" />自由阵型
+            <PhGridFour :size="18" aria-hidden="true" />{{ t('albumDetail.freeLayout') }}
           </button>
           <button type="button" :aria-pressed="viewMode === 'squad'" @click="viewMode = 'squad'">
-            <PhStrategy :size="18" aria-hidden="true" />比赛阵型
+            <PhStrategy :size="18" aria-hidden="true" />{{ t('albumDetail.squadLayout') }}
           </button>
         </div>
       </div>
 
       <header class="detail-hero">
         <div class="album-title-block">
-          <span class="mono">PHOTO ALBUM</span>
-          <h1 :aria-label="album?.title || 'Album'">
+          <span class="mono">{{ t('albumDetail.albumLabel') }}</span>
+          <h1 :aria-label="album?.title || t('album.title')">
             <span v-for="(character, index) in titleCharacters" :key="`${character}-${index}`"
               aria-hidden="true" :style="{ '--character-index': index }">
               {{ character === ' ' ? '\u00A0' : character }}
@@ -30,12 +30,12 @@
           <PhCamera :size="28" weight="bold" aria-hidden="true" />
           <p v-if="album?.description">{{ album.description }}</p>
           <dl>
-            <div><dt>拍摄日期</dt><dd class="mono">{{ album ? formatAlbumDate(album.date) : '-' }}</dd></div>
-            <div><dt>场上照片</dt><dd class="mono">{{ photos.length }}</dd></div>
+            <div><dt>{{ t('albumDetail.date') }}</dt><dd class="mono">{{ album ? formatAlbumDate(album.date) : '-' }}</dd></div>
+            <div><dt>{{ t('albumDetail.photoCount') }}</dt><dd class="mono">{{ photos.length }}</dd></div>
           </dl>
           <div class="load-pitch" :class="{ complete: loadPercent === 100 }" aria-live="polite">
             <span class="load-line" aria-hidden="true"><i :style="{ transform: `scaleX(${loadPercent / 100})` }" /></span>
-            <span class="mono">{{ loadedCount }} / {{ photos.length }} READY</span>
+            <span class="mono">{{ loadedCount }} / {{ photos.length }} {{ t('albumDetail.ready') }}</span>
             <PhSoccerBall :size="22" weight="fill" aria-hidden="true" />
           </div>
         </div>
@@ -43,17 +43,17 @@
 
       <div v-if="loading" class="photo-grid loading-grid"><span v-for="n in 8" :key="n" /></div>
       <div v-else-if="error" class="state-box">
-        <PhWarningCircle :size="25" /><p>{{ error }}</p><button type="button" @click="loadAlbum">重新加载</button>
+        <PhWarningCircle :size="25" /><p>{{ error }}</p><button type="button" @click="loadAlbum">{{ t('common.retry') }}</button>
       </div>
 
       <Transition v-else name="grid-switch" mode="out-in">
         <div :key="viewMode" class="photo-grid" :class="`mode-${viewMode}`">
           <template v-for="(photo, index) in photos" :key="photo.id">
             <button v-if="!photo.failed" type="button" class="photo-button" :class="{ loaded: photo.loaded }"
-              :style="{ '--photo-index': index }" :aria-label="`打开${album?.title || '相册'}第 ${index + 1} 张照片`"
+              :style="{ '--photo-index': index }" :aria-label="t('albumDetail.openPhoto', { title: album?.title || t('album.title'), index: index + 1 })"
               @click="openViewer(index)" @pointermove="tiltPhoto" @pointerleave="resetPhoto">
               <span class="photo-frame">
-                <img :src="photo.src" :alt="`${album?.title || '相册'} 第 ${index + 1} 张照片`"
+                <img :src="photo.src" :alt="t('albumDetail.photoAlt', { title: album?.title || t('album.title'), index: index + 1 })"
                   loading="lazy" decoding="async" @load="markPhotoLoaded(photo)" @error="handleImageError(photo)">
                 <span class="photo-shine" aria-hidden="true" />
               </span>
@@ -65,16 +65,16 @@
 
     <Teleport to="body">
       <Transition name="viewer">
-        <div v-if="selectedIndex !== null" class="viewer" role="dialog" aria-modal="true" aria-label="照片查看器" @click="closeViewer">
-          <button class="viewer-close" type="button" aria-label="关闭照片" @click="closeViewer"><PhX :size="24" weight="bold" /></button>
-          <button class="viewer-nav prev" type="button" aria-label="上一张" @click.stop="previousPhoto"><PhArrowLeft :size="24" weight="bold" /></button>
+        <div v-if="selectedIndex !== null" class="viewer" role="dialog" aria-modal="true" :aria-label="t('albumDetail.viewer')" @click="closeViewer">
+          <button class="viewer-close" type="button" :aria-label="t('albumDetail.close')" @click="closeViewer"><PhX :size="24" weight="bold" /></button>
+          <button class="viewer-nav prev" type="button" :aria-label="t('albumDetail.previous')" @click.stop="previousPhoto"><PhArrowLeft :size="24" weight="bold" /></button>
           <div class="viewer-stage" @click.stop>
             <Transition name="photo-swap" mode="out-in">
               <img :key="photos[selectedIndex].id" :class="`direction-${viewDirection}`" :src="photos[selectedIndex].src"
-                :alt="`${album?.title || '相册'} 第 ${selectedIndex + 1} 张照片`">
+                :alt="t('albumDetail.photoAlt', { title: album?.title || t('album.title'), index: selectedIndex + 1 })">
             </Transition>
           </div>
-          <button class="viewer-nav next" type="button" aria-label="下一张" @click.stop="nextPhoto"><PhArrowRight :size="24" weight="bold" /></button>
+          <button class="viewer-nav next" type="button" :aria-label="t('albumDetail.next')" @click.stop="nextPhoto"><PhArrowRight :size="24" weight="bold" /></button>
           <div class="viewer-count mono"><PhSoccerBall :size="18" weight="fill" aria-hidden="true" />{{ selectedIndex + 1 }} / {{ photos.length }}</div>
         </div>
       </Transition>
@@ -84,6 +84,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   PhArrowLeft,
   PhArrowRight,
@@ -96,6 +97,7 @@ import {
 } from '@/design/icons'
 
 const props = defineProps<{ id: string }>()
+const { t, locale } = useI18n()
 interface AlbumItem { id: string; title: string; date: string; count: number; description: string }
 interface PhotoItem { id: number; src: string; fallbackStep: number; loaded: boolean; failed: boolean }
 type ViewMode = 'free' | 'squad'
@@ -109,7 +111,7 @@ const viewMode = ref<ViewMode>('free')
 const viewDirection = ref<'next' | 'previous'>('next')
 let tiltFrame = 0
 
-const titleCharacters = computed(() => Array.from(album.value?.title || 'Album'))
+const titleCharacters = computed(() => Array.from(album.value?.title || t('album.title')))
 const loadedCount = computed(() => photos.value.filter((photo) => photo.loaded || photo.failed).length)
 const loadPercent = computed(() => photos.value.length ? Math.round(loadedCount.value / photos.value.length * 100) : 0)
 
@@ -118,10 +120,10 @@ async function loadAlbum() {
   error.value = ''
   try {
     const response = await fetch('/album/albumcontext.json')
-    if (!response.ok) throw new Error(`相册索引加载失败 (${response.status})`)
+    if (!response.ok) throw new Error(t('album.indexLoadFailed', { status: response.status }))
     const albums = await response.json() as AlbumItem[]
     album.value = albums.find((item) => item.id === props.id) || null
-    if (!album.value) throw new Error('没有找到这个相册。')
+    if (!album.value) throw new Error(t('albumDetail.notFound'))
     photos.value = Array.from({ length: album.value.count }, (_, index) => ({
       id: index + 1,
       src: `/album/${props.id}/photo_${index + 1}.webp`,
@@ -129,12 +131,12 @@ async function loadAlbum() {
       loaded: false,
       failed: false
     }))
-  } catch (cause) { error.value = cause instanceof Error ? cause.message : '相册加载失败' }
+  } catch (cause) { error.value = cause instanceof Error ? cause.message : t('albumDetail.loadFailed') }
   finally { loading.value = false }
 }
 
 function formatAlbumDate(value: string) {
-  return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale.value, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value))
 }
 function markPhotoLoaded(photo: PhotoItem) { photo.loaded = true }
 function handleImageError(photo: PhotoItem) {

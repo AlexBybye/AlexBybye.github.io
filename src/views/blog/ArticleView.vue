@@ -1,10 +1,10 @@
 <template>
   <div class="article-page">
     <div v-if="currentArticleId" class="page-shell article-detail-shell">
-      <button class="back-button" type="button" @click="goBackToList"><PhArrowLeft :size="18" weight="bold" />返回文章列表</button>
+      <button class="back-button" type="button" @click="goBackToList"><PhArrowLeft :size="18" weight="bold" />{{ t('article.backToList') }}</button>
 
       <div v-if="loading" class="article-loading"><span /><span /><span /></div>
-      <div v-else-if="loadError" class="state-box"><PhWarningCircle :size="25" /><p>{{ loadError }}</p><button type="button" @click="loadArticleDetail(currentArticleId)">重新加载</button></div>
+      <div v-else-if="loadError" class="state-box"><PhWarningCircle :size="25" /><p>{{ loadError }}</p><button type="button" @click="loadArticleDetail(currentArticleId)">{{ t('common.retry') }}</button></div>
       <article v-else-if="currentArticle" class="article-detail">
         <header class="article-header">
           <div class="article-heading">
@@ -14,7 +14,7 @@
           <div class="article-meta">
             <span class="mono">{{ formatDate(currentArticle.date) }}</span>
             <span v-if="currentArticle.category">{{ currentArticle.category }}</span>
-            <span class="mono">{{ commentCount }} comments</span>
+            <span class="mono">{{ t('article.comments', { count: commentCount }) }}</span>
           </div>
           <div v-if="currentArticle.tags?.length" class="tags">
             <Tag v-for="tag in currentArticle.tags" :key="tag">{{ tag }}</Tag>
@@ -29,28 +29,28 @@
 
     <div v-else class="page-shell article-index">
       <header class="article-index-header">
-        <h1>Articles</h1>
-        <p>Notes on engineering, language learning, and the process behind this site.</p>
+        <h1>{{ t('article.title') }}</h1>
+        <p>{{ t('article.description') }}</p>
       </header>
 
       <div class="article-tools">
         <TagCloud :tags="allTags" :model-value="selectedTag" @tag-click="toggleTag" />
         <div class="filters">
           <label>
-            <span>分类</span>
-            <select v-model="selectedCategory"><option value="">所有分类</option><option v-for="category in categories" :key="category" :value="category">{{ category }}</option></select>
+            <span>{{ t('article.category') }}</span>
+            <select v-model="selectedCategory"><option value="">{{ t('article.allCategories') }}</option><option v-for="category in categories" :key="category" :value="category">{{ category }}</option></select>
           </label>
           <label class="search-label">
-            <span>搜索</span>
-            <span class="search-input"><PhMagnifyingGlass :size="19" aria-hidden="true" /><input v-model="searchQuery" type="search" placeholder="输入标题、内容或标签"></span>
+            <span>{{ t('article.search') }}</span>
+            <span class="search-input"><PhMagnifyingGlass :size="19" aria-hidden="true" /><input v-model="searchQuery" type="search" :placeholder="t('article.searchPlaceholder')"></span>
           </label>
         </div>
       </div>
 
       <div v-if="loading" class="article-grid"><div v-for="n in 4" :key="n" class="article-card skeleton" /></div>
-      <div v-else-if="loadError" class="state-box"><PhWarningCircle :size="25" /><p>{{ loadError }}</p><button type="button" @click="loadAllArticles">重新加载</button></div>
-      <div v-else-if="!filteredArticles.length" class="state-box"><PhArticle :size="25" /><p>没有找到匹配的文章，试试清除筛选条件。</p><button type="button" @click="clearFilters">清除筛选</button></div>
-      <section v-else class="article-grid" aria-label="文章列表">
+      <div v-else-if="loadError" class="state-box"><PhWarningCircle :size="25" /><p>{{ loadError }}</p><button type="button" @click="loadAllArticles">{{ t('common.retry') }}</button></div>
+      <div v-else-if="!filteredArticles.length" class="state-box"><PhArticle :size="25" /><p>{{ t('article.empty') }}</p><button type="button" @click="clearFilters">{{ t('article.clearFilters') }}</button></div>
+      <section v-else class="article-grid" :aria-label="t('article.listLabel')">
         <RouterLink v-for="(article, index) in filteredArticles" :key="article.id" :to="`/Animation3/article/detail/${article.id}`" class="article-card" :class="{ featured: index === 0 }">
           <div class="card-meta"><span class="mono">{{ formatDate(article.date) }}</span><span v-if="article.category">{{ article.category }}</span></div>
           <h2>{{ article.title }}</h2>
@@ -65,6 +65,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { PhArrowLeft, PhArrowRight, PhArticle, PhMagnifyingGlass, PhWarningCircle } from '@/design/icons'
 import { getArticleById, loadArticles } from '@/service/articleService'
 import CommentThread from '@/components/social/CommentThread.vue'
@@ -84,6 +85,7 @@ interface ArticleItem {
 
 const route = useRoute()
 const router = useRouter()
+const { t, locale } = useI18n()
 const articles = ref<ArticleItem[]>([])
 const currentArticle = ref<ArticleItem | null>(null)
 const selectedCategory = ref('')
@@ -114,7 +116,7 @@ async function loadAllArticles() {
   loading.value = true
   loadError.value = ''
   try { articles.value = await loadArticles() as ArticleItem[] }
-  catch (error) { loadError.value = error instanceof Error ? error.message : '文章加载失败' }
+  catch (error) { loadError.value = error instanceof Error ? error.message : t('article.loadFailed') }
   finally { loading.value = false }
 }
 
@@ -125,15 +127,15 @@ async function loadArticleDetail(id: string) {
   currentArticle.value = null
   try {
     currentArticle.value = await getArticleById(id) as ArticleItem | null
-    if (!currentArticle.value) loadError.value = '没有找到这篇文章。'
-  } catch (error) { loadError.value = error instanceof Error ? error.message : '文章加载失败' }
+    if (!currentArticle.value) loadError.value = t('article.notFound')
+  } catch (error) { loadError.value = error instanceof Error ? error.message : t('article.loadFailed') }
   finally { loading.value = false }
 }
 
 function toggleTag(tag: string) { selectedTag.value = selectedTag.value === tag ? null : tag }
 function clearFilters() { selectedTag.value = null; selectedCategory.value = ''; searchQuery.value = '' }
 function goBackToList() { router.push('/Animation3/article') }
-function formatDate(value: string) { return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value)) }
+function formatDate(value: string) { return new Intl.DateTimeFormat(locale.value, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value)) }
 function truncateText(html: string, maxLength: number) {
   const container = document.createElement('div')
   container.innerHTML = html
