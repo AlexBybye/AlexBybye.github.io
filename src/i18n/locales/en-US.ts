@@ -233,12 +233,21 @@ export default {
     githubEvents: {
       PushEvent: 'Code pushes',
       PullRequestEvent: 'Pull requests',
+      PullRequestReviewEvent: 'Code reviews',
+      PullRequestReviewCommentEvent: 'Review comments',
       IssuesEvent: 'Issue activity',
       IssueCommentEvent: 'Issue comments',
+      CommitCommentEvent: 'Commit comments',
       CreateEvent: 'Creations',
+      DeleteEvent: 'Deleted references',
+      GollumEvent: 'Wiki updates',
+      MemberEvent: 'Collaborator changes',
+      PublicEvent: 'Repositories made public',
       WatchEvent: 'Repository stars',
       ForkEvent: 'Repository forks',
-      ReleaseEvent: 'Releases'
+      ReleaseEvent: 'Releases',
+      SponsorshipEvent: 'Sponsorship activity',
+      OtherEvent: 'Other public activity'
     },
     snapshot: 'Global snapshot of public GitHub activity, refreshed every 12 hours.',
     stale: 'Stale',

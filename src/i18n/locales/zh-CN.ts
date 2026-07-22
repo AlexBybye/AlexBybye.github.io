@@ -233,12 +233,21 @@ export default {
     githubEvents: {
       PushEvent: '代码推送',
       PullRequestEvent: '合并请求',
+      PullRequestReviewEvent: '代码评审',
+      PullRequestReviewCommentEvent: '评审评论',
       IssuesEvent: '问题处理',
       IssueCommentEvent: '问题评论',
+      CommitCommentEvent: '提交评论',
       CreateEvent: '创建内容',
+      DeleteEvent: '删除引用',
+      GollumEvent: 'Wiki 更新',
+      MemberEvent: '协作者变更',
+      PublicEvent: '仓库公开',
       WatchEvent: '仓库关注',
       ForkEvent: '仓库分支',
-      ReleaseEvent: '版本发布'
+      ReleaseEvent: '版本发布',
+      SponsorshipEvent: '赞助动态',
+      OtherEvent: '其他公开活动'
     },
     snapshot: 'GitHub 公开动作全局快照，每 12 小时刷新一次。',
     stale: '待更新',

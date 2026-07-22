@@ -164,21 +164,6 @@ function eventWeight(event: GithubEventResponse) {
   return 1
 }
 
-function eventLabel(type: string) {
-  const labels: Record<string, string> = {
-    PushEvent: '推进代码',
-    PullRequestEvent: '发起合并',
-    PullRequestReviewEvent: '参与评审',
-    IssuesEvent: '处理议题',
-    IssueCommentEvent: '参与讨论',
-    CreateEvent: '创建项目',
-    ForkEvent: '分支推进',
-    ReleaseEvent: '发布版本',
-    WatchEvent: '关注项目'
-  }
-  return labels[type] || '公开动作'
-}
-
 function isoDay(date: Date) {
   return date.toISOString().slice(0, 10)
 }
@@ -191,7 +176,7 @@ function attackSummary(events: GithubEventResponse[]): AttackSummary {
     date.setUTCDate(today.getUTCDate() - (ATTACK_DAY_COUNT - 1 - index))
     return {
       date: isoDay(date),
-      label: new Intl.DateTimeFormat('zh-CN', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(date),
+      label: isoDay(date),
       actions: 0,
       events: 0
     }
@@ -216,7 +201,7 @@ function attackSummary(events: GithubEventResponse[]): AttackSummary {
     eventCount: days.reduce((sum, day) => sum + day.events, 0),
     activeDays: days.filter((day) => day.events > 0).length,
     repositories: repositories.size,
-    topEvent: eventLabel(topType),
+    topEvent: topType || 'OtherEvent',
     lastActionAt: events[0]?.created_at || null
   }
 }

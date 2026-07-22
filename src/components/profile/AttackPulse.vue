@@ -58,7 +58,9 @@
           </g>
         </svg>
         </div>
-        <div class="date-axis mono"><span>{{ summary.days[0].label }}</span><span>{{ summary.days[Math.floor(summary.days.length / 2)].label }}</span><span>{{ summary.days.at(-1)?.label }}</span></div>
+        <div class="date-axis mono">
+          <span v-for="tick in dateAxisTicks" :key="tick.date">{{ tick.label }}</span>
+        </div>
       </div>
 
       <footer class="pulse-note">
@@ -98,9 +100,16 @@ const chartPoints = computed(() => {
   const max = Math.max(1, ...summary.value.days.map((day) => day.actions))
   return summary.value.days.map((day, index) => ({
     ...day,
+    label: formatAxisDate(day.date),
     x: 20 + index / Math.max(1, summary.value!.days.length - 1) * 960,
     y: 236 - day.actions / max * 198
   }))
+})
+const dateAxisTicks = computed(() => {
+  if (!summary.value?.days.length) return []
+  const days = summary.value.days
+  const indexes = Array.from(new Set([0, Math.floor(days.length / 2), days.length - 1]))
+  return indexes.map((index) => ({ date: days[index].date, label: formatAxisDate(days[index].date) }))
 })
 const linePath = computed(() => chartPoints.value.map((point, index) => `${index ? 'L' : 'M'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' '))
 const areaPath = computed(() => chartPoints.value.length ? `${linePath.value} L 980 250 L 20 250 Z` : '')
@@ -135,10 +144,30 @@ function replayChart() {
 function formatLastAction(value: string) {
   return new Intl.DateTimeFormat(locale.value, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
 }
+function formatAxisDate(value: string) {
+  return new Intl.DateTimeFormat(locale.value, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC'
+  }).format(new Date(`${value}T00:00:00Z`))
+}
 function eventLabel(value: string) {
-  const key = `profile.githubEvents.${value}`
+  const legacyEventTypes: Record<string, string> = {
+    推进代码: 'PushEvent',
+    发起合并: 'PullRequestEvent',
+    参与评审: 'PullRequestReviewEvent',
+    处理议题: 'IssuesEvent',
+    参与讨论: 'IssueCommentEvent',
+    创建项目: 'CreateEvent',
+    分支推进: 'ForkEvent',
+    发布版本: 'ReleaseEvent',
+    关注项目: 'WatchEvent',
+    公开动作: 'OtherEvent'
+  }
+  const eventType = legacyEventTypes[value] || value || 'OtherEvent'
+  const key = `profile.githubEvents.${eventType}`
   const translated = t(key)
-  return translated === key ? value : translated
+  return translated === key ? t('profile.githubEvents.OtherEvent') : translated
 }
 onMounted(async () => {
   try { summary.value = await loadAttackSummary(props.username) }
