@@ -13,32 +13,47 @@ interface SourceState { size: number; mtimeMs: number }
 const gitDir = execFileSync('git', ['rev-parse', '--git-dir'], { encoding: 'utf8' }).trim()
 const stateFile = path.resolve(gitDir, 'blog-album-sources.json')
 const albumRoot = path.join(process.cwd(), 'public', 'album')
+// Flat roots whose source images are gitignored, so they cannot be detected via the staged diff.
+const flatRoots = ['public/images', 'public/music/img', 'public/resources', 'public/article']
+const sourcePattern = /\.(jpg|jpeg|png)$/i
 
-function scanAlbumSources(): Record<string, SourceState> {
-  const state: Record<string, SourceState> = {}
-  for (const album of fs.readdirSync(albumRoot, { withFileTypes: true }).filter((entry) => entry.isDirectory())) {
-    const folder = path.join(albumRoot, album.name)
-    for (const file of fs.readdirSync(folder).filter((name) => /\.(jpg|jpeg|png)$/i.test(name))) {
-      const stats = fs.statSync(path.join(folder, file))
-      state[`${album.name}/${file}`] = { size: stats.size, mtimeMs: stats.mtimeMs }
+// Collect source images under `dir`, keyed by their path relative to the repo root (using `keyBase`).
+function collectSources(dir: string, keyBase: string, state: Record<string, SourceState>): void {
+  if (!fs.existsSync(dir)) return
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name)
+    const key = `${keyBase}/${entry.name}`
+    if (entry.isDirectory()) collectSources(full, key, state)
+    else if (sourcePattern.test(entry.name)) {
+      const stats = fs.statSync(full)
+      state[key] = { size: stats.size, mtimeMs: stats.mtimeMs }
     }
   }
+}
+
+function scanSources(): Record<string, SourceState> {
+  const state: Record<string, SourceState> = {}
+  collectSources(albumRoot, 'public/album', state)
+  for (const root of flatRoots) collectSources(path.join(process.cwd(), root), root, state)
   return state
 }
 
-const currentSources = scanAlbumSources()
+const currentSources = scanSources()
 const previousSources = fs.existsSync(stateFile)
   ? JSON.parse(fs.readFileSync(stateFile, 'utf8')) as Record<string, SourceState>
   : currentSources
 for (const source of new Set([...Object.keys(previousSources), ...Object.keys(currentSources)])) {
   const previous = previousSources[source]
   const current = currentSources[source]
-  if (!previous || !current || previous.size !== current.size || previous.mtimeMs !== current.mtimeMs) {
-    albumFolders.add(source.split('/')[0])
-    if (previous && !current) {
-      const webp = path.join(albumRoot, source.replace(/\.(jpg|jpeg|png)$/i, '.webp'))
-      if (fs.existsSync(webp)) fs.unlinkSync(webp)
-    }
+  if (previous && current && previous.size === current.size && previous.mtimeMs === current.mtimeMs) continue
+  if (source.startsWith('public/album/')) albumFolders.add(source.split('/')[2])
+  else {
+    const root = flatRoots.find((candidate) => source.startsWith(`${candidate}/`))
+    if (root) optimizeRoots.add(root)
+  }
+  if (previous && !current) {
+    const webp = path.join(process.cwd(), source.replace(sourcePattern, '.webp'))
+    if (fs.existsSync(webp)) fs.unlinkSync(webp)
   }
 }
 
@@ -48,11 +63,6 @@ for (const file of staged) {
   if (parts[1] === 'album' && parts.length >= 4) albumFolders.add(parts[2])
   if (parts[1] === 'article' && parts[2] && parts[2].endsWith('.md')) articlesChanged = true
   if (parts[1] === 'music' && parts[2] && /\.(mp3|wav|ogg|flac|aac|m4a)$/i.test(parts[2])) musicChanged = true
-  if (/\.(jpg|jpeg|png)$/i.test(file)) {
-    if (file.startsWith('public/images/')) optimizeRoots.add('public/images')
-    else if (file.startsWith('public/music/img/')) optimizeRoots.add('public/music/img')
-    else if (file.startsWith('public/resources/')) optimizeRoots.add('public/resources')
-  }
 }
 
 if (albumFolders.size) {
@@ -72,4 +82,4 @@ for (const root of optimizeRoots) {
   execFileSync('npm', ['run', 'optimize-images', '--', root], { stdio: 'inherit' })
   execFileSync('git', ['add', '--all', root], { stdio: 'inherit' })
 }
-fs.writeFileSync(stateFile, JSON.stringify(scanAlbumSources()))
+fs.writeFileSync(stateFile, JSON.stringify(scanSources()))

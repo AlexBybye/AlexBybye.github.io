@@ -2,7 +2,7 @@ import { readdir, stat } from 'node:fs/promises'
 import { extname, join, relative } from 'node:path'
 import sharp from 'sharp'
 
-export const defaultRoots = ['public/album', 'public/images', 'public/music/img', 'public/resources']
+export const defaultRoots = ['public/album', 'public/images', 'public/music/img', 'public/resources', 'public/article']
 const supported = new Set(['.jpg', '.jpeg', '.png'])
 
 async function collect(directory: string): Promise<string[]> {
