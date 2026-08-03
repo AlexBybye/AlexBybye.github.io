@@ -42,9 +42,9 @@
             </clipPath>
           </defs>
           <g class="pitch-grid" aria-hidden="true">
-            <line v-for="line in 5" :key="`horizontal-${line}`" x1="20" :y1="line * 45" x2="980" :y2="line * 45" />
-            <line v-for="line in 7" :key="`vertical-${line}`" :x1="line * 125" y1="18" :x2="line * 125" y2="245" />
-            <circle cx="500" cy="132" r="58" />
+            <line v-for="tick in yAxisTicks" :key="`horizontal-${tick.value}`" :x1="PLOT_LEFT" :y1="tick.y" :x2="PLOT_RIGHT" :y2="tick.y" />
+            <line v-for="line in 7" :key="`vertical-${line}`" :x1="PLOT_LEFT + line / 8 * (PLOT_RIGHT - PLOT_LEFT)" :y1="PLOT_TOP" :x2="PLOT_LEFT + line / 8 * (PLOT_RIGHT - PLOT_LEFT)" :y2="PLOT_BOTTOM" />
+            <circle :cx="(PLOT_LEFT + PLOT_RIGHT) / 2" :cy="(PLOT_TOP + PLOT_BOTTOM) / 2" r="58" />
           </g>
           <g clip-path="url(#attack-reveal)">
             <path class="pulse-area" :d="areaPath" />
@@ -57,6 +57,9 @@
             </circle>
           </g>
         </svg>
+        <div class="value-axis mono" aria-hidden="true">
+          <span v-for="tick in yAxisTicks" :key="tick.value" :style="{ top: `${tick.y / CHART_HEIGHT * 100}%` }">{{ formatAxisValue(tick.value) }}</span>
+        </div>
         </div>
         <div class="date-axis mono">
           <span v-for="tick in dateAxisTicks" :key="tick.date">{{ tick.label }}</span>
@@ -88,6 +91,13 @@ const animationKey = ref(0)
 const chartCanvas = ref<HTMLElement | null>(null)
 const peakLit = ref(false)
 let peakTimer = 0
+const ATTACK_DAY_COUNT = 30
+const CHART_HEIGHT = 270
+const PLOT_LEFT = 52
+const PLOT_RIGHT = 980
+const PLOT_TOP = 38
+const PLOT_BOTTOM = 236
+const Y_AXIS_INTERVALS = 4
 // 与 .pulse-reveal 的 CSS 动画保持同源：linear 擦除，时机 = x 占比 × 总时长
 const REVEAL_MS = 2500
 const fallbackGraph = computed(() => {
@@ -95,14 +105,34 @@ const fallbackGraph = computed(() => {
   return `https://github-readme-activity-graph.vercel.app/graph?${query}`
 })
 
+const yAxisMax = computed(() => {
+  const maxActions = Math.max(0, ...(summary.value?.days.map((day) => day.actions) ?? []))
+  if (maxActions <= Y_AXIS_INTERVALS) return Y_AXIS_INTERVALS
+
+  const roughStep = maxActions / Y_AXIS_INTERVALS
+  const magnitude = 10 ** Math.floor(Math.log10(roughStep))
+  const normalizedStep = roughStep / magnitude
+  const niceFactor = normalizedStep <= 1 ? 1
+    : normalizedStep <= 2 ? 2
+      : normalizedStep <= 2.5 ? 2.5
+        : normalizedStep <= 3 ? 3
+          : normalizedStep <= 4 ? 4
+            : normalizedStep <= 5 ? 5
+              : normalizedStep <= 8 ? 8
+                : 10
+  return niceFactor * magnitude * Y_AXIS_INTERVALS
+})
+const yAxisTicks = computed(() => Array.from({ length: Y_AXIS_INTERVALS + 1 }, (_, index) => ({
+  value: yAxisMax.value - index * yAxisMax.value / Y_AXIS_INTERVALS,
+  y: PLOT_TOP + index / Y_AXIS_INTERVALS * (PLOT_BOTTOM - PLOT_TOP)
+})))
 const chartPoints = computed(() => {
   if (!summary.value) return []
-  const max = Math.max(1, ...summary.value.days.map((day) => day.actions))
   return summary.value.days.map((day, index) => ({
     ...day,
     label: formatAxisDate(day.date),
-    x: 20 + index / Math.max(1, summary.value!.days.length - 1) * 960,
-    y: 236 - day.actions / max * 198
+    x: PLOT_LEFT + index / Math.max(1, summary.value!.days.length - 1) * (PLOT_RIGHT - PLOT_LEFT),
+    y: PLOT_BOTTOM - day.actions / yAxisMax.value * (PLOT_BOTTOM - PLOT_TOP)
   }))
 })
 const dateAxisTicks = computed(() => {
@@ -112,7 +142,7 @@ const dateAxisTicks = computed(() => {
   return indexes.map((index) => ({ date: days[index].date, label: formatAxisDate(days[index].date) }))
 })
 const linePath = computed(() => chartPoints.value.map((point, index) => `${index ? 'L' : 'M'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' '))
-const areaPath = computed(() => chartPoints.value.length ? `${linePath.value} L 980 250 L 20 250 Z` : '')
+const areaPath = computed(() => chartPoints.value.length ? `${linePath.value} L ${PLOT_RIGHT} ${PLOT_BOTTOM} L ${PLOT_LEFT} ${PLOT_BOTTOM} Z` : '')
 const activePoints = computed(() => chartPoints.value.filter((point) => point.actions > 0))
 const peakPoint = computed(() => {
   if (!chartPoints.value.length) return null
@@ -151,6 +181,9 @@ function formatAxisDate(value: string) {
     timeZone: 'UTC'
   }).format(new Date(`${value}T00:00:00Z`))
 }
+function formatAxisValue(value: number) {
+  return new Intl.NumberFormat(locale.value, { maximumFractionDigits: 0 }).format(value)
+}
 function eventLabel(value: string) {
   const legacyEventTypes: Record<string, string> = {
     推进代码: 'PushEvent',
@@ -170,7 +203,7 @@ function eventLabel(value: string) {
   return translated === key ? t('profile.githubEvents.OtherEvent') : translated
 }
 onMounted(async () => {
-  try { summary.value = await loadAttackSummary(props.username) }
+  try { summary.value = await loadAttackSummary(props.username, ATTACK_DAY_COUNT) }
   catch (cause) { error.value = cause instanceof Error ? cause.message : t('errors.githubDataLoadFailed') }
   finally { loading.value = false }
 })
@@ -190,6 +223,8 @@ onBeforeUnmount(() => { window.clearTimeout(peakTimer) })
 .attack-scoreboard { position: relative; display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; margin: 2rem 0 0; overflow: hidden; border: 1px solid @line; border-radius: @radius-control; background: @line; }.attack-scoreboard div { padding: 1rem; background: rgba(9,9,11,.82); }.attack-scoreboard dt { color: @text-muted; font-size: .72rem; }.attack-scoreboard dd { margin: .55rem 0 0; font-size: clamp(1.15rem,2vw,1.55rem); font-weight: 720; }
 .pulse-chart { position: relative; margin-top: 1.25rem; overflow: hidden; border: 1px solid @line; border-radius: @radius-control; padding: .75rem .8rem .55rem; background: rgba(9,9,11,.78); }
 .chart-canvas { position: relative; }
+.value-axis { position: absolute; inset: 0 auto 0 0; width: 2.4rem; color: @text-muted; font-size: .62rem; pointer-events: none; }
+.value-axis span { position: absolute; right: .45rem; line-height: 1; transform: translateY(-50%); }
 .pulse-chart .peak-ball { position: absolute; z-index: 2; width: 22px; height: 22px; color: @text; transform: translate(-50%, -50%); filter: drop-shadow(0 0 6px rgba(227,6,19,.85)) drop-shadow(0 1px 3px rgba(0,0,0,.5)); pointer-events: none; transition: filter 180ms ease; }
 .pulse-chart .peak-ball.lit { animation: peak-strike 620ms cubic-bezier(.16,1,.3,1); }
 @keyframes peak-strike { 0% { filter: drop-shadow(0 0 6px rgba(227,6,19,.85)) drop-shadow(0 1px 3px rgba(0,0,0,.5)); transform: translate(-50%,-50%) scale(1); } 30% { filter: drop-shadow(0 0 18px rgba(255,51,64,1)) drop-shadow(0 0 34px rgba(227,6,19,.7)); transform: translate(-50%,-50%) scale(1.28); } 100% { filter: drop-shadow(0 0 6px rgba(227,6,19,.85)) drop-shadow(0 1px 3px rgba(0,0,0,.5)); transform: translate(-50%,-50%) scale(1); } }

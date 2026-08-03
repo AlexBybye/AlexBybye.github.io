@@ -99,7 +99,10 @@ interface PublicDiscussion {
 
 const SNAPSHOT_KEY = 'github-public-snapshot:v1'
 const SNAPSHOT_TTL_MS = 12 * 60 * 60 * 1000
-const ATTACK_DAY_COUNT = 42
+const ATTACK_DAY_COUNT = 30
+// GitHub 事件接口单页上限 100，取 200 条需要翻页；该接口总量最多 300 条 / 90 天。
+const ATTACK_EVENT_LIMIT = 200
+const ATTACK_EVENT_PAGE_SIZE = 100
 const GITHUB_USERNAME = 'AlexBybye'
 const GITHUB_REPOSITORIES = [
   { owner: 'AlexBybye', name: 'Make_Video_Great_Again' },
@@ -206,9 +209,31 @@ function attackSummary(events: GithubEventResponse[]): AttackSummary {
   }
 }
 
+async function fetchAttackEvents(env: Env): Promise<GithubEventResponse[]> {
+  const user = encodeURIComponent(GITHUB_USERNAME)
+  const events: GithubEventResponse[] = []
+  const pageCount = Math.ceil(ATTACK_EVENT_LIMIT / ATTACK_EVENT_PAGE_SIZE)
+
+  for (let page = 1; page <= pageCount; page += 1) {
+    const perPage = Math.min(ATTACK_EVENT_PAGE_SIZE, ATTACK_EVENT_LIMIT - events.length)
+    const path = `/users/${user}/events/public?per_page=${perPage}&page=${page}`
+    let batch: GithubEventResponse[]
+    try {
+      batch = await githubJson<GithubEventResponse[]>(path, env)
+    } catch (error) {
+      // 首页失败视为抓取失败；后续页失败（分页上限、限流）保留已取到的事件。
+      if (page === 1) throw error
+      break
+    }
+    events.push(...batch)
+    if (batch.length < perPage) break
+  }
+  return events
+}
+
 async function buildSnapshot(env: Env): Promise<GithubPublicSnapshot> {
   const [events, ...repositories] = await Promise.all([
-    githubJson<GithubEventResponse[]>(`/users/${encodeURIComponent(GITHUB_USERNAME)}/events/public?per_page=100`, env),
+    fetchAttackEvents(env),
     ...GITHUB_REPOSITORIES.map(({ owner, name }) =>
       githubJson<GithubRepositoryResponse>(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`, env)
     )

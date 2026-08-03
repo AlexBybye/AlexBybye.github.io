@@ -132,7 +132,7 @@ export async function loadPublicRepository(owner: string, name: string): Promise
   return repository
 }
 
-export async function loadAttackSummary(username: string, dayCount = 42): Promise<AttackSummary> {
+export async function loadAttackSummary(username: string, dayCount = 30): Promise<AttackSummary> {
   const snapshot = await loadSnapshot()
   if (snapshot.username.toLowerCase() !== username.toLowerCase()) {
     throw new Error(i18n.global.t('errors.userMissing', { name: username }))

@@ -214,7 +214,7 @@ export default {
   profile: {
     attackTitle: '进攻心率图',
     activityLabel: 'GitHub 活动',
-    attackDescription: '最近 42 天公开账号动作，按进攻强度聚合。',
+    attackDescription: '最近 30 天公开账号动作，按进攻强度聚合。',
     replayAttack: '重播进攻心率图',
     replay: '重播进攻',
     loadingActions: '正在读取 GitHub 公开动作',

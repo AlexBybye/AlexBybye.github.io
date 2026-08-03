@@ -214,7 +214,7 @@ export default {
   profile: {
     attackTitle: 'Attack pulse',
     activityLabel: 'GitHub activity',
-    attackDescription: 'Public activity from the last 42 days, grouped by attacking intensity.',
+    attackDescription: 'Public activity from the last 30 days, grouped by attacking intensity.',
     replayAttack: 'Replay attack pulse chart',
     replay: 'Replay attack',
     loadingActions: 'Reading public GitHub activity',
