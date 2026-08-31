@@ -10,4 +10,4 @@
 公共快照存储在固定 KV key `github-public-snapshot:v1`。更新博客或重新部署 Worker 不会清空 KV；
 只有删除命名空间、删除 key 或改绑新的 namespace id 才会丢失快照。
 
-Worker 只负责 code 到 token 的交换。访问 token 由浏览器保存到 `sessionStorage`，关闭会话后失效。
+Worker 只负责 code 到 token 的交换。访问 token 默认由浏览器保存到 `localStorage`；前端会兼容迁移旧的 `sessionStorage` token。Worker 不持久化用户访问 token。

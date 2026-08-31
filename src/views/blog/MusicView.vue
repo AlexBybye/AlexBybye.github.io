@@ -10,7 +10,7 @@
           </RouterLink>
         </RevealOnScroll>
 
-        <RevealOnScroll :delay="80" class="now-playing">
+        <RevealOnScroll :delay="80" class="now-playing" @pointermove="updatePointerGlow" @pointerleave="resetPointerGlow">
           <img :src="cover" :alt="currentTrack ? currentTrack.title : t('music.coverAlt')" fetchpriority="high" decoding="async">
           <div class="track-copy">
             <span class="mono">{{ musicStore.isPlaying ? t('music.playing') : t('music.paused') }}</span>
@@ -73,6 +73,7 @@ import CommentThread from '@/components/social/CommentThread.vue'
 import ReactionBar from '@/components/social/ReactionBar.vue'
 import RevealOnScroll from '@/components/ui/RevealOnScroll.vue'
 import TagCloud from '@/components/ui/TagCloud.vue'
+import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
 
 const musicStore = useMusicStore()
 const audioManager = useAudioManager()
@@ -150,7 +151,9 @@ onBeforeUnmount(() => {
 .music-copy h1 { max-width: 11ch; margin: 0; font-size: clamp(3rem, 7vw, 6.3rem); font-weight: 700; letter-spacing: -.07em; line-height: .92; }
 .music-copy p { max-width: 45ch; margin: 1.5rem 0 0; color: @text-muted; font-size: 1.1rem; line-height: 1.6; }
 .music-copy a { display: inline-flex; min-height: 46px; align-items: center; gap: .55rem; margin-top: 2rem; border-radius: 12px; padding: .75rem 1rem; background: @accent; color: @text; font-weight: 680; text-decoration: none; white-space: nowrap; }
-.now-playing { position: relative; overflow: hidden; min-height: 520px; border: 1px solid @line; border-radius: 16px; background: @surface-raised; }
+.now-playing { --pointer-x: 50%; --pointer-y: 50%; position: relative; overflow: hidden; min-height: 520px; border: 1px solid @line; border-radius: 16px; background: @surface-raised; }
+.now-playing::before { position: absolute; z-index: 1; inset: 0; content: ''; pointer-events: none; opacity: 0; background: radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(227,6,19,.2), transparent 34%); transition: opacity 220ms ease; }
+.now-playing:hover::before { opacity: 1; }
 .now-playing > img { position: absolute; width: 100%; height: 100%; object-fit: cover; filter: saturate(.65) contrast(1.08); }
 .now-playing::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(9,9,11,.05), rgba(9,9,11,.95)); }
 .track-copy { position: absolute; z-index: 1; right: 1.5rem; bottom: 1.5rem; left: 1.5rem; }
@@ -186,5 +189,5 @@ onBeforeUnmount(() => {
   .waveform { height: 160px; grid-template-columns: repeat(24, 1fr); }
   .waveform span:nth-child(n+25) { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { .waveform span { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .now-playing::before,.waveform span { transition: none; } }
 </style>

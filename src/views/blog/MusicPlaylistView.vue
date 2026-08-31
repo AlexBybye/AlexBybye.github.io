@@ -35,7 +35,7 @@
         <article v-for="(track, index) in filteredTracks" :key="track.filename" v-reveal
           class="track-card enter" :class="{ active: isTrackActive(track) }" role="button" tabindex="0"
           :style="{ '--enter-delay': `${Math.min(index % 8, 7) * 30}ms` }"
-          @click="selectTrack(track)" @keydown.enter="selectTrack(track)" @keydown.space.prevent="selectTrack(track)">
+          @click="selectTrack(track)" @keydown.enter="selectTrack(track)" @keydown.space.prevent="selectTrack(track)" @pointermove="updatePointerGlow" @pointerleave="resetPointerGlow">
           <img :src="coverFor(track.coverImage)" :alt="track.title" loading="lazy" decoding="async" @error="onImageError">
           <div class="track-info"><span class="mono">{{ String(index + 1).padStart(2, '0') }}</span><h3>{{ track.title }}</h3><p>{{ track.artist }}</p><small>{{ track.type }}</small></div>
           <div class="track-reaction" @click.stop><ReactionBar target-type="song" :target-id="slugFor(track.filename)" compact /></div>
@@ -61,6 +61,7 @@ import CommentThread from '@/components/social/CommentThread.vue'
 import ReactionBar from '@/components/social/ReactionBar.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import TagCloud from '@/components/ui/TagCloud.vue'
+import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
 
 const musicStore = useMusicStore()
 const audioManager = useAudioManager()
@@ -111,7 +112,9 @@ onMounted(() => { if (!musicStore.tracks.length) musicStore.loadTracks() })
 .filter-row { display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; margin-block: 2rem; }
 .volume-control { display: grid; grid-template-columns: auto 120px 42px; gap: .7rem; align-items: center; color: @text-muted; font-size: .8rem; }.volume-control input { accent-color: @accent; }
 .track-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; content-visibility: auto; contain-intrinsic-size: 900px; }
-.track-card { display: grid; grid-template-columns: 108px 1fr; gap: 1rem; min-width: 0; overflow: hidden; border: 1px solid @line; border-radius: 16px; padding: .75rem; background: @surface-raised; cursor: pointer; transition: border-color 160ms ease, transform 160ms ease; }
+.track-card { --pointer-x: 50%; --pointer-y: 50%; position: relative; display: grid; grid-template-columns: 108px 1fr; gap: 1rem; min-width: 0; overflow: hidden; border: 1px solid @line; border-radius: 16px; padding: .75rem; background: @surface-raised; cursor: pointer; transition: border-color 160ms ease, transform 160ms ease; }
+.track-card::before { position: absolute; inset: 0; content: ''; pointer-events: none; opacity: 0; background: radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(227,6,19,.16), transparent 34%); transition: opacity 220ms ease; }
+.track-card:hover::before { opacity: 1; }.track-card > * { position: relative; }
 .track-card:nth-child(5n + 1) { grid-column: span 2; grid-template-columns: 160px 1fr auto; }
 .track-card:hover, .track-card.active { border-color: @accent; }.track-card:hover { transform: translateY(-2px); }
 .track-card.enter { opacity: 0; transform: translateY(18px) scale(.98); }
@@ -128,5 +131,5 @@ onMounted(() => { if (!musicStore.tracks.length) musicStore.loadTracks() })
   .filter-row { grid-template-columns: 1fr; }.volume-control { grid-template-columns: auto 1fr 42px; }
   .track-grid, .track-skeletons { grid-template-columns: 1fr; }.track-card, .track-card:nth-child(5n + 1) { grid-column: auto; grid-template-columns: 88px 1fr; }.track-card > img, .track-card:nth-child(5n + 1) > img { width: 88px; height: 88px; }.track-card:nth-child(5n + 1) .track-reaction { grid-column: 1 / -1; grid-row: auto; }
 }
-@media (prefers-reduced-motion: reduce) { .track-card { transition: none; } .track-card.enter { opacity: 1; transform: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .track-card::before { transition: none; } .track-card { transition: none; } .track-card.enter { opacity: 1; transform: none; animation: none; } }
 </style>

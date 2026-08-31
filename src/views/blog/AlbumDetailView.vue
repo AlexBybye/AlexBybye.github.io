@@ -193,9 +193,10 @@ onBeforeUnmount(() => {
 @import '../../styles/tokens.less';
 
 .album-detail-page { min-height: 100dvh; background: transparent; color: @text; }
-.detail-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: 1.25rem; }
-.back-button,.view-switcher button { display: inline-flex; min-height: 44px; align-items: center; gap: .5rem; border: 1px solid @line; border-radius: 12px; padding: .65rem .85rem; background: @surface-raised; color: @text; font-weight: 650; white-space: nowrap; cursor: pointer; transition: border-color 180ms ease,transform 180ms ease,background 180ms ease; }
-.back-button:hover,.view-switcher button:hover { border-color: @accent; transform: translateY(-2px); }.back-button:active,.view-switcher button:active { transform: scale(.97); }
+.detail-toolbar { position: sticky; top: 86px; z-index: 12; display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-inline: calc(clamp(1rem, 3vw, 2rem) * -1); padding: .75rem clamp(1rem, 3vw, 2rem); background: rgba(9,9,11,.88); border-bottom: 1px solid transparent; backdrop-filter: blur(14px); }
+.back-button,.view-switcher button { position: relative; display: inline-flex; min-height: 44px; align-items: center; gap: .5rem; overflow: hidden; border: 1px solid @line; border-radius: 12px; padding: .65rem .85rem; background: @surface-raised; color: @text; font-weight: 650; white-space: nowrap; cursor: pointer; isolation: isolate; transition: border-color 180ms ease,transform 180ms ease,background 180ms ease; }
+.back-button::before { position: absolute; z-index: -1; inset: 3px -24px; content: ''; background: @accent; opacity: 0; transform: translateX(-110%) skewX(-14deg); transition: transform 360ms cubic-bezier(.16,1,.3,1),opacity 180ms ease; }
+.back-button:hover,.view-switcher button:hover { border-color: @accent; transform: translateY(-2px); }.back-button:hover::before { opacity: 1; transform: translateX(0) skewX(-14deg); }.back-button:active,.view-switcher button:active { transform: scale(.97); }
 .view-switcher { display: flex; gap: .4rem; }.view-switcher button { border-color: transparent; color: @text-muted; }.view-switcher button[aria-pressed='true'] { background: @accent; color: @text; }
 
 .detail-hero { display: grid; grid-template-columns: minmax(0,1.18fr) minmax(300px,.82fr); gap: clamp(2rem,8vw,7rem); min-height: 510px; align-items: end; padding-block: clamp(3rem,7vw,6rem); border-bottom: 1px solid @line; }
@@ -223,5 +224,5 @@ onBeforeUnmount(() => {
   .viewer { grid-template-columns: 44px minmax(0,1fr) 44px; gap: .25rem; }.viewer-close,.viewer-nav { width: 42px; height: 42px; }.viewer-stage { height: calc(100dvh - 7rem); }.viewer-stage > img { max-height: calc(100dvh - 7rem); }.state-box { align-items: start; flex-direction: column; }.state-box button { width: 100%; margin: 0; }
 }
 @media (prefers-reduced-transparency: reduce) { .viewer { background: @surface; backdrop-filter: none; } }
-@media (prefers-reduced-motion: reduce) { .album-title-block h1 > span,.loading-grid span { animation: none; }.back-button,.view-switcher button,.load-line i,.load-pitch > svg,.photo-button,.photo-button img,.photo-shine,.viewer-enter-active,.viewer-leave-active,.viewer-enter-active .viewer-stage,.viewer-leave-active .viewer-stage,.photo-swap-enter-active,.photo-swap-leave-active,.grid-switch-enter-active,.grid-switch-leave-active,.viewer-close,.viewer-nav { transition: none; }.photo-button { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .album-title-block h1 > span,.loading-grid span { animation: none; }.back-button,.view-switcher button,.back-button::before,.load-line i,.load-pitch > svg,.photo-button,.photo-button img,.photo-shine,.viewer-enter-active,.viewer-leave-active,.viewer-enter-active .viewer-stage,.viewer-leave-active .viewer-stage,.photo-swap-enter-active,.photo-swap-leave-active,.grid-switch-enter-active,.grid-switch-leave-active,.viewer-close,.viewer-nav { transition: none; }.photo-button { opacity: 1; transform: none; } }
 </style>

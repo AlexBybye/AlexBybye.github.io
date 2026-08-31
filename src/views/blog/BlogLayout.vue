@@ -160,18 +160,27 @@ watch(() => router.currentRoute.value.fullPath, () => { menuOpen.value = false }
 
 .floating-player {
   position: fixed; z-index: 30; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom));
-  display: flex; width: min(430px, calc(100vw - 2rem)); align-items: center; justify-content: space-between; gap: 1rem;
-  border: 1px solid rgba(244,244,245,.16); border-radius: 16px; padding: .65rem;
-  background: rgba(24,24,27,.78); color: @text; backdrop-filter: blur(22px) saturate(135%);
+  display: flex; width: 64px; height: 64px; align-items: center; justify-content: center; gap: 1rem;
+  overflow: hidden; border: 1px solid rgba(244,244,245,.16); border-radius: 16px; padding: .45rem;
+  background: rgba(24,24,27,.88); color: @text; backdrop-filter: blur(22px) saturate(135%);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 20px 60px rgba(9,9,11,.42);
+  transition: width 420ms cubic-bezier(.16,1,.3,1), height 260ms ease, border-color 220ms ease, background 220ms ease;
 }
-.track-link { display: grid; min-width: 0; flex: 1; grid-template-columns: 44px 1fr; gap: .7rem; align-items: center; border: 0; padding: 0; background: transparent; color: @text; text-align: left; cursor: pointer; }
-.track-link img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; }
-.track-link span { display: grid; min-width: 0; gap: .18rem; }
+.floating-player::before { position: absolute; z-index: -1; top: -80%; bottom: -80%; left: -22%; width: 30%; content: ''; background: @accent; opacity: 0; transform: translateX(-180%) skewX(-18deg); transition: transform 520ms cubic-bezier(.16,1,.3,1), opacity 180ms ease; }
+.floating-player:hover,.floating-player:focus-within { width: min(430px, calc(100vw - 2rem)); height: auto; justify-content: space-between; border-color: rgba(227,6,19,.72); background: rgba(24,24,27,.94); }
+.floating-player:hover::before,.floating-player:focus-within::before { opacity: .9; transform: translateX(720%) skewX(-18deg); }
+.track-link { display: grid; min-width: 0; flex: 1; grid-template-columns: 46px 1fr; gap: .7rem; align-items: center; border: 0; padding: 0; background: transparent; color: @text; text-align: left; cursor: pointer; }
+.track-link img { width: 46px; height: 46px; border-radius: 12px; object-fit: cover; }
+.track-link span { display: grid; min-width: 0; gap: .18rem; opacity: 0; transform: translateX(-8px); transition: opacity 220ms ease, transform 320ms ease; }
+.floating-player:hover .track-link span,.floating-player:focus-within .track-link span { opacity: 1; transform: none; }
 .track-link strong, .track-link small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .track-link strong { font-size: .83rem; } .track-link small { color: @text-muted; font-size: .72rem; }
-.player-controls { display: flex; gap: .35rem; }
+.player-controls { display: flex; gap: .35rem; opacity: 0; pointer-events: none; transform: translateX(8px); transition: opacity 220ms ease, transform 320ms ease; }
+.floating-player:hover .player-controls,.floating-player:focus-within .player-controls { opacity: 1; pointer-events: auto; transform: none; }
 .player-controls :deep(.icon-button) { width: 38px; height: 38px; border-color: transparent; background: transparent; }
+.floating-player:not(:hover):not(:focus-within) .player-controls :deep(.icon-button:nth-child(2)) { opacity: 1; pointer-events: auto; }
+.floating-player:not(:hover):not(:focus-within) .player-controls { position: absolute; right: .45rem; opacity: 1; pointer-events: auto; transform: none; }
+.floating-player:not(:hover):not(:focus-within) .player-controls :deep(.icon-button:first-child),.floating-player:not(:hover):not(:focus-within) .player-controls :deep(.icon-button:last-child) { display: none; }
 
 @media (max-width: 767px) {
   .site-layout::before {
@@ -194,9 +203,11 @@ watch(() => router.currentRoute.value.fullPath, () => { menuOpen.value = false }
   .page-links a:hover::before, .page-links a.router-link-active::before { transform: translate3d(0,0,0); }
   .page-links a:hover span { letter-spacing: normal; transform: none; }
   .friends-link:hover { transform: none; }
-  .floating-player { right: 0; bottom: 0; left: 0; width: 100%; border-right: 0; border-bottom: 0; border-left: 0; border-radius: 16px 16px 0 0; padding: .6rem max(.75rem, env(safe-area-inset-right)) max(.6rem, env(safe-area-inset-bottom)) max(.75rem, env(safe-area-inset-left)); }
-  .player-controls :deep(.icon-button:first-child) { display: none; }
-  .site-content { padding-bottom: 6.5rem; }
+  .floating-player { right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); left: auto; width: 64px; height: 64px; border-radius: 16px; padding: .45rem; }
+  .floating-player .track-link span { display: none; }
+  .floating-player .player-controls { position: absolute; right: .45rem; opacity: 1; pointer-events: auto; transform: none; }
+  .floating-player .player-controls :deep(.icon-button:first-child),.floating-player .player-controls :deep(.icon-button:last-child) { display: none; }
+  .site-content { padding-bottom: 5rem; }
   .route-stage::before { top: 86px; width: 42vw; }
 }
 
@@ -206,7 +217,7 @@ watch(() => router.currentRoute.value.fullPath, () => { menuOpen.value = false }
 
 @media (prefers-reduced-motion: reduce) {
   .marquee-track { animation: none; transform: none; }
-  .page-links a, .page-links a::before, .page-links a span, .friends-link, .route-slice-enter-active, .route-slice-leave-active { transition: none; }
+  .page-links a, .page-links a::before, .page-links a span, .friends-link, .floating-player, .floating-player::before, .track-link span, .player-controls, .route-slice-enter-active, .route-slice-leave-active { transition: none; }
   .route-slice-enter-active::before { animation: none; }
   .route-slice-enter-from, .route-slice-leave-to { opacity: 1; transform: none; }
   .reading-progress { display: none; }

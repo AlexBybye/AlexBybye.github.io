@@ -6,7 +6,7 @@
       <div v-else-if="error" class="state-box"><PhWarningCircle :size="25" /><p>{{ error }}</p><button type="button" @click="loadAlbums">{{ t('common.retry') }}</button></div>
       <div v-else class="album-list" :aria-label="t('album.listLabel')">
         <RevealOnScroll v-for="(album, index) in albums" :key="album.id" :delay="Math.min(index * 70, 280)">
-          <RouterLink class="album-row" :class="{ reverse: index % 2 === 1 }" :to="`/Animation3/album/detail/${album.id}`">
+          <RouterLink class="album-row" :class="{ reverse: index % 2 === 1 }" :to="`/Animation3/album/detail/${album.id}`" @pointermove="updatePointerGlow" @pointerleave="resetPointerGlow">
             <div class="album-copy">
               <span class="mono">{{ String(index + 1).padStart(2, '0') }} / {{ t('album.photos', { count: album.count }) }}</span>
               <h2>{{ album.title }}</h2>
@@ -29,6 +29,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PhArrowRight, PhSoccerBall, PhWarningCircle } from '@/design/icons'
 import RevealOnScroll from '@/components/ui/RevealOnScroll.vue'
+import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
 
 interface AlbumItem { id: string; title: string; date: string; count: number; description: string; previews?: number[] }
 const albums = ref<AlbumItem[]>([])
@@ -73,7 +74,9 @@ onMounted(loadAlbums)
 .album-header { max-width: 800px; padding-block: clamp(2.5rem, 7vw, 6rem); }.album-header h1 { margin: 0; font-size: clamp(3.2rem, 10vw, 7.4rem); letter-spacing: -.08em; line-height: .9; }.album-header p { max-width: 54ch; margin: 1.4rem 0 0; color: @text-muted; font-size: 1.1rem; line-height: 1.65; }
 .album-list { display: grid; gap: 1rem; }
 .album-list :deep(.reveal) { min-width: 0; }
-.album-row { display: grid; grid-template-columns: .78fr 1.22fr; min-height: 430px; overflow: hidden; border: 1px solid @line; border-radius: 16px; background: @surface-raised; color: @text; text-decoration: none; cursor: pointer; }
+.album-row { --pointer-x: 50%; --pointer-y: 50%; position: relative; display: grid; grid-template-columns: .78fr 1.22fr; min-height: 430px; overflow: hidden; border: 1px solid @line; border-radius: 16px; background: @surface-raised; color: @text; text-decoration: none; cursor: pointer; }
+.album-row::before { position: absolute; inset: 0; z-index: 1; content: ''; pointer-events: none; opacity: 0; background: radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(227,6,19,.15), transparent 32%); transition: opacity 220ms ease; }
+.album-row:hover::before { opacity: 1; }.album-row > * { position: relative; z-index: 2; }
 .album-row.reverse { grid-template-columns: 1.1fr .9fr; }.album-row.reverse .album-copy { order: 2; }.album-row.reverse .album-preview { order: 1; }
 .album-copy { display: flex; flex-direction: column; justify-content: center; padding: clamp(1.5rem, 5vw, 4rem); }.album-copy > span:first-child { color: @accent-strong; font-size: .72rem; }.album-copy h2 { max-width: 10ch; margin: 1.1rem 0 .8rem; font-size: clamp(2.2rem, 5vw, 4.8rem); letter-spacing: -.06em; line-height: .95; }.album-copy p { max-width: 42ch; margin: 0; color: @text-muted; line-height: 1.65; }.album-link { display: inline-flex; width: fit-content; min-height: 44px; align-items: center; gap: .5rem; margin-top: 1.8rem; color: @text; font-weight: 680; }
 .album-preview { display: grid; grid-template-columns: 1.4fr .6fr; grid-template-rows: repeat(2, 1fr); gap: 4px; min-width: 0; background: @surface; }.album-preview img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.72); transition: transform 700ms cubic-bezier(.16,1,.3,1), filter 300ms ease; }.album-preview img:first-child { grid-row: 1 / -1; }.album-row:hover .album-preview img { filter: saturate(.95); transform: scale(1.018); }
@@ -86,5 +89,5 @@ onMounted(loadAlbums)
   .album-row, .album-row.reverse { grid-template-columns: 1fr; min-height: 0; }.album-row.reverse .album-copy, .album-row.reverse .album-preview { order: initial; }.album-copy { min-height: 300px; }.album-preview { min-height: 320px; }
   .state-box { align-items: start; flex-direction: column; }.state-box button { width: 100%; margin: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .album-preview img,.album-copy h2,.album-link :deep(svg) { transition: none; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .album-row::before { transition: none; } .album-preview img,.album-copy h2,.album-link :deep(svg) { transition: none; transform: none; } }
 </style>

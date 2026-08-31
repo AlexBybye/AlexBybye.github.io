@@ -101,7 +101,7 @@ VITE_GITHUB_DISCUSSION_CATEGORY=site-comments
 
 然后按 `worker/README.md` 部署 Cloudflare Worker，并在目标 GitHub 仓库启用 Discussions。
 
-- OAuth token 仅保存在浏览器 `sessionStorage`；本地存储只用于评论缓存与离线降级，不作为身份或数据真源。
+- OAuth token 默认保存在浏览器 `localStorage`；代码会兼容迁移旧的 `sessionStorage` token。评论与公开数据缓存也使用本地存储，Worker 不持久化用户 token。
 - 评论作者身份来自真实 GitHub 授权，无法冒充。
 - 未配置 GitHub 环境变量时，文章、音乐和相册仍可正常阅读，社交组件会显示明确的未配置状态。
 

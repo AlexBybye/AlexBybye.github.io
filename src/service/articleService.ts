@@ -19,29 +19,43 @@ interface ArticleMetadata {
   [key: string]: string | string[] | undefined;
 }
 
-// 简单的YAML解析器
+// 解析文章 front matter 中的基础字段，并支持 Obsidian 常见的多行 tags 列表
 const parseYAML = (yamlStr: string): ArticleMetadata => {
   const result: ArticleMetadata = {};
-  const lines = yamlStr.split('\n');
+  const lines = yamlStr.split(/\r?\n/);
 
-  for (const line of lines) {
-    const colonIndex = line.indexOf(':');
-    if (colonIndex !== -1) {
-      const key = line.substring(0, colonIndex).trim();
-      let value: string | string[] = line.substring(colonIndex + 1).trim();
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const fieldMatch = line.match(/^\s*([^:#][^:]*):\s*(.*)$/);
+    if (!fieldMatch) continue;
 
-      // 尝试解析数组
-      if (value.startsWith('[') && value.endsWith(']')) {
-        value = value
-          .substring(1, value.length - 1)
-          .split(',')
-          .map(item => item.trim().replace(/['"]/g, ''));
-      } else if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.substring(1, value.length - 1);
-      } else if (value.startsWith("'") && value.endsWith("'")) {
-        value = value.substring(1, value.length - 1);
+    const key = fieldMatch[1].trim();
+    let value = fieldMatch[2].trim();
+
+    if (key.toLowerCase() === 'tags' && !value) {
+      const tags: string[] = [];
+      for (let nextIndex = index + 1; nextIndex < lines.length; nextIndex += 1) {
+        const tagMatch = lines[nextIndex].match(/^\s*-\s*(.+?)\s*$/);
+        if (tagMatch) {
+          tags.push(tagMatch[1].replace(/^['"]|['"]$/g, ''));
+          index = nextIndex;
+          continue;
+        }
+        if (lines[nextIndex].trim()) break;
+        index = nextIndex;
       }
+      result[key] = tags;
+      continue;
+    }
 
+    if (value.startsWith('[') && value.endsWith(']')) {
+      result[key] = value
+        .substring(1, value.length - 1)
+        .split(',')
+        .map(item => item.trim().replace(/^['"]|['"]$/g, ''))
+        .filter(Boolean);
+    } else {
+      value = value.replace(/^['"]|['"]$/g, '');
       result[key] = value;
     }
   }
@@ -85,7 +99,8 @@ const BASE_PATH = import.meta.env.BASE_URL || '/';
 const resolveObsidianEmbeds = (markdown: string): string => {
   return markdown.replace(/!\[\[([^\]|]+?)(?:\|([^\]]*))?\]\]/g, (_match, rawName, sizeHint) => {
     const name = String(rawName).trim();
-    const src = `${BASE_PATH}article/${encodeURIComponent(name)}`.replace('//', '/');
+    const optimizedName = name.replace(/\.(png|jpe?g)$/i, '.webp');
+    const src = `${BASE_PATH}article/${encodeURIComponent(optimizedName)}`.replace('//', '/');
     const size = typeof sizeHint === 'string' ? sizeHint.trim() : '';
     const width = /^\d+$/.test(size) ? ` width="${size}"` : '';
     const alt = name.replace(/"/g, '');

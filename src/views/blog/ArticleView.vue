@@ -1,7 +1,9 @@
 <template>
   <div class="article-page">
     <div v-if="currentArticleId" class="page-shell article-detail-shell">
-      <button class="back-button" type="button" @click="goBackToList"><PhArrowLeft :size="18" weight="bold" />{{ t('article.backToList') }}</button>
+      <div class="article-detail-toolbar">
+        <button class="back-button" type="button" @click="goBackToList"><PhArrowLeft :size="18" weight="bold" />{{ t('article.backToList') }}</button>
+      </div>
 
       <div v-if="loading" class="article-loading"><span /><span /><span /></div>
       <div v-else-if="loadError" class="state-box"><PhWarningCircle :size="25" /><p>{{ loadError }}</p><button type="button" @click="loadArticleDetail(currentArticleId)">{{ t('common.retry') }}</button></div>
@@ -51,7 +53,7 @@
       <div v-else-if="loadError" class="state-box"><PhWarningCircle :size="25" /><p>{{ loadError }}</p><button type="button" @click="loadAllArticles">{{ t('common.retry') }}</button></div>
       <div v-else-if="!filteredArticles.length" class="state-box"><PhArticle :size="25" /><p>{{ t('article.empty') }}</p><button type="button" @click="clearFilters">{{ t('article.clearFilters') }}</button></div>
       <section v-else class="article-grid" :aria-label="t('article.listLabel')">
-        <RouterLink v-for="(article, index) in filteredArticles" :key="article.id" :to="`/Animation3/article/detail/${article.id}`" class="article-card" :class="{ featured: index === 0 }">
+        <RouterLink v-for="(article, index) in filteredArticles" :key="article.id" :to="`/Animation3/article/detail/${article.id}`" class="article-card" :class="{ featured: index === 0 }" @pointermove="updatePointerGlow" @pointerleave="resetPointerGlow">
           <div class="card-meta"><span class="mono">{{ formatDate(article.date) }}</span><span v-if="article.category">{{ article.category }}</span></div>
           <h2>{{ article.title }}</h2>
           <p>{{ article.description || truncateText(article.content, 120) }}</p>
@@ -72,6 +74,7 @@ import CommentThread from '@/components/social/CommentThread.vue'
 import ReactionBar from '@/components/social/ReactionBar.vue'
 import Tag from '@/components/ui/Tag.vue'
 import TagCloud from '@/components/ui/TagCloud.vue'
+import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
 
 interface ArticleItem {
   id: string
@@ -159,7 +162,9 @@ onMounted(() => { if (!articles.value.length && !currentArticleId.value) loadAll
 select, input { min-height: 46px; border: 1px solid @line; border-radius: 12px; background: @surface-raised; color: @text; font-size: 16px; }
 select { padding: 0 .85rem; }.search-input { display: grid; grid-template-columns: auto 1fr; align-items: center; border: 1px solid @line; border-radius: 12px; padding-left: .85rem; background: @surface-raised; }.search-input input { width: 100%; border: 0; background: transparent; }.search-input input:focus { outline: 0; }
 .article-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-.article-card { display: flex; min-height: 330px; flex-direction: column; border: 1px solid @line; border-radius: 16px; padding: clamp(1.25rem, 3vw, 2rem); background: @surface-raised; color: @text; text-decoration: none; cursor: pointer; transition: border-color 180ms ease, transform 180ms ease; }
+.article-card { --pointer-x: 50%; --pointer-y: 50%; position: relative; display: flex; min-height: 330px; flex-direction: column; overflow: hidden; border: 1px solid @line; border-radius: 16px; padding: clamp(1.25rem, 3vw, 2rem); background: @surface-raised; color: @text; text-decoration: none; cursor: pointer; transition: border-color 180ms ease, transform 180ms ease; }
+.article-card::before { position: absolute; inset: 0; content: ''; pointer-events: none; opacity: 0; background: radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(227,6,19,.17), transparent 35%); transition: opacity 220ms ease; }
+.article-card:hover::before { opacity: 1; }.article-card > * { position: relative; }
 .article-card.featured { grid-row: span 2; min-height: 676px; background: linear-gradient(155deg, #2b1114, @surface-raised 58%); }
 .article-card:hover { border-color: @accent; transform: translateY(-2px); }
 .card-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .7rem; color: @text-muted; font-size: .76rem; }
@@ -168,7 +173,11 @@ select { padding: 0 .85rem; }.search-input { display: grid; grid-template-column
 .card-footer { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; }.tags { display: flex; flex-wrap: wrap; gap: .5rem; }
 .skeleton { min-height: 330px; cursor: default; animation: pulse 1.2s ease-in-out infinite alternate; } @keyframes pulse { to { opacity: .48; } }
 .state-box { display: flex; align-items: center; gap: 1rem; border: 1px dashed @line; border-radius: 16px; padding: 2rem; color: @text-muted; }.state-box p { margin: 0; }.state-box button { min-height: 44px; margin-left: auto; border: 0; border-radius: 12px; padding: .7rem 1rem; background: @accent; color: @text; font-weight: 650; cursor: pointer; }
-.article-detail-shell { max-width: 980px; }.back-button { display: inline-flex; min-height: 44px; align-items: center; gap: .5rem; border: 1px solid @line; border-radius: 12px; padding: .65rem .85rem; background: @surface-raised; color: @text; cursor: pointer; }
+.article-detail-shell { max-width: 980px; }
+.article-detail-toolbar { position: sticky; top: 86px; z-index: 12; margin-inline: calc(clamp(1rem, 3vw, 2rem) * -1); padding: .75rem clamp(1rem, 3vw, 2rem); background: rgba(9,9,11,.88); border-bottom: 1px solid transparent; backdrop-filter: blur(14px); }
+.back-button { position: relative; display: inline-flex; min-height: 44px; align-items: center; gap: .5rem; overflow: hidden; border: 1px solid @line; border-radius: 12px; padding: .65rem .85rem; background: @surface-raised; color: @text; cursor: pointer; isolation: isolate; }
+.back-button::before { position: absolute; z-index: -1; inset: 3px -24px; content: ''; background: @accent; opacity: 0; transform: translateX(-110%) skewX(-14deg); transition: transform 360ms cubic-bezier(.16,1,.3,1), opacity 180ms ease; }
+.back-button:hover { border-color: @accent; }.back-button:hover::before { opacity: 1; transform: translateX(0) skewX(-14deg); }
 .article-header { padding-block: clamp(2.5rem, 7vw, 6rem); border-bottom: 1px solid @line; }.article-heading h1 { max-width: 16ch; margin: 0; font-size: clamp(2.8rem, 8vw, 6.5rem); letter-spacing: -.075em; line-height: .94; }.article-heading p { max-width: 56ch; margin: 1.5rem 0 0; color: @text-muted; font-size: 1.08rem; line-height: 1.65; }.article-meta { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; margin-top: 2rem; color: @text-muted; font-size: .82rem; }.article-header > .tags { margin-block: 1.25rem; }
 .markdown-content { padding-block: clamp(3rem, 7vw, 5.5rem); color: #d4d4d8; font-size: 1.04rem; line-height: 1.82; }
 .markdown-content :deep(h1), .markdown-content :deep(h2), .markdown-content :deep(h3) { color: @text; letter-spacing: -.035em; line-height: 1.12; }.markdown-content :deep(h2) { margin-top: 2.5em; font-size: clamp(1.7rem, 4vw, 2.7rem); }.markdown-content :deep(a) { color: @accent-strong; }.markdown-content :deep(code) { border-radius: 6px; padding: .12em .35em; background: @surface-soft; font-family: 'Geist Mono Variable', monospace; }.markdown-content :deep(pre) { overflow-x: auto; border: 1px solid @line; border-radius: 16px; padding: 1rem; background: @surface-raised; }.markdown-content :deep(pre code) { padding: 0; background: transparent; }.markdown-content :deep(img) { display: block; max-width: 100%; height: auto; margin: 1.5rem auto; border-radius: 16px; }
@@ -178,5 +187,5 @@ select { padding: 0 .85rem; }.search-input { display: grid; grid-template-column
   .state-box { align-items: start; flex-direction: column; }.state-box button { width: 100%; margin-left: 0; }
   .article-heading h1 { font-size: clamp(2.8rem, 15vw, 4.8rem); }
 }
-@media (prefers-reduced-motion: reduce) { .article-card { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .article-card, .article-card::before { transition: none; } }
 </style>
