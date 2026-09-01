@@ -5,7 +5,7 @@
         <div class="hero-story">
           <div class="hero-copy">
             <span class="hero-hello mono">{{ t('about.hello') }}</span>
-            <h1 id="about-title"><span>LIN_</span><span>ECLIPSE</span></h1>
+            <h1 id="about-title"><span>KLOS_</span><span>URE</span></h1>
           </div>
           <p>{{ t('about.profileBio') }}</p>
           <div class="push-rail" aria-hidden="true"><span /></div>
@@ -19,7 +19,7 @@
               </div>
               <div>
                 <span class="profile-question mono">{{ t('about.quickIntro') }}</span>
-                <h2>L i n _ e c l i p s e</h2>
+                <h2>K L O S U R E</h2>
                 <p>{{ t('about.profileTitle') }}</p>
               </div>
             </div>
