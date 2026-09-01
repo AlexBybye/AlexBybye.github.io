@@ -1,0 +1,280 @@
+[
+  {
+    "id": "调酒心得",
+    "title": "调酒心得：几杯家常鸡尾酒的配方与品鉴",
+    "date": "2026-07-10",
+    "category": "生活",
+    "tags": [
+      "生活"
+    ],
+    "description": "金酒朗姆伏特加打底，几款自调酒的比例与风味笔记"
+  },
+  {
+    "id": "真假iphone实用辨别技巧",
+    "title": "二手 iPhone 17 Pro 验机简要流程",
+    "date": "2026-06-30",
+    "category": "生活",
+    "tags": [
+      "生活"
+    ],
+    "description": "断网还原、序列号核验、换屏检测到 Mac 验机的完整清单"
+  },
+  {
+    "id": "2542-terminal全流程IO",
+    "title": "Text-to-SQL 全流程 IO 拆解：生成与守护 Agent",
+    "date": "2026-06-15",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Text-to-SQL",
+      "项目"
+    ],
+    "description": "生成 Agent 12 子阶段与守护 Agent 4 子阶段的端到端执行追踪"
+  },
+  {
+    "id": "Index31 result-show-terminal",
+    "title": "Text-to-SQL 级联流水线各阶段结果展示",
+    "date": "2026-06-14",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Text-to-SQL",
+      "项目"
+    ],
+    "description": "Spider concert_singer 样例的四阶段流水线原始输出产物"
+  },
+  {
+    "id": "文件说明",
+    "title": "DTS-SQL-2A42：解耦式四阶段级联 Text-to-SQL 系统",
+    "date": "2026-06-12",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Text-to-SQL",
+      "项目"
+    ],
+    "description": "基于 Qwen2.5-Coder-7B 的四阶段级联流水线与逐阶段纠错机制"
+  },
+  {
+    "id": "Vibe coding思考",
+    "title": "Vibe Coding 思考：从写代码到审代码",
+    "date": "2026-06-05",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "经验"
+    ],
+    "description": "AI 辅助编程如何重塑程序员角色与工作流优化的思考"
+  },
+  {
+    "id": "offer抉择",
+    "title": "Offer 抉择：华为数通 vs B站生态技术",
+    "date": "2026-05-25",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "前端"
+    ],
+    "description": "从薪资转正到技术栈成长，两份前端实习 offer 的全维度对比"
+  },
+  {
+    "id": "Go_Dash",
+    "title": "Go 冲刺五日计划：面向 AI 后端",
+    "date": "2026-05-20",
+    "category": "算法",
+    "tags": [
+      "Go",
+      "算法",
+      "面试"
+    ],
+    "description": "以 AI 后端工具为主题的 5 天 Go 速成与面试重点"
+  },
+  {
+    "id": "HR面试",
+    "title": "大厂前端校招 HR 面试全攻略",
+    "date": "2026-05-18",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "面试",
+      "前端"
+    ],
+    "description": "腾讯华为B站 HR 场景拆解、话术模板与反问清单"
+  },
+  {
+    "id": "Opengame demo",
+    "title": "用 OpenGame 复刻植物大战僵尸的 Agentic 实验",
+    "date": "2026-05-08",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "项目"
+    ],
+    "description": "借助 OpenGame 框架撰写 Agentic 工作流与长 Prompt 工程实验报告"
+  },
+  {
+    "id": "前端代码",
+    "title": "前端手撕代码高频题合集",
+    "date": "2026-04-15",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "JavaScript",
+      "手撕代码"
+    ],
+    "description": "深浅拷贝、调度器、懒加载、虚拟列表等高频手写题实现"
+  },
+  {
+    "id": "力扣算法",
+    "title": "Python LeetCode 算法速通模板：从基础到高频",
+    "date": "2026-04-14",
+    "category": "算法",
+    "tags": [
+      "算法",
+      "Python",
+      "面试"
+    ],
+    "description": "高频数据结构与算法套路及适用场景速查"
+  },
+  {
+    "id": "项目拷打",
+    "title": "项目拷打：VPet、个人博客与商城的深挖问答",
+    "date": "2026-04-10",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "项目",
+      "面试"
+    ],
+    "description": "三个项目的架构拆解与前端排障问答准备"
+  },
+  {
+    "id": "速成篇——狗急跳墙的y少",
+    "title": "速成篇——狗急跳墙的y少",
+    "date": "2026-04-09",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "手撕代码",
+      "面试"
+    ],
+    "description": "临门一脚的前端手撕必背与面试应急战术"
+  },
+  {
+    "id": "前端八股",
+    "title": "前端八股全景图：从 HTML/CSS 到 AI Coding",
+    "date": "2026-04-08",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "JavaScript",
+      "Vue",
+      "面试"
+    ],
+    "description": "覆盖 HTML/CSS/JS/TS/Vue/网络/浏览器/安全的面试理论合集"
+  },
+  {
+    "id": "Nowadays_Internship_Preparation",
+    "title": "当下实习准备 NIP：前端面试冲刺日志",
+    "date": "2026-04-05",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "面试",
+      "备考"
+    ],
+    "description": "投递到面试的近期作战计划与逐日复盘日志"
+  },
+  {
+    "id": "leetcode_algorithm_challenge",
+    "title": "LeetCode 算法冲刺：14 天备考计划",
+    "date": "2026-04-03",
+    "category": "算法",
+    "tags": [
+      "算法",
+      "面试",
+      "备考"
+    ],
+    "description": "14 天窗口内八股与算法的备考取舍"
+  },
+  {
+    "id": "Future_Internship_Preparation",
+    "title": "未来实习规划 FIP：AI Agent 与数据工程方向",
+    "date": "2026-04-01",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "AI"
+    ],
+    "description": "面向 AI Agent 与数据工程的长期实习方向规划"
+  },
+  {
+    "id": "Front_End_Personal_Experience",
+    "title": "前端经验分享",
+    "date": "2026-03-27",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "Vue",
+      "经验"
+    ],
+    "description": "卡了电竞y少如何评价前端之旅？"
+  },
+  {
+    "id": "Ielts_experience_sharing",
+    "title": "雅思经验分享",
+    "date": "2026-03-23",
+    "category": "雅思英语",
+    "tags": [
+      "雅思",
+      "备考",
+      "经验"
+    ],
+    "description": "卡了电竞y少如何评价雅思之旅？"
+  },
+  {
+    "id": "Ielts_listening&reading",
+    "title": "雅思听力阅读备考",
+    "date": "2026-01-21",
+    "category": "雅思英语",
+    "tags": [
+      "雅思",
+      "备考"
+    ],
+    "description": "卡了电竞y少如何能够收集信息？"
+  },
+  {
+    "id": "Ielts_spoken",
+    "title": "IELTS口语备考",
+    "date": "2026-01-21",
+    "category": "雅思英语",
+    "tags": [
+      "雅思",
+      "备考"
+    ],
+    "description": "卡了电竞y少如何能够脱离卡死？"
+  },
+  {
+    "id": "Ielts_writing",
+    "title": "雅思写作备考",
+    "date": "2026-01-21",
+    "category": "雅思英语",
+    "tags": [
+      "雅思",
+      "备考"
+    ],
+    "description": "卡了电竞y少如何能够书写奇迹？"
+  },
+  {
+    "id": "blog_build_celebration",
+    "title": "个人博客建站庆祝 - 项目功能介绍与使用指南",
+    "date": "2026-01-20",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "Vue",
+      "项目"
+    ],
+    "description": "庆祝个人博客网站成功上线，详细介绍项目功能和使用方法"
+  }
+]

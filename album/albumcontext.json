@@ -1,0 +1,86 @@
+[
+  {
+    "id": "2023年度照片",
+    "title": "2023年度照片",
+    "date": "2026-01-19",
+    "count": 24,
+    "description": "Gain some, lose some, but always move on.",
+    "previews": [
+      1,
+      11,
+      17
+    ]
+  },
+  {
+    "id": "2024年度照片",
+    "title": "2024年度照片",
+    "date": "2026-01-19",
+    "count": 35,
+    "description": "A new year, a new start.",
+    "previews": [
+      2,
+      14,
+      24
+    ]
+  },
+  {
+    "id": "2025年度照片",
+    "title": "2025年度照片",
+    "date": "2026-01-19",
+    "count": 48,
+    "description": "Grown up gradually, not that fool boy anymore.",
+    "previews": [
+      1,
+      7,
+      27
+    ]
+  },
+  {
+    "id": "2026年度照片",
+    "title": "2026年度照片",
+    "date": "2026-07-21",
+    "count": 0,
+    "description": "",
+    "previews": []
+  },
+  {
+    "id": "东北行",
+    "title": "东北行",
+    "date": "2026-01-19",
+    "count": 33,
+    "description": "East, west, home is best.",
+    "previews": [
+      1,
+      17,
+      33
+    ]
+  },
+  {
+    "id": "广横走",
+    "title": "广横走",
+    "date": "2026-01-19",
+    "count": 13,
+    "description": "Afar of my born, another home of mine.",
+    "previews": [
+      1,
+      7,
+      14
+    ]
+  },
+  {
+    "id": "恰少年",
+    "title": "恰少年",
+    "date": "2026-07-21",
+    "count": 0,
+    "description": "",
+    "previews": []
+  },
+  {
+    "id": "竹杖芒鞋",
+    "title": "竹杖芒鞋",
+    "date": "2026-07-21",
+    "count": 0,
+    "description": "",
+    "previews": []
+  }
+]
