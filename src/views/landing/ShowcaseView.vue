@@ -5,17 +5,17 @@
     </span>
 
     <div class="backdrop-stack" aria-hidden="true">
-      <img
-        v-for="(panel, index) in panels"
-        v-show="currentPanelIndex === index"
-        :key="panel.id"
-        :src="panel.heroImage.src"
-        :alt="panel.heroImage.alt"
-        class="backdrop-image"
-        :class="{ active: currentPanelIndex === index }"
-        :loading="index === 0 ? 'eager' : 'lazy'"
-        decoding="async"
-      />
+      <template v-for="(panel, index) in panels" :key="panel.id">
+        <img
+          v-if="currentPanelIndex === index"
+          :src="panel.heroImage.src"
+          :alt="panel.heroImage.alt"
+          class="backdrop-image"
+          :class="{ active: currentPanelIndex === index }"
+          :loading="index === 0 ? 'eager' : 'lazy'"
+          decoding="async"
+        />
+      </template>
     </div>
 
     <div class="technical-grid" aria-hidden="true"></div>
@@ -48,7 +48,7 @@
           </div>
         </div>
 
-        <div class="media-zone">
+        <div v-if="currentPanelIndex === index" class="media-zone">
           <figure class="hero-photo">
             <img :src="panel.photos[0].src" :alt="panel.photos[0].alt" :loading="index === 0 ? 'eager' : 'lazy'" decoding="async" />
           </figure>
@@ -57,9 +57,9 @@
             <img :src="panel.photos[1].src" :alt="panel.photos[1].alt" loading="lazy" decoding="async" />
           </figure>
 
-          <div class="gif-strip" aria-hidden="true">
+          <div v-if="visibleGifPanelIndex === index" class="gif-strip" aria-hidden="true">
             <figure v-for="(gif, gifIndex) in panel.gifs" :key="gif.src" :class="`gif-chip gif-${gifIndex + 1}`">
-              <img :src="gif.src" :alt="gif.alt" loading="lazy" decoding="async" />
+              <img :src="gif.src" :alt="gif.alt" loading="lazy" fetchpriority="low" decoding="async" />
             </figure>
           </div>
         </div>
@@ -94,7 +94,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { loadShowcaseConfig } from '@/content/welcome'
@@ -109,6 +109,7 @@ const resources = ref([])
 const timing = ref({ panelDurationMs: 5000, totalDurationMs: 30000 })
 
 const currentPanelIndex = ref(0)
+const visibleGifPanelIndex = ref(-1)
 const isEntering = ref(false)
 // 倒计时按钮的填充动画时长直接绑定总时长
 const countdownDurationMs = computed(() => timing.value.totalDurationMs)
@@ -118,6 +119,15 @@ const remainingSeconds = computed(() => Math.max(0, Math.ceil(remainingMs.value 
 let panelTimer = null
 let routeTimer = null
 let countdownTimer = null
+let gifTimer = null
+
+watch(currentPanelIndex, (index) => {
+  visibleGifPanelIndex.value = -1
+  if (gifTimer) window.clearTimeout(gifTimer)
+  gifTimer = window.setTimeout(() => {
+    visibleGifPanelIndex.value = index
+  }, 800)
+}, { immediate: true })
 
 const clearTimers = () => {
   if (panelTimer) window.clearInterval(panelTimer)
@@ -171,6 +181,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   clearTimers()
+  if (gifTimer) window.clearTimeout(gifTimer)
 })
 </script>
 

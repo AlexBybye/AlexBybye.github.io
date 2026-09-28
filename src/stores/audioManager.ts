@@ -75,15 +75,13 @@ export const useAudioManager = defineStore('audioManager', () => {
   
   // 监听音乐store的变化并相应地控制音频
   watch(() => musicStore.currentTrack, () => {
-    playCurrentTrack();
+    if (musicStore.isPlaying) playCurrentTrack();
   });
   
   watch(() => musicStore.isPlaying, async (isPlaying) => {
     if (isPlaying) {
       await ensureAudioGraph();
-      audioElement.play().catch(error => {
-        console.error('Error playing track:', error);
-      });
+      playCurrentTrack();
     } else {
       audioElement.pause();
     }

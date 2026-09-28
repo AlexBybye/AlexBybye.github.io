@@ -14,8 +14,8 @@
               <span class="album-link">{{ t('album.open') }}<PhSoccerBall class="album-ball" :size="18" weight="fill" /><PhArrowRight :size="19" weight="bold" /></span>
             </div>
             <div class="album-preview" :class="previewLayoutClass(album)">
-              <img v-for="photo in previewPhotos(album)" :key="photo" :src="photo" :alt="t('album.previewAlt', { title: album.title })"
-                :loading="index === 0 ? 'eager' : 'lazy'" decoding="async" @error="handleImageError($event, album.id)">
+              <img v-for="(photo, photoIndex) in previewPhotos(album)" :key="photo" :src="photo" :alt="t('album.previewAlt', { title: album.title })"
+                :loading="index === 0 && photoIndex === 0 ? 'eager' : 'lazy'" :fetchpriority="index === 0 && photoIndex === 0 ? 'high' : 'low'" decoding="async" @error="handleImageError($event, album.id)">
             </div>
           </RouterLink>
         </RevealOnScroll>

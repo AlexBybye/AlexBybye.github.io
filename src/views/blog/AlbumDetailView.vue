@@ -54,7 +54,7 @@
               @click="openViewer(index)" @pointermove="tiltPhoto" @pointerleave="resetPhoto">
               <span class="photo-frame">
                 <img :src="photo.src" :alt="t('albumDetail.photoAlt', { title: album?.title || t('album.title'), index: index + 1 })"
-                  loading="lazy" decoding="async" @load="markPhotoLoaded(photo)" @error="handleImageError(photo)">
+                  :loading="index < 2 ? 'eager' : 'lazy'" :fetchpriority="index < 2 ? 'high' : 'low'" decoding="async" @load="markPhotoLoaded(photo)" @error="handleImageError(photo)">
                 <span class="photo-shine" aria-hidden="true" />
               </span>
             </button>
@@ -95,6 +95,7 @@ import {
   PhWarningCircle,
   PhX
 } from '@/design/icons'
+import { usePageDescription } from '@/utils/pageDescription'
 
 const props = defineProps<{ id: string }>()
 const { t, locale } = useI18n()
@@ -103,6 +104,7 @@ interface PhotoItem { id: number; src: string; fallbackStep: number; loaded: boo
 type ViewMode = 'free' | 'squad'
 
 const album = ref<AlbumItem | null>(null)
+usePageDescription(computed(() => album.value?.description))
 const photos = ref<PhotoItem[]>([])
 const selectedIndex = ref<number | null>(null)
 const loading = ref(true)

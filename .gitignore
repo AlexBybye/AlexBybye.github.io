@@ -36,7 +36,7 @@ public/resources/*.png
 public/article/*.jpg
 public/article/*.jpeg
 public/article/*.png
-
+public/article/.obsidian/*
 /cypress/videos/
 /cypress/screenshots/
 

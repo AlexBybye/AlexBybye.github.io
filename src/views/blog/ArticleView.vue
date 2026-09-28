@@ -75,6 +75,7 @@ import ReactionBar from '@/components/social/ReactionBar.vue'
 import Tag from '@/components/ui/Tag.vue'
 import TagCloud from '@/components/ui/TagCloud.vue'
 import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
+import { usePageDescription } from '@/utils/pageDescription'
 
 interface ArticleItem {
   id: string
@@ -99,6 +100,7 @@ const loadError = ref('')
 const commentCount = ref(0)
 
 const currentArticleId = computed(() => String(route.params.id || ''))
+usePageDescription(computed(() => currentArticleId.value ? currentArticle.value?.description : undefined))
 const categories = computed(() => Array.from(new Set(articles.value.map((article) => article.category).filter(Boolean))))
 const allTags = computed(() => {
   const counts = new Map<string, number>()
