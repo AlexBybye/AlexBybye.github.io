@@ -32,6 +32,7 @@
           <dl>
             <div><dt>{{ t('albumDetail.date') }}</dt><dd class="mono">{{ album ? formatAlbumDate(album.date) : '-' }}</dd></div>
             <div><dt>{{ t('albumDetail.photoCount') }}</dt><dd class="mono">{{ photos.length }}</dd></div>
+            <div><dt>{{ t('nav.views') }}</dt><dd class="mono">{{ viewCount ?? '—' }}</dd></div>
           </dl>
           <div class="load-pitch" :class="{ complete: loadPercent === 100 }" aria-live="polite">
             <span class="load-line" aria-hidden="true"><i :style="{ transform: `scaleX(${loadPercent / 100})` }" /></span>
@@ -96,6 +97,7 @@ import {
   PhX
 } from '@/design/icons'
 import { usePageDescription } from '@/utils/pageDescription'
+import { contentKey, loadContentCounts } from '@/service/visitCounts'
 
 const props = defineProps<{ id: string }>()
 const { t, locale } = useI18n()
@@ -109,6 +111,7 @@ const photos = ref<PhotoItem[]>([])
 const selectedIndex = ref<number | null>(null)
 const loading = ref(true)
 const error = ref('')
+const viewCount = ref<number | null>(null)
 const viewMode = ref<ViewMode>('free')
 const viewDirection = ref<'next' | 'previous'>('next')
 let tiltFrame = 0
@@ -126,6 +129,8 @@ async function loadAlbum() {
     const albums = await response.json() as AlbumItem[]
     album.value = albums.find((item) => item.id === props.id) || null
     if (!album.value) throw new Error(t('albumDetail.notFound'))
+    const key = contentKey('album', album.value.id)
+    void loadContentCounts([key], key).then((counts) => { viewCount.value = counts[key] ?? null }).catch(() => {})
     photos.value = Array.from({ length: album.value.count }, (_, index) => ({
       id: index + 1,
       src: `/album/${props.id}/photo_${index + 1}.webp`,

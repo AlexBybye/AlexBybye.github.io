@@ -9,6 +9,7 @@
           <RouterLink class="album-row" :class="{ reverse: index % 2 === 1 }" :to="`/Animation3/album/detail/${album.id}`" @pointermove="updatePointerGlow" @pointerleave="resetPointerGlow">
             <div class="album-copy">
               <span class="mono">{{ String(index + 1).padStart(2, '0') }} / {{ t('album.photos', { count: album.count }) }}</span>
+              <span class="mono">{{ t('nav.views') }} {{ viewCounts[contentKey('album', album.id)] ?? '—' }}</span>
               <h2>{{ album.title }}</h2>
               <p>{{ album.description }}</p>
               <span class="album-link">{{ t('album.open') }}<PhSoccerBall class="album-ball" :size="18" weight="fill" /><PhArrowRight :size="19" weight="bold" /></span>
@@ -30,12 +31,14 @@ import { useI18n } from 'vue-i18n'
 import { PhArrowRight, PhSoccerBall, PhWarningCircle } from '@/design/icons'
 import RevealOnScroll from '@/components/ui/RevealOnScroll.vue'
 import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
+import { contentKey, loadContentCounts } from '@/service/visitCounts'
 
 interface AlbumItem { id: string; title: string; date: string; count: number; description: string; previews?: number[] }
 const albums = ref<AlbumItem[]>([])
 const { t } = useI18n()
 const loading = ref(true)
 const error = ref('')
+const viewCounts = ref<Record<string, number>>({})
 
 async function loadAlbums() {
   loading.value = true
@@ -44,6 +47,8 @@ async function loadAlbums() {
     const response = await fetch('/album/albumcontext.json')
     if (!response.ok) throw new Error(t('album.indexLoadFailed', { status: response.status }))
     albums.value = await response.json()
+    void loadContentCounts(albums.value.map((album) => contentKey('album', album.id)))
+      .then((counts) => { viewCounts.value = counts }).catch(() => {})
   } catch (cause) { error.value = cause instanceof Error ? cause.message : t('album.loadFailed') }
   finally { loading.value = false }
 }

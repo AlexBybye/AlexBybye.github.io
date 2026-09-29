@@ -17,6 +17,7 @@
             <span class="mono">{{ formatDate(currentArticle.date) }}</span>
             <span v-if="currentArticle.category">{{ currentArticle.category }}</span>
             <span class="mono">{{ t('article.comments', { count: commentCount }) }}</span>
+            <span class="mono">{{ t('nav.views') }} {{ countFor(currentArticle.id) }}</span>
           </div>
           <div v-if="currentArticle.tags?.length" class="tags">
             <Tag v-for="tag in currentArticle.tags" :key="tag">{{ tag }}</Tag>
@@ -54,7 +55,7 @@
       <div v-else-if="!filteredArticles.length" class="state-box"><PhArticle :size="25" /><p>{{ t('article.empty') }}</p><button type="button" @click="clearFilters">{{ t('article.clearFilters') }}</button></div>
       <section v-else class="article-grid" :aria-label="t('article.listLabel')">
         <RouterLink v-for="(article, index) in filteredArticles" :key="article.id" :to="`/Animation3/article/detail/${article.id}`" class="article-card" :class="{ featured: index === 0 }" @pointermove="updatePointerGlow" @pointerleave="resetPointerGlow">
-          <div class="card-meta"><span class="mono">{{ formatDate(article.date) }}</span><span v-if="article.category">{{ article.category }}</span></div>
+          <div class="card-meta"><span class="mono">{{ formatDate(article.date) }}</span><span v-if="article.category">{{ article.category }}</span><span class="mono">{{ t('nav.views') }} {{ countFor(article.id) }}</span></div>
           <h2>{{ article.title }}</h2>
           <p>{{ article.description || truncateText(article.content, 120) }}</p>
           <div class="card-footer"><div class="tags"><Tag v-for="tag in article.tags.slice(0, 3)" :key="tag">{{ tag }}</Tag></div><PhArrowRight :size="22" weight="bold" /></div>
@@ -76,6 +77,7 @@ import Tag from '@/components/ui/Tag.vue'
 import TagCloud from '@/components/ui/TagCloud.vue'
 import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
 import { usePageDescription } from '@/utils/pageDescription'
+import { contentKey, loadContentCounts } from '@/service/visitCounts'
 
 interface ArticleItem {
   id: string
@@ -97,6 +99,9 @@ const searchQuery = ref('')
 const loading = ref(true)
 const loadError = ref('')
 const commentCount = ref(0)
+const viewCounts = ref<Record<string, number>>({})
+
+function countFor(id: string) { return viewCounts.value[contentKey('article', id)] ?? '—' }
 
 const currentArticleId = computed(() => String(route.params.id || ''))
 usePageDescription(computed(() => currentArticleId.value ? currentArticle.value?.description : undefined))
@@ -121,7 +126,11 @@ const filteredArticles = computed(() => {
 async function loadAllArticles() {
   loading.value = true
   loadError.value = ''
-  try { articles.value = await loadArticles() as ArticleItem[] }
+  try {
+    articles.value = await loadArticles() as ArticleItem[]
+    void loadContentCounts(articles.value.map((article) => contentKey('article', article.id)))
+      .then((counts) => { for (const [key, count] of Object.entries(counts)) viewCounts.value[key] = Math.max(viewCounts.value[key] ?? 0, count) }).catch(() => {})
+  }
   catch (error) { loadError.value = error instanceof Error ? error.message : t('article.loadFailed') }
   finally { loading.value = false }
 }
@@ -134,6 +143,10 @@ async function loadArticleDetail(id: string) {
   try {
     currentArticle.value = await getArticleById(id) as ArticleItem | null
     if (!currentArticle.value) loadError.value = t('article.notFound')
+    else {
+      const key = contentKey('article', currentArticle.value.id)
+      void loadContentCounts([key], key).then((counts) => { if (counts[key] !== undefined) viewCounts.value[key] = Math.max(viewCounts.value[key] ?? 0, counts[key]) }).catch(() => {})
+    }
   } catch (error) { loadError.value = error instanceof Error ? error.message : t('article.loadFailed') }
   finally { loading.value = false }
 }

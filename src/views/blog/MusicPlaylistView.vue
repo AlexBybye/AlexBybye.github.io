@@ -37,7 +37,7 @@
           :style="{ '--enter-delay': `${Math.min(index % 8, 7) * 30}ms` }"
           @click="selectTrack(track)" @keydown.enter="selectTrack(track)" @keydown.space.prevent="selectTrack(track)" @pointermove="updatePointerGlow" @pointerleave="resetPointerGlow">
           <img :src="coverFor(track.coverImage)" :alt="track.title" loading="lazy" decoding="async" @error="onImageError">
-          <div class="track-info"><span class="mono">{{ String(index + 1).padStart(2, '0') }}</span><h3>{{ track.title }}</h3><p>{{ track.artist }}</p><small>{{ track.type }}</small></div>
+          <div class="track-info"><span class="mono">{{ String(index + 1).padStart(2, '0') }}</span><h3>{{ track.title }}</h3><p>{{ track.artist }}</p><small>{{ track.type }}</small><small class="track-views">{{ t('nav.views') }} {{ musicStore.viewCounts[contentKey('song', track.filename)] ?? '—' }}</small></div>
           <div class="track-reaction" @click.stop><ReactionBar target-type="song" :target-id="slugFor(track.filename)" compact /></div>
         </article>
       </section>
@@ -62,6 +62,7 @@ import ReactionBar from '@/components/social/ReactionBar.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import TagCloud from '@/components/ui/TagCloud.vue'
 import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
+import { contentKey } from '@/service/visitCounts'
 
 const musicStore = useMusicStore()
 const audioManager = useAudioManager()

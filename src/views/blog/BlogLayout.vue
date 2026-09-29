@@ -33,6 +33,8 @@
       </nav>
     </header>
 
+    <SiteFanCounter />
+
     <aside class="floating-player" :aria-label="t('nav.player')">
       <button class="track-link" type="button" @click="goToMusicPlaylist">
         <img :src="currentTrackCover" :alt="currentTrack ? currentTrack.title : t('nav.noCover')" decoding="async">
@@ -68,6 +70,7 @@ import { PhList, PhPause, PhPlay, PhSkipBack, PhSkipForward, PhSoccerBall, PhUse
 import { useMusicStore } from '@/stores/musicStore'
 import IconButton from '@/components/ui/IconButton.vue'
 import LocaleSwitcher from '@/components/ui/LocaleSwitcher.vue'
+import SiteFanCounter from '@/components/ui/SiteFanCounter.vue'
 
 const router = useRouter()
 const musicStore = useMusicStore()

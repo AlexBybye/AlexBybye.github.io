@@ -16,6 +16,7 @@
             <span class="mono">{{ musicStore.isPlaying ? t('music.playing') : t('music.paused') }}</span>
             <h2>{{ currentTrack?.title || t('music.loadingLibrary') }}</h2>
             <p>{{ currentTrack?.artist || t('music.pleaseWait') }}</p>
+            <p v-if="currentTrack" class="track-views mono">{{ t('nav.views') }} {{ musicStore.viewCounts[contentKey('song', currentTrack.filename)] ?? '—' }}</p>
           </div>
           <button class="play-button" type="button" :aria-label="musicStore.isPlaying ? t('nav.pause') : t('nav.play')" @click="musicStore.togglePlay">
             <PhPause v-if="musicStore.isPlaying" :size="24" weight="fill" aria-hidden="true" />
@@ -74,6 +75,7 @@ import ReactionBar from '@/components/social/ReactionBar.vue'
 import RevealOnScroll from '@/components/ui/RevealOnScroll.vue'
 import TagCloud from '@/components/ui/TagCloud.vue'
 import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
+import { contentKey } from '@/service/visitCounts'
 
 const musicStore = useMusicStore()
 const audioManager = useAudioManager()

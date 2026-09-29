@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { contentKey, loadContentCounts } from '@/service/visitCounts';
 
 interface Track {
     title: string;
@@ -26,6 +27,7 @@ export const useMusicStore = defineStore('music', () => {
     const playMode = ref<'order' | 'shuffle' | 'repeat'>('order');
     // 活跃的筛选类型
     const selectedType = ref<string | null>(null);
+    const viewCounts = ref<Record<string, number>>({});
 
     // 当前播放的曲目
     const currentTrack = computed(() => {
@@ -41,6 +43,12 @@ export const useMusicStore = defineStore('music', () => {
             const response = await fetch('./music/musiccontext.json');
             const data = await response.json();
             tracks.value = data.tracks || [];
+            void loadContentCounts(tracks.value.map((track) => contentKey('song', track.filename)))
+                .then((counts) => {
+                    for (const [key, count] of Object.entries(counts)) {
+                        viewCounts.value[key] = Math.max(viewCounts.value[key] ?? 0, count);
+                    }
+                }).catch(() => {});
             if (tracks.value.length > 0) {
                 currentTrackIndex.value = 0;
             }
@@ -138,6 +146,14 @@ export const useMusicStore = defineStore('music', () => {
         }));
     };
 
+    watch(() => [currentTrack.value?.filename, isPlaying.value] as const, ([filename, playing]) => {
+        if (!filename || !playing) return;
+        const key = contentKey('song', filename);
+        void loadContentCounts([key], key).then((counts) => {
+            if (counts[key] !== undefined) viewCounts.value[key] = Math.max(viewCounts.value[key] ?? 0, counts[key]);
+        }).catch(() => {});
+    });
+
     return {
         tracks,
         currentTrackIndex,
@@ -148,6 +164,7 @@ export const useMusicStore = defineStore('music', () => {
         totalTime,
         playMode,
         selectedType,
+        viewCounts,
         loadTracks,
         playTrack,
         togglePlay,

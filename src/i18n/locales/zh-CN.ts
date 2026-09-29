@@ -16,6 +16,8 @@ export default {
     open: '打开导航',
     close: '关闭导航',
     friends: '友链',
+    siteFans: '到场球迷数',
+    views: '访问次数',
     player: '音乐播放器',
     noCover: '暂无播放封面',
     chooseTrack: '选择一首歌',

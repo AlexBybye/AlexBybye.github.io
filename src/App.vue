@@ -9,7 +9,9 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import LocaleSwitcher from '@/components/ui/LocaleSwitcher.vue'
+import { recordSiteVisit } from '@/service/visitCounts'
 
 const route = useRoute()
 const isBlogRoute = computed(() => route.path.startsWith('/Animation3'))
+void recordSiteVisit().catch(() => {})
 </script>

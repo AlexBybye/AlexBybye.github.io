@@ -16,6 +16,8 @@ export default {
     open: 'Open navigation',
     close: 'Close navigation',
     friends: 'Friends',
+    siteFans: 'Fans in the stands',
+    views: 'Views',
     player: 'Music player',
     noCover: 'No track cover',
     chooseTrack: 'Choose a track',

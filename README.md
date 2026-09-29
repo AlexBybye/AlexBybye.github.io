@@ -7,7 +7,8 @@
 - **四段式足球入口**：射门开场（点球触发彩带）→ 红黑斜切 showcase 轮播 → 球星卡抽卡翻牌 → 进入主页。
 - **足球隐喻贯穿全站**：技能栈做成 4-3-3 阵型图、成就里程碑做成点球推进、GitHub 贡献做成球场上的「进攻心率图」、球星对战组件 GitFutDuel。
 - **音乐系统**：Pinia 驱动的全局播放器，悬浮播放条常驻，独立播放列表页。
-- **GitHub 社交**：基于 GitHub Discussions 的真实评论 / 点赞，OAuth 经 Cloudflare Worker 交换，防冒充、零数据库。
+- **GitHub 社交**：基于 GitHub Discussions 的真实评论 / 点赞，OAuth 经 Cloudflare Worker 交换，防冒充。
+- **访问统计**：全站“到场球迷数”与文章、相册、歌曲的累计访问人次，计数保存在 Cloudflare Durable Object。
 
 ## 技术栈
 
@@ -100,6 +101,8 @@ VITE_GITHUB_DISCUSSION_CATEGORY=site-comments
 ```
 
 然后按 `worker/README.md` 部署 Cloudflare Worker，并在目标 GitHub 仓库启用 Discussions。
+
+访问统计依赖新版 Worker：先部署 `worker/`，再部署前端。
 
 - OAuth token 默认保存在浏览器 `localStorage`；代码会兼容迁移旧的 `sessionStorage` token。评论与公开数据缓存也使用本地存储，Worker 不持久化用户 token。
 - 评论作者身份来自真实 GitHub 授权，无法冒充。

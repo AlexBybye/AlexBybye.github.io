@@ -1,3 +1,5 @@
+import { DurableObject } from 'cloudflare:workers'
+
 interface KvNamespace {
   get<T>(key: string, type: 'json'): Promise<T | null>
   put(key: string, value: string): Promise<void>
@@ -13,6 +15,53 @@ interface Env {
   GITHUB_CLIENT_SECRET: string
   GITHUB_PUBLIC_TOKEN?: string
   GITHUB_PUBLIC_CACHE: KvNamespace
+  SITE_FANS: DurableObjectNamespace
+}
+
+export class SiteFans extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env)
+    this.ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS visit_counts (content_key TEXT PRIMARY KEY, total INTEGER NOT NULL)')
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const path = new URL(request.url).pathname
+    if (path === '/view-counts') {
+      const payload = await request.json() as { keys?: unknown; visitKey?: unknown }
+      const keys = payload.keys
+      if (!Array.isArray(keys) || keys.length > 200 || keys.some((key) => !validContentKey(key))) {
+        return Response.json({ error: 'Invalid content keys' }, { status: 400 })
+      }
+      if (payload.visitKey !== undefined) {
+        if (!validContentKey(payload.visitKey) || !keys.includes(payload.visitKey)) {
+          return Response.json({ error: 'Invalid visit' }, { status: 400 })
+        }
+        this.ctx.storage.sql.exec('INSERT INTO visit_counts (content_key, total) VALUES (?, ?) ON CONFLICT(content_key) DO UPDATE SET total = total + 1', payload.visitKey, seededContentCount(payload.visitKey) + 1)
+      }
+      const counts: Record<string, number> = {}
+      for (const key of keys) {
+        const row = this.ctx.storage.sql.exec<{ total: number }>('SELECT total FROM visit_counts WHERE content_key = ?', key).toArray()[0]
+        counts[key] = row?.total ?? seededContentCount(key)
+      }
+      return Response.json({ counts }, { headers: { 'cache-control': 'no-store' } })
+    }
+    if (request.method === 'POST') {
+      this.ctx.storage.sql.exec("INSERT INTO visit_counts (content_key, total) VALUES ('site', 3201) ON CONFLICT(content_key) DO UPDATE SET total = total + 1")
+    }
+
+    const result = this.ctx.storage.sql.exec<{ total: number }>("SELECT total FROM visit_counts WHERE content_key = 'site'").toArray()[0]
+    return Response.json({ total: result?.total ?? 3200 }, { headers: { 'cache-control': 'no-store' } })
+  }
+}
+
+function validContentKey(key: unknown): key is string {
+  return typeof key === 'string' && key.length <= 220 && /^(article|album|song):[^\s]+$/.test(key)
+}
+
+function seededContentCount(key: string) {
+  let hash = 2166136261
+  for (const character of key) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619)
+  return 5 + ((hash >>> 0) % 96)
 }
 
 interface WorldieSupportState {
@@ -451,6 +500,24 @@ export default {
     }
     if (url.pathname === '/worldie-support' && (request.method === 'GET' || request.method === 'POST')) {
       try { return await worldieSupport(request, env, headers) } catch (error) { return Response.json({ error: error instanceof Error ? error.message : 'Worldie support counter unavailable' }, { status: 503, headers: { ...headers, 'cache-control': 'no-store' } }) }
+    }
+    if (url.pathname === '/site-fans' && (request.method === 'GET' || request.method === 'POST')) {
+      try {
+        const fanId = env.SITE_FANS.idFromName('all-site-fans')
+        const response = await env.SITE_FANS.get(fanId).fetch(request)
+        return new Response(response.body, { status: response.status, headers: { ...headers, 'content-type': 'application/json', 'cache-control': 'no-store' } })
+      } catch (error) {
+        return Response.json({ error: error instanceof Error ? error.message : 'Site fan counter unavailable' }, { status: 503, headers: { ...headers, 'cache-control': 'no-store' } })
+      }
+    }
+    if (url.pathname === '/view-counts' && request.method === 'POST') {
+      try {
+        const fanId = env.SITE_FANS.idFromName('all-site-fans')
+        const response = await env.SITE_FANS.get(fanId).fetch(request)
+        return new Response(response.body, { status: response.status, headers: { ...headers, 'content-type': 'application/json', 'cache-control': 'no-store' } })
+      } catch (error) {
+        return Response.json({ error: error instanceof Error ? error.message : 'Content view counter unavailable' }, { status: 503, headers: { ...headers, 'cache-control': 'no-store' } })
+      }
     }
     if (url.pathname === '/oauth/token' && request.method === 'POST') {
       return exchangeToken(request, env, headers)

@@ -12,5 +12,13 @@ GITHUB_CLIENT_ID = "Ov23lizYsDwIU9vpqlev"
 binding = "GITHUB_PUBLIC_CACHE"
 id = "2c99c6cd36e3440cbf3d408ec8889a78"
 
+[[durable_objects.bindings]]
+name = "SITE_FANS"
+class_name = "SiteFans"
+
+[[migrations]]
+tag = "site-fans-v1"
+new_sqlite_classes = ["SiteFans"]
+
 [triggers]
 crons = ["0 0 * * *"]
