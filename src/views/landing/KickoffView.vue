@@ -40,6 +40,13 @@
       </span>
     </button>
 
+    <div class="goal-attendance" :aria-hidden="!hasScored">
+      <span class="attendance-label">{{ t('nav.attendance') }}</span>
+      <div class="attendance-digits" aria-live="polite">
+        <FlipCounter :value="attendanceValue" />
+      </div>
+    </div>
+
     <div class="goal-impact" aria-hidden="true">
       <span class="impact-ring"></span>
       <span class="impact-ring delay"></span>
@@ -56,10 +63,12 @@
 </template>
 
 <script setup>
-import { onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createSiuAudioPlayer } from '@/utils/siuAudio'
+import FlipCounter from '@/components/ui/FlipCounter.vue'
+import { loadSiteFans } from '@/service/visitCounts'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -67,6 +76,28 @@ const siuAudio = createSiuAudioPlayer()
 const canvas = ref(null)
 const isKicked = ref(false)
 const hasScored = ref(false)
+const attendanceTotal = ref(null)
+const attendanceValue = ref(null)
+const attendanceAnimated = ref(false)
+let attendanceTimer = null
+let disposed = false
+
+onMounted(async () => {
+  try {
+    const { total } = await loadSiteFans()
+    if (disposed) return
+    attendanceValue.value = Math.max(0, total - 1)
+    attendanceTotal.value = total
+  } catch { /* Keep an unavailable count empty instead of inventing a total. */ }
+})
+
+watch([hasScored, attendanceTotal], ([scored, total]) => {
+  if (!scored || total === null || attendanceAnimated.value) return
+  attendanceTimer = window.setTimeout(() => {
+    attendanceValue.value = total
+    attendanceAnimated.value = true
+  }, 400)
+})
 
 let myConfetti = null
 let confettiInterval = null
@@ -154,6 +185,8 @@ const handleKick = () => {
 }
 
 onUnmounted(() => {
+  disposed = true
+  if (attendanceTimer) window.clearTimeout(attendanceTimer)
   stopConfetti()
   siuAudio.stop()
 
@@ -386,6 +419,26 @@ onUnmounted(() => {
 .kicked .pitch-wake {
   animation: turfWake 0.7s ease-out forwards;
 }
+
+.goal-attendance {
+  position: absolute;
+  top: calc(var(--goal-y) - max(3dvh, 2vw));
+  left: var(--goal-x);
+  z-index: 13;
+  display: grid;
+  justify-items: center;
+  gap: .6rem;
+  transform: translate(-50%, -100%);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 240ms ease;
+  pointer-events: none;
+}
+.scored .goal-attendance { visibility: visible; opacity: 1; }
+.attendance-label { color: #fff; font-size: clamp(.75rem, 1.2vw, 1rem); font-weight: 750; text-shadow: 0 2px 8px #000; }
+.attendance-digits { position: relative; }
+.attendance-digits :deep(.flip-counter) { font-size: clamp(2rem, 4vw, 3.6rem); gap: 4px; }
+@media (prefers-reduced-motion: reduce) { .goal-attendance { transition: none; } }
 
 .goal-impact {
   position: absolute;
