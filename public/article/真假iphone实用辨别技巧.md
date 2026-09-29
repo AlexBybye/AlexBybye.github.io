@@ -3,7 +3,9 @@ title: 二手 iPhone 17 Pro 验机简要流程
 date: 2026-06-30
 category: 生活
 tags:
-  - 生活
+  - iPhone
+  - 验机
+  - 硬件检测
 description: 断网还原、序列号核验、换屏检测到 Mac 验机的完整清单
 ---
 ## iPhone 17 Pro 二手/翻新机验机简要流程

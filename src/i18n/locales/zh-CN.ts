@@ -105,7 +105,7 @@ export default {
     category: '分类',
     allCategories: '所有分类',
     search: '搜索',
-    searchPlaceholder: '输入标题、内容或标签',
+    searchPlaceholder: '搜索标题或内容，也可从标签建议中快速查找',
     listLabel: '文章列表',
     empty: '没有找到匹配的文章，试试清除筛选条件。',
     clearFilters: '清除筛选',

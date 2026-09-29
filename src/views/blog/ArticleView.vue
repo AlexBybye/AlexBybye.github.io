@@ -36,7 +36,7 @@
       </header>
 
       <div class="article-tools">
-        <TagCloud :tags="allTags" :model-value="selectedTag" @tag-click="toggleTag" />
+        <TagCloud :tags="categoryCloud" :label="t('article.category')" :model-value="selectedCategory || null" @tag-click="toggleCategory" />
         <div class="filters">
           <label>
             <span>{{ t('article.category') }}</span>
@@ -44,7 +44,7 @@
           </label>
           <label class="search-label">
             <span>{{ t('article.search') }}</span>
-            <span class="search-input"><PhMagnifyingGlass :size="19" aria-hidden="true" /><input v-model="searchQuery" type="search" :placeholder="t('article.searchPlaceholder')"></span>
+            <span class="search-input"><PhMagnifyingGlass :size="19" aria-hidden="true" /><input v-model="searchQuery" type="search" list="article-tag-search-index" :placeholder="t('article.searchPlaceholder')"><datalist id="article-tag-search-index"><option v-for="tag in searchTags" :key="tag" :value="tag" /></datalist></span>
           </label>
         </div>
       </div>
@@ -93,7 +93,6 @@ const { t, locale } = useI18n()
 const articles = ref<ArticleItem[]>([])
 const currentArticle = ref<ArticleItem | null>(null)
 const selectedCategory = ref('')
-const selectedTag = ref<string | null>(null)
 const searchQuery = ref('')
 const loading = ref(true)
 const loadError = ref('')
@@ -102,18 +101,20 @@ const commentCount = ref(0)
 const currentArticleId = computed(() => String(route.params.id || ''))
 usePageDescription(computed(() => currentArticleId.value ? currentArticle.value?.description : undefined))
 const categories = computed(() => Array.from(new Set(articles.value.map((article) => article.category).filter(Boolean))))
-const allTags = computed(() => {
+const categoryCloud = computed(() => {
   const counts = new Map<string, number>()
-  articles.value.forEach((article) => article.tags.forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1)))
+  articles.value.forEach((article) => {
+    if (article.category) counts.set(article.category, (counts.get(article.category) || 0) + 1)
+  })
   return Array.from(counts, ([name, count]) => ({ name, count }))
 })
+const searchTags = computed(() => Array.from(new Set(articles.value.flatMap((article) => article.tags || []))).sort((a, b) => a.localeCompare(b, locale.value)))
 const filteredArticles = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   return articles.value.filter((article) => {
     const categoryMatch = !selectedCategory.value || article.category === selectedCategory.value
-    const tagMatch = !selectedTag.value || article.tags.includes(selectedTag.value)
-    const queryMatch = !query || [article.title, article.description || '', article.content || '', ...article.tags].some((value) => value.toLowerCase().includes(query))
-    return categoryMatch && tagMatch && queryMatch
+    const queryMatch = !query || [article.title, article.description || '', article.content || '', ...(article.tags || [])].some((value) => value.toLowerCase().includes(query))
+    return categoryMatch && queryMatch
   })
 })
 
@@ -137,8 +138,8 @@ async function loadArticleDetail(id: string) {
   finally { loading.value = false }
 }
 
-function toggleTag(tag: string) { selectedTag.value = selectedTag.value === tag ? null : tag }
-function clearFilters() { selectedTag.value = null; selectedCategory.value = ''; searchQuery.value = '' }
+function toggleCategory(category: string) { selectedCategory.value = selectedCategory.value === category ? '' : category }
+function clearFilters() { selectedCategory.value = ''; searchQuery.value = '' }
 function goBackToList() { router.push('/Animation3/article') }
 function formatDate(value: string) { return new Intl.DateTimeFormat(locale.value, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value)) }
 function truncateText(html: string, maxLength: number) {

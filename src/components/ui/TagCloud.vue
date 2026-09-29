@@ -1,6 +1,6 @@
 <template>
   <div ref="container" class="tag-cloud-container" :class="{ 'static-mode': staticMode }">
-    <div ref="cloud" class="tag-cloud" role="group" :aria-label="t('tagCloud.filter')">
+    <div ref="cloud" class="tag-cloud" role="group" :aria-label="label || t('tagCloud.filter')">
       <button v-for="(tag, index) in tags" :key="tag.name" :ref="(element) => setTagElement(element, index)"
         class="tag-item" type="button" :aria-pressed="modelValue === tag.name"
         :style="tagStyle(index, tag.count)" @click="select(tag.name)"
@@ -39,7 +39,8 @@ interface MovingTag {
 const props = withDefaults(defineProps<{
   tags: TagItem[]
   modelValue?: string | null
-}>(), { tags: () => [], modelValue: null })
+  label?: string
+}>(), { tags: () => [], modelValue: null, label: '' })
 const { t } = useI18n()
 
 const emit = defineEmits<{

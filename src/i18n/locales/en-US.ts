@@ -105,7 +105,7 @@ export default {
     category: 'Category',
     allCategories: 'All categories',
     search: 'Search',
-    searchPlaceholder: 'Search titles, content, or tags',
+    searchPlaceholder: 'Search titles or content, or choose a tag suggestion',
     listLabel: 'Article list',
     empty: 'No matching articles. Try clearing the filters.',
     clearFilters: 'Clear filters',

@@ -104,7 +104,7 @@ const resolveObsidianEmbeds = (markdown: string): string => {
     const size = typeof sizeHint === 'string' ? sizeHint.trim() : '';
     const width = /^\d+$/.test(size) ? ` width="${size}"` : '';
     const alt = name.replace(/"/g, '');
-    return `<img src="${src}" alt="${alt}"${width} loading="lazy" />`;
+    return `\n\n<img src="${src}" alt="${alt}"${width} loading="lazy" />\n\n`;
   });
 };
 
@@ -195,23 +195,5 @@ export const getArticleById = async (id: string): Promise<Article | null> => {
   } catch (error) {
     console.error(`加载文章 ${id} 失败:`, error);
     return null;
-  }
-};
-
-// 根据标签获取文章
-export const getArticlesByTag = async (tag: string): Promise<Article[]> => {
-  try {
-    // 先获取所有文章
-    const allArticles = await loadArticles();
-    
-    // 过滤出包含指定标签的文章
-    const tagArticles = allArticles.filter(article => 
-      article.tags && article.tags.includes(tag)
-    );
-    
-    return tagArticles;
-  } catch (error) {
-    console.error(`加载标签 "${tag}" 的文章失败:`, error);
-    return [];
   }
 };
