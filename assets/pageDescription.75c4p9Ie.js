@@ -1,0 +1,1 @@
+import{w as c,U as i}from"./vue-vendor.CUUzcHV_.js";const t=document.querySelector('meta[name="description"]'),e=(t==null?void 0:t.content)||"";function r(n){c(n,o=>{t&&(t.content=(o==null?void 0:o.trim())||e)},{immediate:!0}),i(()=>{t&&(t.content=e)})}export{r as u};
