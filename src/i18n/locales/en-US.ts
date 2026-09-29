@@ -62,8 +62,8 @@ export default {
     worldie: 'Worldie! Cheers: {count}',
     cheers: 'Cheers: {count}',
     supportButton: 'Set up a worldie for the author',
-    supportPersistedNote: 'The count is saved in this browser.',
-    supportSessionNote: 'The count cannot be saved and will reset after a refresh.',
+    supportPersistedNote: 'A site-wide total, settled once per UTC day.',
+    supportSessionNote: 'The site-wide counter is updated daily; this count may be out of sync.',
     milestoneItems: {
       neccs: {
         title: 'Third prize in NECCS',

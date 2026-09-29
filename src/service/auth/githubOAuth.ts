@@ -34,6 +34,17 @@ export const githubUser = readonly(user)
 export const githubAuthLoading = readonly(isAuthLoading)
 export const githubAuthError = readonly(authError)
 
+// OAuth completes in a same-origin popup. Keep the already-mounted page in sync
+// when that popup writes or removes the shared localStorage token.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== TOKEN_KEY) return
+    void loadViewer().catch((error) => {
+      authError.value = error instanceof Error ? error.message : 'Unable to load GitHub identity'
+    })
+  })
+}
+
 function getRedirectUri() {
   if (import.meta.env.VITE_GITHUB_REDIRECT_URI) return import.meta.env.VITE_GITHUB_REDIRECT_URI
   return `${window.location.origin}${window.location.pathname}`

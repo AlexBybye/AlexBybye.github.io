@@ -62,8 +62,8 @@ export default {
     worldie: '世界波！助威次数：{count}',
     cheers: '助威次数：{count}',
     supportButton: '助攻作者一脚世界波',
-    supportPersistedNote: '计数保存在当前浏览器。',
-    supportSessionNote: '当前无法保存计数，刷新后会重置。',
+    supportPersistedNote: '全站累计助威数，按 UTC 日期每日结算。',
+    supportSessionNote: '每日连接全站计数，当前显示可能未同步。',
     milestoneItems: {
       neccs: {
         title: '全国大学生英语竞赛三等奖',

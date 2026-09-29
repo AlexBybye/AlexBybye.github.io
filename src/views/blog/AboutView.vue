@@ -85,7 +85,7 @@
                   </p>
                   <small id="worldie-counter-note">{{ supportCounterNote }}</small>
                 </div>
-                <button type="button" class="worldie-button" aria-describedby="worldie-counter-note" @click="celebrateWorldie">
+                <button type="button" class="worldie-button" :disabled="submittingSupport" aria-describedby="worldie-counter-note" @click="celebrateWorldie">
                   <PhSoccerBall :size="19" weight="fill" aria-hidden="true" />
                   {{ t('about.supportButton') }}
                 </button>
@@ -154,6 +154,7 @@ import { featuredRepos } from '@/content/repos'
 import { interests, profile } from '@/content/profile'
 import { milestones, worldieSupport } from '@/content/timeline'
 import { createSiuAudioPlayer } from '@/utils/siuAudio'
+import { addWorldieSupport, loadWorldieSupport } from '@/service/worldieSupport'
 import { useMusicStore } from '@/stores/musicStore'
 import AttackPulse from '@/components/profile/AttackPulse.vue'
 import GitFutDuel from '@/components/profile/GitFutDuel.vue'
@@ -169,7 +170,8 @@ const portrait = ref<HTMLElement | null>(null)
 const activeMilestoneIndex = ref(0)
 const supportCount = ref<number>(worldieSupport.baseCount)
 const hasCheered = ref(false)
-const supportPersistence = ref<'local' | 'session'>('local')
+const supportPersistence = ref<'global' | 'offline'>('global')
+const submittingSupport = ref(false)
 let portraitFrame = 0
 let activeConfetti: { reset: () => void } | null = null
 let confettiRequestId = 0
@@ -178,7 +180,7 @@ const targetFileName = 'Andrew White feat Harry - FC Bayern, Forever Number One 
 const isMiaSanMiaPlaying = computed(() => musicStore.currentTrack?.filename === targetFileName && musicStore.isPlaying)
 const activeMilestone = computed(() => milestones[activeMilestoneIndex.value])
 const timelineProgress = computed(() => milestones.length === 1 ? 100 : (activeMilestoneIndex.value / (milestones.length - 1)) * 100)
-const supportCounterNote = computed(() => supportPersistence.value === 'local'
+const supportCounterNote = computed(() => supportPersistence.value === 'global'
   ? t('about.supportPersistedNote')
   : t('about.supportSessionNote'))
 
@@ -220,14 +222,6 @@ function advanceMilestone() {
   activeMilestoneIndex.value += 1
 }
 
-function persistSupportCount() {
-  try {
-    window.localStorage.setItem(worldieSupport.storageKey, String(supportCount.value))
-  } catch {
-    supportPersistence.value = 'session'
-  }
-}
-
 async function launchWorldieConfetti(event: MouseEvent) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   const requestId = ++confettiRequestId
@@ -251,12 +245,22 @@ async function launchWorldieConfetti(event: MouseEvent) {
   })
 }
 
-function celebrateWorldie(event: MouseEvent) {
+async function celebrateWorldie(event: MouseEvent) {
+  if (submittingSupport.value) return
+  submittingSupport.value = true
   void siuAudio.play()
   supportCount.value += 1
   hasCheered.value = true
-  persistSupportCount()
   void launchWorldieConfetti(event)
+  try {
+    const snapshot = await addWorldieSupport()
+    supportCount.value = snapshot.totalCount
+    supportPersistence.value = 'global'
+  } catch {
+    supportPersistence.value = 'offline'
+  } finally {
+    submittingSupport.value = false
+  }
 }
 
 function handlePortraitMove(event: PointerEvent) {
@@ -278,20 +282,12 @@ function resetPortrait() {
 }
 
 onMounted(() => {
-  try {
-    const storedValue = window.localStorage.getItem(worldieSupport.storageKey)
-    if (storedValue !== null) {
-      const parsed = Number(storedValue)
-      const validMaximum = worldieSupport.baseCount + 1_000_000
-      if (Number.isSafeInteger(parsed) && parsed >= worldieSupport.baseCount && parsed <= validMaximum) {
-        supportCount.value = parsed
-      } else {
-        window.localStorage.removeItem(worldieSupport.storageKey)
-      }
-    }
-  } catch {
-    supportPersistence.value = 'session'
-  }
+  void loadWorldieSupport().then((snapshot) => {
+    supportCount.value = snapshot.totalCount
+    supportPersistence.value = 'global'
+  }).catch(() => {
+    supportPersistence.value = 'offline'
+  })
 
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     portrait.value?.addEventListener('pointermove', handlePortraitMove)

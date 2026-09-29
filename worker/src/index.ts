@@ -15,6 +15,14 @@ interface Env {
   GITHUB_PUBLIC_CACHE: KvNamespace
 }
 
+interface WorldieSupportState {
+  totalCount: number
+  dailyCount: number
+  day: string
+  previousDayCount: number
+  updatedAt: string
+}
+
 interface GithubRepositoryResponse {
   name: string
   full_name: string
@@ -98,6 +106,8 @@ interface PublicDiscussion {
 }
 
 const SNAPSHOT_KEY = 'github-public-snapshot:v1'
+const WORLDIE_SUPPORT_KEY = 'worldie-support:v1'
+const WORLDIE_SUPPORT_BASE_COUNT = 188
 const SNAPSHOT_TTL_MS = 12 * 60 * 60 * 1000
 const ATTACK_DAY_COUNT = 30
 // GitHub 事件接口单页上限 100，取 200 条需要翻页；该接口总量最多 300 条 / 90 天。
@@ -169,6 +179,61 @@ function eventWeight(event: GithubEventResponse) {
 
 function isoDay(date: Date) {
   return date.toISOString().slice(0, 10)
+}
+
+function utcDay() {
+  return isoDay(new Date())
+}
+
+async function loadWorldieSupport(env: Env): Promise<WorldieSupportState> {
+  const saved = await env.GITHUB_PUBLIC_CACHE.get<WorldieSupportState>(WORLDIE_SUPPORT_KEY, 'json')
+  return saved ?? {
+    totalCount: WORLDIE_SUPPORT_BASE_COUNT,
+    dailyCount: 0,
+    day: utcDay(),
+    previousDayCount: 0,
+    updatedAt: new Date().toISOString()
+  }
+}
+
+async function worldieSupport(request: Request, env: Env, headers: Record<string, string>) {
+  const state = await loadWorldieSupport(env)
+  const today = utcDay()
+
+  if (state.day !== today) {
+    state.totalCount += state.dailyCount
+    state.previousDayCount = state.dailyCount
+    state.dailyCount = 0
+    state.day = today
+    state.updatedAt = new Date().toISOString()
+  }
+
+  if (request.method === 'POST') {
+    state.dailyCount += 1
+    state.updatedAt = new Date().toISOString()
+  }
+
+  await env.GITHUB_PUBLIC_CACHE.put(WORLDIE_SUPPORT_KEY, JSON.stringify(state))
+  return Response.json({
+    totalCount: state.totalCount + state.dailyCount,
+    dailyCount: state.dailyCount,
+    day: state.day,
+    previousDayCount: state.previousDayCount,
+    updatedAt: state.updatedAt
+  }, { headers: { ...headers, 'cache-control': 'no-store' } })
+}
+
+async function aggregateWorldieSupport(env: Env) {
+  const state = await loadWorldieSupport(env)
+  const today = utcDay()
+  if (state.day === today) return
+
+  state.totalCount += state.dailyCount
+  state.previousDayCount = state.dailyCount
+  state.dailyCount = 0
+  state.day = today
+  state.updatedAt = new Date().toISOString()
+  await env.GITHUB_PUBLIC_CACHE.put(WORLDIE_SUPPORT_KEY, JSON.stringify(state))
 }
 
 function attackSummary(events: GithubEventResponse[]): AttackSummary {
@@ -264,11 +329,20 @@ function refreshSnapshot(env: Env) {
 async function publicSnapshot(env: Env, headers: Record<string, string>) {
   const cached = await env.GITHUB_PUBLIC_CACHE.get<GithubPublicSnapshot>(SNAPSHOT_KEY, 'json')
   if (cached) {
-    const stale = Date.parse(cached.expiresAt) <= Date.now()
-    return Response.json({ ...cached, stale }, {
+    let snapshot = cached
+    let stale = Date.parse(cached.expiresAt) <= Date.now()
+    if (stale) {
+      try {
+        snapshot = await refreshSnapshot(env)
+        stale = false
+      } catch (error) {
+        console.error('Stale GitHub snapshot refresh failed; serving cached snapshot', error)
+      }
+    }
+    return Response.json({ ...snapshot, stale }, {
       headers: {
         ...headers,
-        'cache-control': 'public, max-age=300, stale-while-revalidate=43200',
+        'cache-control': 'public, max-age=300',
         'x-github-snapshot': stale ? 'stale' : 'fresh'
       }
     })
@@ -279,7 +353,7 @@ async function publicSnapshot(env: Env, headers: Record<string, string>) {
     return Response.json({ ...snapshot, stale: false }, {
       headers: {
         ...headers,
-        'cache-control': 'public, max-age=300, stale-while-revalidate=43200',
+        'cache-control': 'public, max-age=300',
         'x-github-snapshot': 'fresh'
       }
     })
@@ -375,6 +449,9 @@ export default {
     if (url.pathname === '/github/discussions' && request.method === 'GET') {
       try { return await publicDiscussions(env, headers) } catch (error) { return Response.json({ error: error instanceof Error ? error.message : 'Discussion snapshot failed' }, { status: 503, headers }) }
     }
+    if (url.pathname === '/worldie-support' && (request.method === 'GET' || request.method === 'POST')) {
+      try { return await worldieSupport(request, env, headers) } catch (error) { return Response.json({ error: error instanceof Error ? error.message : 'Worldie support counter unavailable' }, { status: 503, headers: { ...headers, 'cache-control': 'no-store' } }) }
+    }
     if (url.pathname === '/oauth/token' && request.method === 'POST') {
       return exchangeToken(request, env, headers)
     }
@@ -386,9 +463,14 @@ export default {
 
   async scheduled(_controller: unknown, env: Env, context: WorkerContext) {
     context.waitUntil(
-      refreshSnapshot(env)
-        .then((snapshot) => { console.log(`GitHub snapshot refreshed at ${snapshot.fetchedAt}`) })
-        .catch((error) => { console.error('GitHub snapshot refresh failed', error) })
+      Promise.all([
+        refreshSnapshot(env)
+          .then((snapshot) => { console.log(`GitHub snapshot refreshed at ${snapshot.fetchedAt}`) })
+          .catch((error) => { console.error('GitHub snapshot refresh failed', error) }),
+        aggregateWorldieSupport(env)
+          .then(() => { console.log('Worldie daily support count aggregated') })
+          .catch((error) => { console.error('Worldie support aggregation failed', error) })
+      ])
     )
   }
 }
