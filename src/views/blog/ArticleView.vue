@@ -17,7 +17,7 @@
             <span class="mono">{{ formatDate(currentArticle.date) }}</span>
             <span v-if="currentArticle.category">{{ currentArticle.category }}</span>
             <span class="mono">{{ t('article.comments', { count: commentCount }) }}</span>
-            <span class="mono">{{ t('nav.views') }} {{ countFor(currentArticle.id) }}</span>
+            <ViewCount :label="t('nav.views')" :value="countFor(currentArticle.id)" />
           </div>
           <div v-if="currentArticle.tags?.length" class="tags">
             <Tag v-for="tag in currentArticle.tags" :key="tag">{{ tag }}</Tag>
@@ -55,7 +55,7 @@
       <div v-else-if="!filteredArticles.length" class="state-box"><PhArticle :size="25" /><p>{{ t('article.empty') }}</p><button type="button" @click="clearFilters">{{ t('article.clearFilters') }}</button></div>
       <section v-else class="article-grid" :aria-label="t('article.listLabel')">
         <RouterLink v-for="(article, index) in filteredArticles" :key="article.id" :to="`/Animation3/article/detail/${article.id}`" class="article-card" :class="{ featured: index === 0 }" @pointermove="updatePointerGlow" @pointerleave="resetPointerGlow">
-          <div class="card-meta"><span class="mono">{{ formatDate(article.date) }}</span><span v-if="article.category">{{ article.category }}</span><span class="mono">{{ t('nav.views') }} {{ countFor(article.id) }}</span></div>
+          <div class="card-meta"><span class="mono">{{ formatDate(article.date) }}</span><span v-if="article.category">{{ article.category }}</span><ViewCount :label="t('nav.views')" :value="countFor(article.id)" /></div>
           <h2>{{ article.title }}</h2>
           <p>{{ article.description || truncateText(article.content, 120) }}</p>
           <div class="card-footer"><div class="tags"><Tag v-for="tag in article.tags.slice(0, 3)" :key="tag">{{ tag }}</Tag></div><PhArrowRight :size="22" weight="bold" /></div>
@@ -75,6 +75,7 @@ import CommentThread from '@/components/social/CommentThread.vue'
 import ReactionBar from '@/components/social/ReactionBar.vue'
 import Tag from '@/components/ui/Tag.vue'
 import TagCloud from '@/components/ui/TagCloud.vue'
+import ViewCount from '@/components/ui/ViewCount.vue'
 import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
 import { usePageDescription } from '@/utils/pageDescription'
 import { contentKey, loadContentCounts } from '@/service/visitCounts'

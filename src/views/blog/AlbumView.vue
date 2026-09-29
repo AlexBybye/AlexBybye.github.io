@@ -9,7 +9,7 @@
           <RouterLink class="album-row" :class="{ reverse: index % 2 === 1 }" :to="`/Animation3/album/detail/${album.id}`" @pointermove="updatePointerGlow" @pointerleave="resetPointerGlow">
             <div class="album-copy">
               <span class="mono">{{ String(index + 1).padStart(2, '0') }} / {{ t('album.photos', { count: album.count }) }}</span>
-              <span class="mono">{{ t('nav.views') }} {{ viewCounts[contentKey('album', album.id)] ?? '—' }}</span>
+              <ViewCount :label="t('nav.views')" :value="viewCounts[contentKey('album', album.id)]" />
               <h2>{{ album.title }}</h2>
               <p>{{ album.description }}</p>
               <span class="album-link">{{ t('album.open') }}<PhSoccerBall class="album-ball" :size="18" weight="fill" /><PhArrowRight :size="19" weight="bold" /></span>
@@ -30,6 +30,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PhArrowRight, PhSoccerBall, PhWarningCircle } from '@/design/icons'
 import RevealOnScroll from '@/components/ui/RevealOnScroll.vue'
+import ViewCount from '@/components/ui/ViewCount.vue'
 import { updatePointerGlow, resetPointerGlow } from '@/utils/pointerGlow'
 import { contentKey, loadContentCounts } from '@/service/visitCounts'
 

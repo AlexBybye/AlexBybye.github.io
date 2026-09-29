@@ -16,6 +16,7 @@ export default {
     open: 'Open navigation',
     close: 'Close navigation',
     friends: 'Friends',
+    attendance: 'Attendance',
     siteFans: 'Fans in the stands',
     views: 'Views',
     player: 'Music player',

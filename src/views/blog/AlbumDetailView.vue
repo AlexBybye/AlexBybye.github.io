@@ -32,7 +32,7 @@
           <dl>
             <div><dt>{{ t('albumDetail.date') }}</dt><dd class="mono">{{ album ? formatAlbumDate(album.date) : '-' }}</dd></div>
             <div><dt>{{ t('albumDetail.photoCount') }}</dt><dd class="mono">{{ photos.length }}</dd></div>
-            <div><dt>{{ t('nav.views') }}</dt><dd class="mono">{{ viewCount ?? '—' }}</dd></div>
+            <div><dt>{{ t('nav.views') }}</dt><dd><FlipCounter :value="viewCount" compact /></dd></div>
           </dl>
           <div class="load-pitch" :class="{ complete: loadPercent === 100 }" aria-live="polite">
             <span class="load-line" aria-hidden="true"><i :style="{ transform: `scaleX(${loadPercent / 100})` }" /></span>
@@ -97,6 +97,7 @@ import {
   PhX
 } from '@/design/icons'
 import { usePageDescription } from '@/utils/pageDescription'
+import FlipCounter from '@/components/ui/FlipCounter.vue'
 import { contentKey, loadContentCounts } from '@/service/visitCounts'
 
 const props = defineProps<{ id: string }>()
