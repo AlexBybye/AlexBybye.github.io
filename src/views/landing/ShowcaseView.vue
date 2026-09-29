@@ -67,12 +67,17 @@
     </div>
 
     <div class="stage-footer">
-      <div class="progress-markers" aria-hidden="true">
-        <span
-          v-for="(_, index) in panels"
-          :key="index"
+      <div class="progress-markers" role="group" :aria-label="t('landing.enterHome')">
+        <button
+          v-for="(panel, index) in panels"
+          :key="panel.id"
+          type="button"
+          class="progress-marker"
           :class="{ active: currentPanelIndex === index }"
-        ></span>
+          :aria-label="panel.title"
+          :aria-current="currentPanelIndex === index ? 'step' : undefined"
+          @click="selectPanel(index)"
+        ></button>
       </div>
 
       <button
@@ -144,6 +149,17 @@ const enterHome = () => {
   isEntering.value = true
   clearTimers()
   router.push({ name: 'Animation3' })
+}
+
+const selectPanel = (index) => {
+  if (isEntering.value || index === currentPanelIndex.value) return
+  currentPanelIndex.value = index
+  // Give the selected panel its full display interval before auto-advancing.
+  if (panelTimer) window.clearInterval(panelTimer)
+  panelTimer = window.setInterval(() => {
+    if (panels.value.length === 0) return
+    currentPanelIndex.value = (currentPanelIndex.value + 1) % panels.value.length
+  }, timing.value.panelDurationMs)
 }
 
 const startTimers = () => {
@@ -672,18 +688,42 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.progress-markers span {
+.progress-marker {
+  display: block;
   width: 26px;
   height: 4px;
-  background: rgba(255, 255, 255, 0.28);
+  padding: 8px 0;
+  border: 0;
+  background: linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.28)) center / 100% 4px no-repeat;
+  cursor: pointer;
   transition:
     width 0.25s ease,
-    background 0.25s ease;
+    background-size 0.25s ease,
+    filter 0.25s ease;
 }
 
-.progress-markers span.active {
+.progress-marker:hover,
+.progress-marker:focus-visible {
+  filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.8));
+  outline: none;
+}
+
+.progress-marker:focus-visible {
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.75);
+}
+
+.progress-marker.active {
   width: 46px;
-  background: #e30613;
+  background-image: linear-gradient(#e30613, #e30613);
+}
+
+.progress-marker:not(.active):hover {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
+}
+
+.progress-marker.active {
+  background-size: 100% 4px;
 }
 
 .enter-home-button {
