@@ -1,0 +1,893 @@
+[
+  {
+    "id": "致广漂三年的自己",
+    "title": "致广漂三年的自己：岭南雨里的青春与成长",
+    "date": "2026-09-28",
+    "category": "随笔",
+    "tags": [
+      "随笔",
+      "成长",
+      "广州"
+    ],
+    "description": "回望从东北到广州的三年经历，在离乡求学、生活碰壁与时间流逝中重新理解成长。"
+  },
+  {
+    "id": "prompt for senior",
+    "title": "SCUT-CSWeaver 项目面试叙事与准备思路",
+    "date": "2026-08-21",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "AI",
+      "Agent",
+      "项目"
+    ],
+    "description": "梳理智能复习助手的项目背景、架构亮点与开源故事表达方向"
+  },
+  {
+    "id": "SCUT-senior",
+    "title": "SCUT-CSWeaver：智能复习助手的项目背景与迭代任务",
+    "date": "2026-08-21",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Agent",
+      "RAG",
+      "项目"
+    ],
+    "description": "记录智能复习助手的项目背景、当前进展与后续迭代重点"
+  },
+  {
+    "id": "senior internship",
+    "title": "SCUT-CSWeaver 简历摘要与技术面试问题清单",
+    "date": "2026-08-21",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "AI",
+      "Agent",
+      "面试"
+    ],
+    "description": "整理智能复习助手的简历量化要点与架构、选型及安全设计面试题"
+  },
+  {
+    "id": "Agent Skill",
+    "title": "Agent Skill 自动化构建评测系统：核心问题与破局方案",
+    "date": "2026-07-24",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Agent",
+      "Skill",
+      "评测"
+    ],
+    "description": "从架构复杂度、评测成本、跨宿主适配与评估偏差分析 Skill 自动化系统的工程风险"
+  },
+  {
+    "id": "Skill-forge",
+    "title": "Skill Optimizer：面向 Agent Skills 的自动构建与全生命周期优化框架",
+    "date": "2026-07-24",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Agent",
+      "Skill",
+      "开源项目"
+    ],
+    "description": "介绍 Skill Optimizer 的设计目标、评测流程、跨宿主适配与迭代机制"
+  },
+  {
+    "id": "skill for skills方案重构",
+    "title": "Skill Optimizer 架构重构：从刚性流程到弹性评测",
+    "date": "2026-07-24",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Agent",
+      "Skill",
+      "架构设计"
+    ],
+    "description": "核对自动化 Skill 评测系统的设计批评，并提出按任务复杂度弹性缩放的重构方向"
+  },
+  {
+    "id": "调酒心得",
+    "title": "调酒心得：几杯家常鸡尾酒的配方与品鉴",
+    "date": "2026-07-10",
+    "category": "生活",
+    "tags": [
+      "鸡尾酒",
+      "配方",
+      "品鉴",
+      "金酒",
+      "朗姆酒"
+    ],
+    "description": "金酒朗姆伏特加打底，几款自调酒的比例与风味笔记"
+  },
+  {
+    "id": "真假iphone实用辨别技巧",
+    "title": "二手 iPhone 17 Pro 验机简要流程",
+    "date": "2026-06-30",
+    "category": "生活",
+    "tags": [
+      "iPhone",
+      "二手手机",
+      "验机",
+      "硬件检测",
+      "苹果"
+    ],
+    "description": "断网还原、序列号核验、换屏检测到 Mac 验机的完整清单"
+  },
+  {
+    "id": "2542-terminal全流程IO",
+    "title": "Text-to-SQL 全流程 IO 拆解：生成与守护 Agent",
+    "date": "2026-06-15",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Text-to-SQL",
+      "项目"
+    ],
+    "description": "生成 Agent 12 子阶段与守护 Agent 4 子阶段的端到端执行追踪"
+  },
+  {
+    "id": "Index31 result-show-terminal",
+    "title": "Text-to-SQL 级联流水线各阶段结果展示",
+    "date": "2026-06-14",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Text-to-SQL",
+      "项目"
+    ],
+    "description": "Spider concert_singer 样例的四阶段流水线原始输出产物"
+  },
+  {
+    "id": "文件说明",
+    "title": "DTS-SQL-2A42：解耦式四阶段级联 Text-to-SQL 系统",
+    "date": "2026-06-12",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Text-to-SQL",
+      "项目"
+    ],
+    "description": "基于 Qwen2.5-Coder-7B 的四阶段级联流水线与逐阶段纠错机制"
+  },
+  {
+    "id": "Vibe coding思考",
+    "title": "Vibe Coding 思考：从写代码到审代码",
+    "date": "2026-06-05",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "经验"
+    ],
+    "description": "AI 辅助编程如何重塑程序员角色与工作流优化的思考"
+  },
+  {
+    "id": "offer抉择",
+    "title": "Offer 抉择：华为数通 vs B站生态技术",
+    "date": "2026-05-25",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "前端"
+    ],
+    "description": "从薪资转正到技术栈成长，两份前端实习 offer 的全维度对比"
+  },
+  {
+    "id": "Go_Dash",
+    "title": "Go 冲刺五日计划：面向 AI 后端",
+    "date": "2026-05-20",
+    "category": "算法",
+    "tags": [
+      "Go",
+      "算法",
+      "面试"
+    ],
+    "description": "以 AI 后端工具为主题的 5 天 Go 速成与面试重点"
+  },
+  {
+    "id": "HR面试",
+    "title": "大厂前端校招 HR 面试全攻略",
+    "date": "2026-05-18",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "面试",
+      "前端"
+    ],
+    "description": "腾讯华为B站 HR 场景拆解、话术模板与反问清单"
+  },
+  {
+    "id": "Opengame demo",
+    "title": "用 OpenGame 复刻植物大战僵尸的 Agentic 实验",
+    "date": "2026-05-08",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "项目"
+    ],
+    "description": "借助 OpenGame 框架撰写 Agentic 工作流与长 Prompt 工程实验报告"
+  },
+  {
+    "id": "前端代码",
+    "title": "前端手撕代码高频题合集",
+    "date": "2026-04-15",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "JavaScript",
+      "手撕代码"
+    ],
+    "description": "深浅拷贝、调度器、懒加载、虚拟列表等高频手写题实现"
+  },
+  {
+    "id": "力扣算法",
+    "title": "Python LeetCode 算法速通模板：从基础到高频",
+    "date": "2026-04-14",
+    "category": "算法",
+    "tags": [
+      "算法",
+      "Python",
+      "面试"
+    ],
+    "description": "高频数据结构与算法套路及适用场景速查"
+  },
+  {
+    "id": "Hint",
+    "title": "Text-to-SQL 的 AST Diff 语义层复查机制",
+    "date": "2026-04-10",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "Text2SQL",
+      "研究"
+    ],
+    "description": "探讨如何通过 AST 差异定位 SQL 语义变化，并在生成过程中加入结构约束和复查。"
+  },
+  {
+    "id": "响应式数据",
+    "title": "Vue 响应式数据：ref 与 reactive 的基本用法",
+    "date": "2026-04-10",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "前端",
+      "响应式"
+    ],
+    "description": "通过示例整理 Vue 中 ref 和 reactive 的使用方式及响应式对象的修改方法。"
+  },
+  {
+    "id": "项目拷打",
+    "title": "项目拷打：VPet、个人博客与商城的深挖问答",
+    "date": "2026-04-10",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "项目",
+      "面试"
+    ],
+    "description": "三个项目的架构拆解与前端排障问答准备"
+  },
+  {
+    "id": "速成篇——狗急跳墙的y少",
+    "title": "速成篇——狗急跳墙的y少",
+    "date": "2026-04-09",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "手撕代码",
+      "面试"
+    ],
+    "description": "临门一脚的前端手撕必背与面试应急战术"
+  },
+  {
+    "id": "前端八股",
+    "title": "前端八股全景图：从 HTML/CSS 到 AI Coding",
+    "date": "2026-04-08",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "JavaScript",
+      "Vue",
+      "面试"
+    ],
+    "description": "覆盖 HTML/CSS/JS/TS/Vue/网络/浏览器/安全的面试理论合集"
+  },
+  {
+    "id": "Nowadays_Internship_Preparation",
+    "title": "当下实习准备 NIP：前端面试冲刺日志",
+    "date": "2026-04-05",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "面试",
+      "备考"
+    ],
+    "description": "投递到面试的近期作战计划与逐日复盘日志"
+  },
+  {
+    "id": "leetcode_algorithm_challenge",
+    "title": "LeetCode 算法冲刺：14 天备考计划",
+    "date": "2026-04-03",
+    "category": "算法",
+    "tags": [
+      "算法",
+      "面试",
+      "备考"
+    ],
+    "description": "14 天窗口内八股与算法的备考取舍"
+  },
+  {
+    "id": "Future_Internship_Preparation",
+    "title": "未来实习规划 FIP：AI Agent 与数据工程方向",
+    "date": "2026-04-01",
+    "category": "求职",
+    "tags": [
+      "求职",
+      "AI"
+    ],
+    "description": "面向 AI Agent 与数据工程的长期实习方向规划"
+  },
+  {
+    "id": "Front_End_Personal_Experience",
+    "title": "前端经验分享",
+    "date": "2026-03-27",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "Vue",
+      "经验"
+    ],
+    "description": "卡了电竞y少如何评价前端之旅？"
+  },
+  {
+    "id": "Ielts_experience_sharing",
+    "title": "雅思经验分享",
+    "date": "2026-03-23",
+    "category": "雅思英语",
+    "tags": [
+      "雅思",
+      "备考",
+      "经验"
+    ],
+    "description": "卡了电竞y少如何评价雅思之旅？"
+  },
+  {
+    "id": "Ielts_listening&reading",
+    "title": "雅思听力阅读备考",
+    "date": "2026-01-21",
+    "category": "雅思英语",
+    "tags": [
+      "雅思",
+      "备考"
+    ],
+    "description": "卡了电竞y少如何能够收集信息？"
+  },
+  {
+    "id": "Ielts_spoken",
+    "title": "IELTS口语备考",
+    "date": "2026-01-21",
+    "category": "雅思英语",
+    "tags": [
+      "雅思",
+      "备考"
+    ],
+    "description": "卡了电竞y少如何能够脱离卡死？"
+  },
+  {
+    "id": "Ielts_writing",
+    "title": "雅思写作备考",
+    "date": "2026-01-21",
+    "category": "雅思英语",
+    "tags": [
+      "雅思",
+      "备考"
+    ],
+    "description": "卡了电竞y少如何能够书写奇迹？"
+  },
+  {
+    "id": "blog_build_celebration",
+    "title": "个人博客建站庆祝 - 项目功能介绍与使用指南",
+    "date": "2026-01-20",
+    "category": "前端",
+    "tags": [
+      "前端",
+      "Vue",
+      "项目"
+    ],
+    "description": "庆祝个人博客网站成功上线，详细介绍项目功能和使用方法"
+  },
+  {
+    "id": "Socket",
+    "title": "Socket 网络通信实践",
+    "date": "2025-12-17",
+    "category": "网络编程",
+    "tags": [
+      "网络编程",
+      "Socket"
+    ],
+    "description": "记录 Socket 服务端与客户端通信的基本流程，以及连接和调试时的实践步骤。"
+  },
+  {
+    "id": "Docker应用",
+    "title": "Docker 应用与云端部署",
+    "date": "2025-12-14",
+    "category": "后端",
+    "tags": [
+      "Docker",
+      "后端"
+    ],
+    "description": "概述 Docker 容器在部署中的作用，以及如何借助容器保持应用运行环境一致。"
+  },
+  {
+    "id": "全栈之前后端协同心得",
+    "title": "JavaMall 全栈协同排障：登录认证与前后端联调",
+    "date": "2025-12-13",
+    "category": "Java",
+    "tags": [
+      "Java",
+      "全栈",
+      "项目实践"
+    ],
+    "description": "记录前后端联调中登录注册、认证拦截、数据库连接和字段匹配问题的定位过程。"
+  },
+  {
+    "id": "后端问题心得",
+    "title": "JavaMall 后端排障记录：从认证拦截到数据库事务",
+    "date": "2025-12-12",
+    "category": "Java",
+    "tags": [
+      "Java",
+      "后端",
+      "项目实践"
+    ],
+    "description": "整理 JavaMall 开发中的部署路径、认证过滤、数据库结构与事务问题排查。"
+  },
+  {
+    "id": "基于Vite创建Vue项目",
+    "title": "从 Vite 创建 Vue 项目",
+    "date": "2025-12-12",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "Vite",
+      "前端"
+    ],
+    "description": "梳理使用 Vite 初始化 Vue 项目、理解目录结构并启动开发环境的基本步骤。"
+  },
+  {
+    "id": "算法分析",
+    "title": "算法分析：时间复杂度计算",
+    "date": "2025-06-14",
+    "category": "算法",
+    "tags": [
+      "算法",
+      "复杂度",
+      "数据结构"
+    ],
+    "description": "通过常见代码结构和求和关系，整理分析算法时间复杂度的基本方法。"
+  },
+  {
+    "id": "分治",
+    "title": "分治算法：拆分、求解与合并",
+    "date": "2025-06-12",
+    "category": "算法",
+    "tags": [
+      "算法",
+      "分治"
+    ],
+    "description": "通过将问题拆分成较小子问题、递归求解并合并结果，构建分治算法的基本框架。"
+  },
+  {
+    "id": "Git 理论知识",
+    "title": "Git 理论知识与版本协作",
+    "date": "2025-06-06",
+    "category": "工具",
+    "tags": [
+      "Git",
+      "开发工具"
+    ],
+    "description": "从版本记录、分支和协作角度整理 Git 的核心概念与常见使用方式。"
+  },
+  {
+    "id": "Github平台的使用：",
+    "title": "GitHub 平台与远程仓库基础",
+    "date": "2025-06-06",
+    "category": "工具",
+    "tags": [
+      "Git",
+      "GitHub"
+    ],
+    "description": "整理 GitHub 仓库与本地 Git 项目之间的基本协作流程。"
+  },
+  {
+    "id": "Git分支：",
+    "title": "Git 分支：并行开发与合并",
+    "date": "2025-06-06",
+    "category": "工具",
+    "tags": [
+      "Git",
+      "开发工具"
+    ],
+    "description": "介绍 Git 分支如何支持并行开发，以及创建、切换和合并分支的基本思路。"
+  },
+  {
+    "id": "Git在各个IDE的联动教程：",
+    "title": "在 IDE 中使用 Git：以 PyCharm 为例",
+    "date": "2025-06-06",
+    "category": "工具",
+    "tags": [
+      "Git",
+      "PyCharm"
+    ],
+    "description": "以 PyCharm 为例，整理本地项目关联 Git、提交更改和使用远程仓库的流程。"
+  },
+  {
+    "id": "toRaw markRaw",
+    "title": "Vue 响应式对象中的 toRaw 与 markRaw",
+    "date": "2025-05-17",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "响应式"
+    ],
+    "description": "解释 toRaw 获取原始对象和 markRaw 跳过响应式转换的用途与适用场景。"
+  },
+  {
+    "id": "CV任务分类：",
+    "title": "计算机视觉任务分类",
+    "date": "2025-05-14",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "计算机视觉"
+    ],
+    "description": "梳理计算机视觉中的分类、目标检测等常见任务，比较各自的目标与输出。"
+  },
+  {
+    "id": "slot插槽",
+    "title": "Vue 插槽：复用组件内容结构",
+    "date": "2025-05-12",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "组件",
+      "前端"
+    ],
+    "description": "说明插槽如何让父组件向子组件提供可复用的模板内容，并梳理常见使用场景。"
+  },
+  {
+    "id": "HTML与Script在VUE下交互",
+    "title": "Vue 中 HTML 模板与 Script 逻辑的交互",
+    "date": "2025-05-11",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "JavaScript",
+      "前端"
+    ],
+    "description": "记录 Vue 模板与脚本之间的数据绑定和事件交互方式，并结合示例说明基本流程。"
+  },
+  {
+    "id": "provide inject实现组件通信",
+    "title": "Vue provide 与 inject 组件通信",
+    "date": "2025-05-11",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "组件通信",
+      "前端"
+    ],
+    "description": "介绍 provide 和 inject 如何在组件树中跨层传递依赖，并说明基本使用方式。"
+  },
+  {
+    "id": "自定义hooks-组合式API的究极奥义axios",
+    "title": "Vue 组合式 API 与自定义 Axios Hooks",
+    "date": "2025-05-06",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "Composition API",
+      "Axios"
+    ],
+    "description": "通过自定义组合式函数封装 Axios 请求逻辑，整理状态复用和异步请求处理思路。"
+  },
+  {
+    "id": "getters&subscribe&组合式pinia",
+    "title": "Pinia Getters、Subscribe 与组合式 Store",
+    "date": "2025-04-28",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "Pinia",
+      "前端"
+    ],
+    "description": "梳理 Pinia 中 getters 的派生状态能力、subscribe 的变更订阅方式和组合式 Store 写法。"
+  },
+  {
+    "id": "ResNet50+TinyViT_5M Knowledge Distillation",
+    "title": "ResNet50 与 TinyViT_5M 知识蒸馏实践",
+    "date": "2025-04-28",
+    "category": "AI",
+    "tags": [
+      "AI",
+      "深度学习",
+      "知识蒸馏"
+    ],
+    "description": "以 ResNet50 为教师模型、TinyViT_5M 为学生模型，通过知识蒸馏在分类精度与模型开销之间取得平衡。"
+  },
+  {
+    "id": "StoretoRefs& nanoid",
+    "title": "Pinia 的 storeToRefs 与 nanoid",
+    "date": "2025-04-26",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "Pinia"
+    ],
+    "description": "说明如何用 storeToRefs 在解构 Pinia 状态时保留响应性，并介绍 nanoid 的使用场景。"
+  },
+  {
+    "id": "pinia储存、读取与修改",
+    "title": "Pinia 状态的创建、读取与修改",
+    "date": "2025-04-25",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "Pinia",
+      "前端"
+    ],
+    "description": "通过示例整理 Pinia Store 的定义、组件读取状态以及更新状态的基本方式。"
+  },
+  {
+    "id": "嵌套路由及传参",
+    "title": "Vue Router 嵌套路由与参数传递",
+    "date": "2025-04-20",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "Vue Router",
+      "前端"
+    ],
+    "description": "结合页面结构说明嵌套路由配置，以及通过路由参数向页面传递数据的做法。"
+  },
+  {
+    "id": "路由组件及工作模式等小改动",
+    "title": "Vue Router 路由组件与工作模式",
+    "date": "2025-04-19",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "Vue Router",
+      "前端"
+    ],
+    "description": "整理路由组件与普通组件的区别，并记录 Vue Router 工作模式和配置调整。"
+  },
+  {
+    "id": "路由入门",
+    "title": "Vue Router 入门：路由与页面切换",
+    "date": "2025-04-18",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "Vue Router",
+      "前端"
+    ],
+    "description": "介绍 Vue Router 的基本概念、路由配置和在单页应用中切换页面的方式。"
+  },
+  {
+    "id": "axios交互",
+    "title": "Axios 请求与响应处理",
+    "date": "2025-04-15",
+    "category": "前端",
+    "tags": [
+      "JavaScript",
+      "前端",
+      "Axios"
+    ],
+    "description": "整理 Axios 的安装、请求配置与响应处理方式，并给出浏览器端 HTTP 交互的入门示例。"
+  },
+  {
+    "id": "async异步编程",
+    "title": "JavaScript 异步编程入门：async、await 与错误处理",
+    "date": "2025-04-14",
+    "category": "前端",
+    "tags": [
+      "JavaScript",
+      "前端",
+      "异步编程"
+    ],
+    "description": "从 Promise 与异步请求示例理解 async、await 的基本用法和 try/catch 错误处理。"
+  },
+  {
+    "id": "生命周期与v-家族",
+    "title": "Vue 生命周期与指令基础",
+    "date": "2025-04-14",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "前端"
+    ],
+    "description": "整理 Vue 组件生命周期各阶段，以及常用 v- 系列指令的使用要点。"
+  },
+  {
+    "id": "组件的props",
+    "title": "Vue 组件 Props：声明与数据传递",
+    "date": "2025-04-14",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "组件通信",
+      "前端"
+    ],
+    "description": "介绍组件 Props 的声明、类型约束和父组件向子组件传递数据的常见方式。"
+  },
+  {
+    "id": "监视watch&watchEffect",
+    "title": "Vue watch 与 watchEffect：监听响应式变化",
+    "date": "2025-04-12",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "响应式",
+      "前端"
+    ],
+    "description": "比较 watch 和 watchEffect 的依赖追踪方式，并整理监听 ref、reactive 数据时的常见写法。"
+  },
+  {
+    "id": "computed计算属性及单双向绑定",
+    "title": "Vue computed、v-bind 与 v-model 入门",
+    "date": "2025-04-06",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "前端",
+      "计算属性"
+    ],
+    "description": "结合表单示例梳理 Vue 的单向绑定、双向绑定与 computed 计算属性。"
+  },
+  {
+    "id": "文件框架解析",
+    "title": "Vue 项目文件结构解析",
+    "date": "2025-04-05",
+    "category": "前端",
+    "tags": [
+      "Vue",
+      "项目结构",
+      "前端"
+    ],
+    "description": "结合项目目录和入口文件，梳理 Vue 应用从启动到组件渲染的基本结构。"
+  },
+  {
+    "id": "分布梯度提升XGBoost",
+    "title": "XGBoost：梯度提升树分类方法",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "XGBoost"
+    ],
+    "description": "介绍 XGBoost 的梯度提升思路、目标函数和分类应用，并梳理常见优缺点。"
+  },
+  {
+    "id": "基于实例的学习KNN",
+    "title": "K 最近邻算法（KNN）",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "分类算法",
+      "KNN"
+    ],
+    "description": "介绍 KNN 如何根据样本距离寻找近邻，并通过邻居投票完成分类。"
+  },
+  {
+    "id": "多项式回归",
+    "title": "多项式回归：拟合非线性关系",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "回归",
+      "多项式回归"
+    ],
+    "description": "通过扩展输入特征的多项式项，让线性回归模型拟合非线性数据关系。"
+  },
+  {
+    "id": "支持向量回归SVR",
+    "title": "支持向量回归（SVR）",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "回归",
+      "SVR"
+    ],
+    "description": "介绍支持向量回归的基本目标、间隔思想和用于连续值预测的方式。"
+  },
+  {
+    "id": "支持向量机SVM",
+    "title": "支持向量机（SVM）",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "分类算法",
+      "SVM"
+    ],
+    "description": "介绍支持向量机如何寻找最大间隔超平面，以及它处理分类问题的基本思路。"
+  },
+  {
+    "id": "朴素贝叶斯NB",
+    "title": "朴素贝叶斯分类器",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "分类算法",
+      "朴素贝叶斯"
+    ],
+    "description": "整理朴素贝叶斯的基本假设、分类过程与适用场景。"
+  },
+  {
+    "id": "算法概述",
+    "title": "算法概述：从问题类型到常见算法范式",
+    "date": "2025-04-03",
+    "category": "算法",
+    "tags": [
+      "算法",
+      "学习笔记"
+    ],
+    "description": "梳理算法的常见类别、适用问题与基本思路，作为数据结构和算法学习的整体导航。"
+  },
+  {
+    "id": "线性回归Lin_R",
+    "title": "线性回归：基本模型与预测",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "回归",
+      "线性回归"
+    ],
+    "description": "整理线性回归的模型形式、拟合思路和使用输入特征预测连续数值的基本过程。"
+  },
+  {
+    "id": "逻辑回归 Lo_R",
+    "title": "逻辑回归：从线性组合到分类概率",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "分类算法",
+      "逻辑回归"
+    ],
+    "description": "介绍逻辑回归如何将线性模型输出映射为类别概率，并用于二分类预测。"
+  },
+  {
+    "id": "随机森林分类RFC",
+    "title": "随机森林分类：原理与任务差异",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "分类算法",
+      "随机森林"
+    ],
+    "description": "以随机森林为例，说明集成决策树进行分类的思路，并比较分类与回归任务。"
+  },
+  {
+    "id": "随机森林回归RFR",
+    "title": "随机森林回归",
+    "date": "2025-04-03",
+    "category": "机器学习",
+    "tags": [
+      "机器学习",
+      "回归",
+      "随机森林"
+    ],
+    "description": "介绍随机森林回归如何综合多棵决策树的预测结果，并说明其基本原理与特点。"
+  }
+]

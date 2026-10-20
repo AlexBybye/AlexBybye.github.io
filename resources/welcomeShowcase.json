@@ -1,0 +1,64 @@
+{
+  "timing": {
+    "panelDurationMs": 5000,
+    "totalDurationMs": 30000
+  },
+  "styles": {
+    "red": {
+      "tone": "red",
+      "direction": "to-right",
+      "accent": "#e30613"
+    },
+    "black": {
+      "tone": "black",
+      "direction": "to-left",
+      "accent": "#0d0d0d"
+    }
+  },
+  "panels": [
+    {
+      "id": "musiala",
+      "style": "red",
+      "kicker": "BETWEEN THE LINES",
+      "title": "JAMAL MUSIALA",
+      "body": "低重心、连续变向、在狭小空间里持球推进。Musiala 擅长从两线之间转身，把一次普通接球变成禁区威胁。",
+      "stat": "DRIBBLING / CLOSE CONTROL / CARRYING",
+      "heroPhoto": "musiala",
+      "photos": ["musiala", "teamUcl"],
+      "gifs": ["musiala", "kane"]
+    },
+    {
+      "id": "diaz",
+      "style": "black",
+      "kicker": "DIRECT FROM THE LEFT",
+      "title": "LUIS DÍAZ",
+      "body": "接球后立刻提速，主动攻击边后卫身后的空间。Díaz 用连续跑动拉开左路，也能内切寻找射门机会。",
+      "stat": "PACE / PRESSING / DIRECT RUNS",
+      "heroPhoto": "diaz",
+      "photos": ["diaz", "teamUcl"],
+      "gifs": ["muller", "kompany"]
+    },
+    {
+      "id": "kimmich",
+      "style": "red",
+      "kicker": "SET THE TEMPO",
+      "title": "JOSHUA KIMMICH",
+      "body": "Kimmich 不断观察队友的位置，决定下一脚传球的方向。他负责出球、转移和反抢，让拜仁稳住阵型与节奏。",
+      "stat": "PASSING / POSITIONING / TEMPO",
+      "heroPhoto": "kimmich",
+      "photos": ["kimmich"],
+      "gifs": ["kimmich", "neuer"]
+    },
+    {
+      "id": "olise",
+      "style": "black",
+      "kicker": "CREATE FROM THE RIGHT",
+      "title": "MICHAEL OLISE",
+      "body": "Olise 能在右路送出最后一传，也能内切完成射门。进球后，他把手指放到唇边，用安静的庆祝回应看台。",
+      "stat": "CREATIVITY / FINISHING / COMPOSURE",
+      "heroPhoto": "olise",
+      "photos": ["olise"],
+      "gifs": ["olise", "kompany"]
+    }
+  ]
+}
